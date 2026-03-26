@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Télécharger Devis — DevisVoice</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:#0d0d0d;color:#f0f0f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.card{background:#161616;border:1px solid #2a2a2a;border-radius:16px;padding:40px 32px;max-width:480px;width:100%;text-align:center;}
+.logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;margin-bottom:32px;}
+.logo span{color:#FF4500;}
+.spinner{width:48px;height:48px;border:3px solid rgba(255,69,0,.2);border-top-color:#FF4500;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 20px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+h1{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:8px;}
+.sub{font-size:14px;color:#888;margin-bottom:24px;line-height:1.6;}
+.btn{display:inline-block;background:#FF4500;color:#fff;border:none;padding:14px 32px;border-radius:8px;font-weight:700;font-size:15px;cursor:pointer;text-decoration:none;}
+.btn:hover{background:#ff6a35;}
+#devis-container{display:none;position:fixed;top:-9999px;left:-9999px;width:800px;background:#fff;color:#222;padding:30px;font-family:Arial,sans-serif;font-size:12px;}
+#devis-container h1{color:#FF4500;font-size:18px;margin-bottom:4px;}
+#devis-container h2{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#999;margin:14px 0 6px;}
+#devis-container table{width:100%;border-collapse:collapse;margin:6px 0 12px;}
+#devis-container th{background:#FF4500;color:#fff;padding:7px 8px;text-align:left;}
+#devis-container td{padding:6px 8px;border-bottom:1px solid #eee;vertical-align:top;}
+#devis-container tr{page-break-inside:avoid;}
+#devis-container .sec-header{page-break-after:avoid;}
+.hgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.iblk{background:#f5f5f5;padding:10px 12px;border-radius:6px;font-size:11px;line-height:1.7;}
+.totaux-box{margin-left:auto;width:220px;background:#f5f5f5;padding:10px 12px;border-radius:6px;}
+.trow{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #ddd;font-size:12px;}
+.trow:last-child{border:none;font-weight:700;font-size:14px;color:#FF4500;padding-top:6px;}
+.sec-header{background:#fff3ee;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#FF4500;padding:8px;}
+.cond-box{background:#f5f5f5;padding:10px 12px;border-radius:6px;font-size:11px;color:#666;margin-top:12px;line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">Devis<span>Voice</span></div>
+  <div id="loading">
+    <div class="spinner"></div>
+    <h1>Préparation du PDF…</h1>
+    <p class="sub">Votre devis est en cours de génération,<br>le téléchargement va démarrer automatiquement.</p>
+  </div>
+  <div id="success" style="display:none">
+    <div style="font-size:48px;margin-bottom:16px">📄</div>
+    <h1>PDF prêt !</h1>
+    <p class="sub">Votre devis a été téléchargé.<br>Vérifiez vos téléchargements.</p>
+    <button class="btn" onclick="telecharger()">Télécharger à nouveau</button>
+  </div>
+  <div id="error" style="display:none">
+    <div style="font-size:48px;margin-bottom:16px">⚠️</div>
+    <h1>Devis introuvable</h1>
+    <p class="sub">Ce lien a expiré ou le devis n'existe plus.<br>Contactez votre artisan.</p>
+  </div>
+</div>
+
+<div id="devis-container"></div>
+
+<script>
+const BACKEND = 'https://devisvoice-backend-production-9ed2.up.railway.app';
+let devisData = null;
+
+function fmt(n){return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+function renderHtml(d){
+  let sectionsHtml = '';
+  if(d.sections && d.sections.length){
+    d.sections.forEach(s=>{
+      sectionsHtml += `<tr><td colspan="5" class="sec-header">${s.emoji} ${s.metier}</td></tr>`;
+      s.postes.forEach((p,i)=>{
+        sectionsHtml += `<tr style="background:${i%2?'#f9f9f9':'#fff'}">
+          <td><strong>${p.id}. ${p.titre}</strong><br><span style="font-size:11px;color:#777">${p.description}</span></td>
+          <td style="text-align:center">${p.qte}</td>
+          <td style="text-align:center">${p.unite}</td>
+          <td style="text-align:right">${fmt(p.pu_ht)} €</td>
+          <td style="text-align:right"><strong>${fmt(p.total_ht)} €</strong></td>
+        </tr>`;
+      });
+    });
+  }
+  document.getElementById('devis-container').innerHTML = `
+    <h1>DEVIS N° ${d.numero}</h1>
+    <div style="font-size:11px;color:#999;margin-bottom:12px">Date : ${d.date} | Validité : ${d.validite}</div>
+    <div class="hgrid">
+      <div class="iblk"><strong>Entreprise</strong><br>${d.entreprise.nom}<br>${d.entreprise.siret?'SIRET : '+d.entreprise.siret+'<br>':''}${d.entreprise.tel||''}</div>
+      <div class="iblk"><strong>Maître d'Ouvrage</strong><br>${d.client.nom}<br>${d.client.email||''}<br>${d.chantier.adresse||''}</div>
+    </div>
+    <div class="iblk" style="margin-bottom:12px"><strong>Nature :</strong> ${d.chantier.nature} | <strong>Délai :</strong> ${d.chantier.delai}</div>
+    <table><thead><tr><th>Désignation</th><th style="text-align:center">Qté</th><th style="text-align:center">Unité</th><th style="text-align:right">P.U. HT</th><th style="text-align:right">Total HT</th></tr></thead><tbody>${sectionsHtml}</tbody></table>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+      <div class="totaux-box">
+        <div class="trow"><span>Total HT</span><span>${fmt(d.total_ht)} €</span></div>
+        <div class="trow"><span>TVA ${d.tva_pct}%</span><span>${fmt(d.tva_montant)} €</span></div>
+        <div class="trow"><span>TOTAL TTC</span><span>${fmt(d.total_ttc)} €</span></div>
+      </div>
+    </div>
+    <div style="font-style:italic;font-size:11px;color:#999;text-align:right;margin-bottom:10px">Arrêté à : ${d.total_lettres}</div>
+    <div class="cond-box">${d.conditions}<br>${d.mentions||''}</div>
+    <div style="margin-top:8px;font-size:11px;color:#bbb;text-align:center">Bon pour accord : _________________ &nbsp; Date : _________________</div>
+    <div style="margin-top:16px;font-size:10px;color:#ccc;text-align:center">Généré avec DevisVoice</div>`;
+}
+
+async function telecharger(){
+  if(!devisData) return;
+  const { jsPDF } = window.jspdf;
+  const el = document.getElementById('devis-container');
+  el.style.display = 'block';
+  renderHtml(devisData);
+  await new Promise(r=>setTimeout(r,400));
+
+  const pdf = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const margin = 10;
+  const contentW = pageW - margin * 2;
+  const scale = 2;
+
+  // Récupère toutes les lignes du tableau + blocs à ne pas couper
+  const rows = el.querySelectorAll('tr, .hgrid, .iblk, .totaux-box, .cond-box, .trow');
+  const elRect = el.getBoundingClientRect();
+  const elScrollTop = el.scrollTop;
+
+  // Capture l'élément entier
+  const fullCanvas = await html2canvas(el, {scale, backgroundColor:'#ffffff', windowWidth:800, scrollY:0});
+  el.style.display = 'none';
+
+  const pxPerMm = (fullCanvas.width / scale) / el.offsetWidth * (contentW / (el.offsetWidth));
+  const totalHeightMm = (fullCanvas.height / scale) * (contentW / (el.offsetWidth / scale * scale)) * (contentW / contentW);
+
+  // Calcule les positions de coupure sûres (entre les lignes)
+  const containerTop = el.getBoundingClientRect().top + window.scrollY;
+  const safeBreaks = [0]; // positions en px dans le canvas où on peut couper
+
+  rows.forEach(row => {
+    const rect = row.getBoundingClientRect();
+    const rowBottom = (rect.bottom - elRect.top) * scale;
+    safeBreaks.push(rowBottom);
+  });
+  safeBreaks.sort((a,b)=>a-b);
+
+  // Hauteur d'une page en px canvas
+  const pageHeightPx = (pageH - margin * 2) * (fullCanvas.width / contentW);
+
+  let pageStart = 0;
+  let pageNum = 0;
+
+  while(pageStart < fullCanvas.height){
+    if(pageNum > 0) pdf.addPage();
+
+    // Trouve la coupure sûre la plus proche avant pageStart + pageHeightPx
+    let pageEnd = pageStart + pageHeightPx;
+    if(pageEnd < fullCanvas.height){
+      // Cherche le dernier safe break avant pageEnd
+      let bestBreak = pageEnd;
+      for(let i = safeBreaks.length-1; i >= 0; i--){
+        if(safeBreaks[i] <= pageEnd && safeBreaks[i] > pageStart){
+          bestBreak = safeBreaks[i];
+          break;
+        }
+      }
+      pageEnd = bestBreak;
+    } else {
+      pageEnd = fullCanvas.height;
+    }
+
+    const sliceH = pageEnd - pageStart;
+    const sliceCanvas = document.createElement('canvas');
+    sliceCanvas.width = fullCanvas.width;
+    sliceCanvas.height = sliceH;
+    const ctx = sliceCanvas.getContext('2d');
+    ctx.drawImage(fullCanvas, 0, pageStart, fullCanvas.width, sliceH, 0, 0, fullCanvas.width, sliceH);
+
+    const imgData = sliceCanvas.toDataURL('image/jpeg', 0.92);
+    const sliceHeightMm = sliceH * (contentW / fullCanvas.width);
+    pdf.addImage(imgData, 'JPEG', margin, margin, contentW, sliceHeightMm);
+
+    pageStart = pageEnd;
+    pageNum++;
+  }
+
+  pdf.save('Devis-'+devisData.numero+'.pdf');
+  document.getElementById('loading').style.display='none';
+  document.getElementById('success').style.display='block';
+}
+
+async function init(){
+  const id = new URLSearchParams(window.location.search).get('id');
+  if(!id){ document.getElementById('loading').style.display='none'; document.getElementById('error').style.display='block'; return; }
+  try{
+    const r = await fetch(BACKEND+'/api/devis/'+encodeURIComponent(id));
+    if(!r.ok) throw new Error();
+    const row = await r.json();
+    devisData = typeof row.data === 'string' ? JSON.parse(row.data) : row.data;
+    await telecharger();
+  }catch(e){
+    document.getElementById('loading').style.display='none';
+    document.getElementById('error').style.display='block';
+  }
+}
+
+init();
+</script>
+</body>
+</html>

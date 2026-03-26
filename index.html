@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevisVoice</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+
+[data-theme="dark"] {
+  --bg:#0d0d0d;--bg2:#161616;--bg3:#1e1e1e;--border:#2a2a2a;
+  --text:#f0f0f0;--text2:#888;--card:#161616;--input-bg:#1e1e1e;
+  --nav:#080808;--tab-bg:#111;--shadow:0 4px 24px rgba(0,0,0,0.4);
+}
+[data-theme="light"] {
+  --bg:#f7f7f7;--bg2:#fff;--bg3:#efefef;--border:#e0e0e0;
+  --text:#111;--text2:#777;--card:#fff;--input-bg:#f7f7f7;
+  --nav:#111;--tab-bg:#f0f0f0;--shadow:0 4px 24px rgba(0,0,0,0.08);
+}
+[data-theme="beige"] {
+  --bg:#f0ebe3;--bg2:#fff;--bg3:#e8e0d5;--border:#d8d0c5;
+  --text:#1a1a1a;--text2:#888;--card:#fff;--input-bg:#faf7f3;
+  --nav:#111;--tab-bg:#e8e0d5;--shadow:0 4px 24px rgba(0,0,0,0.08);
+}
+:root{--orange:#FF4500;--orange2:#ff6a35;--radius:12px;--rsm:8px;}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;}
+
+nav{background:var(--nav);display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:56px;position:sticky;top:0;z-index:200;border-bottom:1px solid rgba(255,69,0,0.15);}
+.logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;letter-spacing:-.5px;}
+.logo span{color:var(--orange);}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.theme-sw{display:flex;background:rgba(255,255,255,.08);border-radius:20px;padding:3px;gap:2px;}
+.tbtn{width:26px;height:26px;border-radius:50%;border:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;background:transparent;opacity:.5;transition:opacity .2s,transform .2s;}
+.tbtn.active{opacity:1;background:rgba(255,255,255,.12);transform:scale(1.1);}
+.btn-agent{background:var(--orange);color:#fff;border:none;padding:7px 14px;font-family:'Syne',sans-serif;font-weight:700;font-size:11px;letter-spacing:.5px;text-transform:uppercase;border-radius:20px;cursor:pointer;}
+
+.tabs{background:var(--tab-bg);display:flex;padding:0 18px;border-bottom:1px solid var(--border);}
+.tab{background:none;border:none;color:var(--text2);font-family:'Inter',sans-serif;font-weight:500;font-size:13px;padding:13px 16px 11px;cursor:pointer;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;}
+.tab.active{color:var(--orange);border-bottom-color:var(--orange);}
+
+.content{display:none;padding:20px 16px 60px;max-width:780px;margin:0 auto;}
+.content.active{display:block;}
+
+.card{background:var(--card);border-radius:var(--radius);margin-bottom:14px;border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;transition:background .3s;}
+.card-header{padding:13px 18px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:8px;}
+.ch-orange{background:var(--orange);color:#fff;}
+.ch-dark{background:var(--bg3);color:var(--text);border-bottom:1px solid var(--border);}
+.card-body{padding:16px 18px;}
+
+.form-group{margin-bottom:13px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px;}
+@media(max-width:520px){.form-row{grid-template-columns:1fr;}}
+label{display:block;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:5px;}
+input,textarea,select{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--rsm);font-family:'Inter',sans-serif;font-size:14px;color:var(--text);background:var(--input-bg);outline:none;transition:border-color .2s,background .3s;}
+input:focus,textarea:focus,select:focus{border-color:var(--orange);}
+input::placeholder,textarea::placeholder{color:var(--text2);opacity:.55;}
+textarea{min-height:90px;resize:vertical;line-height:1.6;}
+select option{background:var(--card);color:var(--text);}
+
+.metiers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:4px;}
+@media(max-width:460px){.metiers-grid{grid-template-columns:repeat(2,1fr);}}
+.mc{background:var(--bg3);border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:11px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mc:hover,.mc.sel{border-color:var(--orange);color:var(--orange);background:rgba(255,69,0,.07);}
+
+/* ========= MICRO SHAZAM ========= */
+.mic-zone{display:flex;flex-direction:column;align-items:center;padding:32px 0 20px;}
+.mic-wrap{position:relative;width:140px;height:140px;margin-bottom:20px;display:flex;align-items:center;justify-content:center;}
+
+.rpl{position:absolute;border-radius:50%;opacity:0;pointer-events:none;border:2px solid rgba(255,69,0,.5);}
+.rpl-1{width:140px;height:140px;}
+.rpl-2{width:140px;height:140px;border-color:rgba(255,69,0,.35);}
+.rpl-3{width:140px;height:140px;border-color:rgba(255,69,0,.2);}
+
+.mic-main{
+  position:relative;z-index:2;
+  width:90px;height:90px;border-radius:50%;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 38% 35%, #ff6a35, #e63000 60%, #b82400);
+  box-shadow:
+    0 0 0 10px rgba(255,69,0,.12),
+    0 0 0 22px rgba(255,69,0,.06),
+    0 8px 32px rgba(255,69,0,.45),
+    0 2px 10px rgba(0,0,0,.4);
+  transition:transform .2s, box-shadow .2s;
+}
+.mic-main:hover{transform:scale(1.06);}
+.mic-main svg{width:36px;height:36px;fill:#fff;}
+.mic-main svg.ico-stop{display:none;}
+.mic-main.rec{
+  background:radial-gradient(circle at 38% 35%, #ff3333, #cc0000 60%, #900);
+  animation:mbeat .9s ease-in-out infinite alternate;
+}
+.mic-main.rec svg.ico-mic{display:none;}
+.mic-main.rec svg.ico-stop{display:block;}
+@keyframes mbeat{
+  from{box-shadow:0 0 0 10px rgba(255,30,30,.15),0 0 0 22px rgba(255,30,30,.07),0 8px 32px rgba(255,30,30,.5),0 2px 10px rgba(0,0,0,.4);}
+  to{box-shadow:0 0 0 16px rgba(255,30,30,.2),0 0 0 32px rgba(255,30,30,.08),0 14px 44px rgba(255,30,30,.6),0 2px 10px rgba(0,0,0,.4);transform:scale(1.07);}
+}
+
+
+
+.mic-lbl{font-size:13px;font-weight:500;color:var(--text2);text-align:center;min-height:18px;letter-spacing:.3px;}
+.mic-lbl.on{color:var(--orange);font-weight:600;}
+/* ================================= */
+
+.ex-box{background:rgba(255,69,0,.06);border-left:3px solid var(--orange);border-radius:0 7px 7px 0;padding:9px 13px;margin-bottom:13px;}
+.ex-lbl{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--orange);margin-bottom:4px;}
+.ex-box p{font-size:12px;color:var(--text2);font-style:italic;line-height:1.5;}
+
+.dictee-box{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--rsm);padding:13px;font-family:'Inter',sans-serif;font-size:14px;color:var(--text);line-height:1.6;min-height:75px;cursor:text;margin-top:6px;outline:none;}
+.dictee-box:empty:before{content:attr(data-ph);color:var(--text2);opacity:.5;}
+
+.btn-primary{width:100%;background:var(--orange);color:#fff;border:none;padding:15px;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;border-radius:var(--radius);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .2s;margin-top:4px;}
+.btn-primary:hover{background:var(--orange2);}
+.btn-primary:disabled{background:var(--border);cursor:not-allowed;color:var(--text2);}
+.btn-sec{background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:9px 16px;font-family:'Inter',sans-serif;font-weight:500;font-size:13px;border-radius:var(--rsm);cursor:pointer;transition:background .2s;white-space:nowrap;}
+.btn-sec:hover{background:var(--border);}
+
+.sbar{display:none;align-items:center;gap:10px;padding:12px 15px;border-radius:var(--rsm);margin-top:13px;font-size:13px;font-weight:500;}
+.sbar.loading{display:flex;background:rgba(255,69,0,.1);color:var(--orange);border:1px solid rgba(255,69,0,.2);}
+.sbar.success{display:flex;background:rgba(0,180,80,.1);color:#00b450;border:1px solid rgba(0,180,80,.2);}
+.sbar.error{display:flex;background:rgba(220,50,50,.1);color:#e04040;border:1px solid rgba(220,50,50,.2);}
+.spin{width:15px;height:15px;border:2px solid rgba(255,69,0,.3);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+#result-box{display:none;margin-top:14px;}
+.devis-wrap{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;}
+.devis-preview{padding:22px;font-size:13px;line-height:1.6;color:var(--text);overflow-x:auto;}
+.devis-preview h1{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;color:var(--orange);margin-bottom:3px;}
+.devis-preview h2{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin:16px 0 7px;}
+.hgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+@media(max-width:480px){.hgrid{grid-template-columns:1fr;}}
+.iblk{background:var(--bg3);border-radius:7px;padding:11px 13px;font-size:12px;line-height:1.7;}
+.iblk p{color:var(--text2);}
+.iblk strong{color:var(--text);}
+.devis-preview table{width:100%;border-collapse:collapse;margin:6px 0 14px;font-size:12px;}
+.devis-preview th{background:var(--orange);color:#fff;padding:8px 9px;text-align:left;font-weight:600;font-size:11px;}
+.devis-preview td{padding:7px 9px;border-bottom:1px solid var(--border);vertical-align:top;}
+.devis-preview tr:last-child td{border-bottom:none;}
+[data-theme="dark"] .devis-preview tr:nth-child(even) td{background:rgba(255,255,255,.025);}
+[data-theme="light"] .devis-preview tr:nth-child(even) td,[data-theme="beige"] .devis-preview tr:nth-child(even) td{background:rgba(0,0,0,.025);}
+.ptit{font-weight:600;color:var(--text);}
+.pdesc{font-size:11px;color:var(--text2);margin-top:2px;}
+.totaux-box{margin-left:auto;width:230px;background:var(--bg3);border-radius:8px;padding:11px 13px;}
+.trow{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;border-bottom:1px solid var(--border);}
+.trow:last-child{border:none;font-weight:700;font-size:15px;color:var(--orange);padding-top:7px;}
+.tlettres{font-style:italic;font-size:11px;color:var(--text2);margin-top:8px;text-align:right;}
+.cond-box{margin-top:14px;padding:11px 13px;background:var(--bg3);border-radius:7px;font-size:12px;color:var(--text2);line-height:1.7;}
+.validite-txt{margin-top:10px;font-size:11px;color:var(--text2);text-align:center;}
+.res-actions{padding:13px 16px;background:var(--bg3);display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--border);}
+
+.tcard-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-top:8px;}
+@media(max-width:540px){.tcard-grid{grid-template-columns:1fr;}}
+.tcard{border:1.5px solid var(--border);border-radius:var(--radius);padding:18px 14px;text-align:center;position:relative;background:var(--card);}
+.tcard.feat{border-color:var(--orange);}
+.tbadge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--orange);color:#fff;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 12px;border-radius:20px;}
+.tname{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;text-transform:uppercase;margin-bottom:7px;}
+.tprice{font-size:28px;font-weight:800;color:var(--orange);line-height:1;}
+.tprice span{font-size:13px;font-weight:400;color:var(--text2);}
+.tusers{font-size:12px;color:var(--text2);margin:5px 0 12px;}
+.tfeats{list-style:none;text-align:left;}
+.tfeats li{font-size:11px;padding:3px 0;color:var(--text2);}
+.tfeats li::before{content:"✓ ";color:var(--orange);font-weight:700;}
+
+.savebadge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,180,80,.12);color:#00b450;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;margin-top:8px;opacity:0;transition:opacity .3s;}
+.savebadge.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Devis<span>Voice</span></div>
+  <div class="nav-right">
+    <div class="theme-sw">
+      <button class="tbtn active" onclick="setTheme('dark',this)">🌙</button>
+      <button class="tbtn" onclick="setTheme('light',this)">☀️</button>
+      <button class="tbtn" onclick="setTheme('beige',this)">🟤</button>
+    </div>
+    <button class="btn-agent">Agent Bâtiment</button>
+  </div>
+</nav>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('devis',this)">Devis</button>
+  <button class="tab" onclick="showTab('profil',this)">Mon Profil</button>
+  <button class="tab" onclick="showTab('tarifs',this)">Mes Tarifs</button>
+</div>
+
+<!-- DEVIS -->
+<div id="tab-devis" class="content active">
+
+  <div class="card">
+    <div class="card-header ch-orange">📋 Maître d'Ouvrage &amp; Chantier</div>
+    <div class="card-body">
+      <div class="form-group"><label>Nom du Client</label><input type="text" id="client-nom" placeholder="M. et Mme Dupont"></div>
+      <div class="form-group"><label>Email Client</label><input type="email" id="client-email" placeholder="client@email.fr"></div>
+      <div class="form-group"><label>Adresse du Chantier</label><input type="text" id="chantier-adresse" placeholder="12 rue des Lilas, 75011 Paris"></div>
+      <div class="form-row">
+        <div><label>Nature des Travaux</label><input type="text" id="nature-travaux" placeholder="Rénovation salle de bain"></div>
+        <div><label>Délai d'Exécution</label><input type="text" id="delai-execution" placeholder="3 semaines"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header ch-dark">🔧 Corps de Métier &amp; Prestations</div>
+    <div class="card-body">
+      <div class="metiers-grid" id="metiers-grid">
+        <div class="mc" onclick="selMetier(this,'carrelage')" data-m="Carrelage / Sols">🪨 Carrelage</div>
+        <div class="mc" onclick="selMetier(this,'plomberie')" data-m="Plomberie / Sanitaire">🚿 Plomberie</div>
+        <div class="mc" onclick="selMetier(this,'electricite')" data-m="Électricité">⚡ Électricité</div>
+        <div class="mc" onclick="selMetier(this,'peinture')" data-m="Peinture / Revêtements">🎨 Peinture</div>
+        <div class="mc" onclick="selMetier(this,'maconnerie')" data-m="Maçonnerie / Gros œuvre">🧱 Maçonnerie</div>
+        <div class="mc" onclick="selMetier(this,'menuiserie')" data-m="Menuiserie intérieure / extérieure">🪵 Menuiserie</div>
+        <div class="mc" onclick="selMetier(this,'plaquiste')" data-m="Plâtrerie / Cloisons / Faux-plafonds">🏗️ Plaquiste</div>
+        <div class="mc" onclick="selMetier(this,'charpentier')" data-m="Charpente / Ossature bois">🪚 Charpentier</div>
+        <div class="mc" onclick="selMetier(this,'isolation')" data-m="Isolation / ITE / Doublage">🏠 Isolation</div>
+        <div class="mc" onclick="selMetier(this,'chauffage')" data-m="Chauffage / Climatisation / CVC">🔥 Chauffage</div>
+        <div class="mc" onclick="selMetier(this,'couverture')" data-m="Couverture / Zinguerie / Étanchéité">☔ Couverture</div>
+        <div class="mc" onclick="selMetier(this,'serrurerie')" data-m="Serrurerie / Métallerie">🔒 Serrurerie</div>
+        <div class="mc" onclick="selMetier(this,'terrassement')" data-m="Terrassement / VRD / Gros œuvre">🚜 Terrassement</div>
+        <div class="mc" onclick="selMetier(this,'tous')" data-m="Multi-corps d'état / Rénovation globale">🏠 Tous corps</div>
+      </div>
+      <div id="prestations-zone" style="display:none;margin-top:14px;"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header ch-dark">🎙️ Dictez Vos Postes et Tarifs</div>
+    <div class="card-body">
+      <div class="ex-box">
+        <div class="ex-lbl">Exemple</div>
+        <p>Dépose carrelage 20 euros le m2, ragréage 15 euros, pose grès cérame 60x60 fourni et posé 48 le m2, joint époxy forfait 250 euros</p>
+      </div>
+      <div class="mic-zone">
+        <div class="mic-wrap" id="mic-wrap">
+          <div class="rpl rpl-1"></div>
+          <div class="rpl rpl-2"></div>
+          <div class="rpl rpl-3"></div>
+          <button class="mic-main" id="mic-btn" onclick="toggleMic()">
+            <!-- Icône micro -->
+            <svg class="ico-mic" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v6a2 2 0 0 0 4 0V5a2 2 0 0 0-2-2zm-7 8a1 1 0 0 1 1 1 6 6 0 0 0 12 0 1 1 0 0 1 2 0 8 8 0 0 1-7 7.93V22h3a1 1 0 0 1 0 2H8a1 1 0 0 1 0-2h3v-2.07A8 8 0 0 1 4 12a1 1 0 0 1 1-1z"/>
+            </svg>
+            <!-- Icône stop carré -->
+            <svg class="ico-stop" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <rect x="5" y="5" width="14" height="14" rx="2"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="mic-lbl" id="mic-lbl">Appuyez pour dicter</div>
+      </div>
+      <div id="dictee-text" class="dictee-box" contenteditable="true" data-ph="Votre dictée apparaît ici — ou tapez directement..."></div>
+    </div>
+  </div>
+
+  <button class="btn-primary" id="btn-gen" onclick="genererDevis()">⚡ Générer le Devis</button>
+  <div class="sbar" id="sbar"></div>
+
+  <div id="result-box">
+    <div class="devis-wrap">
+      <div id="devis-preview" class="devis-preview"></div>
+      <div class="res-actions">
+        <button class="btn-sec" onclick="envoyerDevis()">📧 Envoyer par Email</button>
+        <button class="btn-sec" onclick="imprimerDevis()">📄 Télécharger PDF</button>
+        <button class="btn-sec" onclick="nouveauDevis()">+ Nouveau</button>
+      </div>
+      <div class="sbar" id="email-sbar" style="margin:0 16px 14px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROFIL -->
+<div id="tab-profil" class="content">
+  <div class="card">
+    <div class="card-header ch-orange">✉️ Configuration Mail</div>
+    <div class="card-body">
+      <div class="form-group"><label>Clé API Resend</label><input type="password" id="resend-key" placeholder="re_xxxxxxxxxxxx"></div>
+      <div class="form-group"><label>Email Expéditeur</label><input type="email" id="email-exp" value="onboarding@resend.dev"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header ch-dark">🏢 Votre Entreprise</div>
+    <div class="card-body">
+      <div class="form-group"><label>Nom de l'Entreprise</label><input type="text" id="ent-nom" placeholder="Dupont Rénovations"></div>
+      <div class="form-row">
+        <div><label>SIRET</label><input type="text" id="ent-siret" placeholder="123 456 789 00012"></div>
+        <div><label>Téléphone</label><input type="tel" id="ent-tel" placeholder="06 12 34 56 78"></div>
+      </div>
+      <div class="form-group"><label>Adresse</label><input type="text" id="ent-adr" placeholder="5 av. du Bâtiment, 69001 Lyon"></div>
+      <div class="form-group"><label>Email Pro</label><input type="email" id="ent-email" placeholder="contact@monentreprise.fr"></div>
+      <div class="form-group"><label>Mentions Légales / TVA</label><textarea id="mentions" style="min-height:55px;padding-right:14px" placeholder="TVA non applicable, art. 293 B du CGI"></textarea></div>
+      <div class="form-group"><label>Assurance Décennale — Compagnie</label><input type="text" id="ent-decennale-compagnie" placeholder="ex: Allianz, MMA, AXA..."></div>
+      <div class="form-group"><label>Assurance Décennale — Numéro de Police</label><input type="text" id="ent-decennale-numero" placeholder="ex: 12345678"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header ch-dark">🏦 Coordonnées Bancaires (RIB)</div>
+    <div class="card-body">
+      <div class="form-group"><label>Banque</label><input type="text" id="ent-banque" placeholder="ex: Crédit Agricole, BNP..."></div>
+      <div class="form-group"><label>IBAN</label><input type="text" id="ent-iban" placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"></div>
+      <div class="form-row">
+        <div><label>BIC</label><input type="text" id="ent-bic" placeholder="ex: AGRIFRPP"></div>
+        <div><label>Titulaire</label><input type="text" id="ent-titulaire" placeholder="Jean Dupont"></div>
+      </div>
+      <button class="btn-primary" onclick="saveProfil()">💾 Sauvegarder</button>
+      <div class="savebadge" id="p-badge">✓ Profil sauvegardé</div>
+    </div>
+  </div>
+</div>
+
+<!-- TARIFS -->
+<div id="tab-tarifs" class="content">
+  <div class="card">
+    <div class="card-header ch-dark">💰 Paramètres de Facturation</div>
+    <div class="card-body">
+      <div class="form-group"><label>Taux Horaire Main d'Œuvre (€/h)</label><input type="number" id="t-mo" placeholder="45"></div>
+      <div class="form-row">
+        <div><label>TVA par Défaut</label>
+          <select id="t-tva">
+            <option value="10">10% — Rénovation</option>
+            <option value="20">20% — Standard</option>
+            <option value="5.5">5.5% — Éco-énergie</option>
+            <option value="0">0% — Non assujetti</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="saveTarifs()">💾 Sauvegarder</button>
+      <div class="savebadge" id="t-badge">✓ Tarifs sauvegardés</div>
+    </div>
+  </div>
+  <div style="margin-top:6px">
+    <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Plans DevisVoice</div>
+    <div class="tcard-grid">
+      <div class="tcard"><div class="tname">Solo</div><div class="tprice">29€<span>/mois</span></div><div class="tusers">1 utilisateur</div><ul class="tfeats"><li>Devis illimités</li><li>Dictée vocale</li><li>PDF auto</li><li>Envoi email</li></ul></div>
+      <div class="tcard feat"><div class="tbadge">Populaire</div><div class="tname">Équipe</div><div class="tprice">49€<span>/mois</span></div><div class="tusers">Jusqu'à 3 utilisateurs</div><ul class="tfeats"><li>Tout Solo inclus</li><li>3 comptes artisans</li><li>Historique devis</li><li>Support prioritaire</li></ul></div>
+      <div class="tcard"><div class="tname">Pro</div><div class="tprice">99€<span>/mois</span></div><div class="tusers">Jusqu'à 10 utilisateurs</div><ul class="tfeats"><li>Tout Équipe inclus</li><li>10 comptes artisans</li><li>Logo personnalisé</li><li>API &amp; intégrations</li></ul></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const BACKEND='https://devisvoice-backend-production-9ed2.up.railway.app';
+let devisData=null;
+let gDecCompagnie='',gDecNumero='',gIban='',gBic='',gBanque='',gTitulaire='',gMentions='';
+
+function setTheme(t,btn){document.documentElement.setAttribute('data-theme',t);document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');localStorage.setItem('theme',t);}
+(()=>{const t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);const i={'dark':0,'light':1,'beige':2}[t]||0;document.querySelectorAll('.tbtn')[i]?.classList.add('active');})();
+
+function showTab(n,el){document.querySelectorAll('.content').forEach(c=>c.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');el.classList.add('active');}
+
+let metier='';
+function selMetier(el, key) {
+  document.querySelectorAll('.mc').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  metier = el.dataset.m;
+  if(!document.getElementById('nature-travaux').value) document.getElementById('nature-travaux').value = metier;
+  afficherPrestations(key);
+}
+
+// ===== PRESTATIONS PAR MÉTIER =====
+const PRESTATIONS = {
+  carrelage: ['Dépose carrelage existant','Ragréage sol','Primaire d\'accrochage','Étanchéité sous-carrelage (SPEC/SEL)','Pose carrelage sol standard (≤45×45)','Pose carrelage sol 60×60','Pose grand format (≥90×90)','Pose en diagonale (majoration)','Pose faïence murale','Pose mosaïque','Pose carrelage extérieur / terrasse','Pose douche à l\'italienne','Plinthes carrelage','Joints coulis standard','Joints époxy','Silicone périphérique','Natte de désolidarisation'],
+  plomberie: ['Dépose ancienne installation','Création réseau eau froide (PER/multicouche)','Création réseau eau chaude','Pose évacuations PVC','Déplacement réseaux','Pose WC suspendu','Pose WC classique','Pose lavabo / vasque','Pose douche avec dépose','Pose douche sans dépose','Pose baignoire avec dépose','Pose évier cuisine','Robinetterie / mitigeur','Pose chauffe-eau électrique','Pose chauffe-eau thermodynamique','Installation chaudière','Raccordement lave-vaisselle / lave-linge','Saignée + raccordement','Perçage mur','Tests mise en pression','Recherche de fuite','Débouchage canalisation'],
+  electricite: ['Mise aux normes tableau électrique','Remplacement tableau','Pose disjoncteurs / différentiels','Câblage circuit lumière','Câblage prises de courant','Pose VMC simple flux','Pose VMC double flux','Câblage chauffage électrique','Pose radiateurs électriques','Installation spots encastrés','Pose interrupteurs / prises','Gaines et conduits','Mise à la terre','Réalisation saignées électriques','Pose éclairage extérieur','Borne recharge véhicule électrique'],
+  peinture: ['Protection chantier (bâches / scotch)','Lessivage murs','Ponçage supports','Rebouchage fissures','Enduit de lissage','Sous-couche','Peinture murs (bon état)','Peinture murs (état moyen)','Peinture murs (mauvais état)','Peinture plafond','Peinture boiseries','Dépose papier peint','Pose papier peint','Pose toile de verre','Peinture porte','Peinture radiateur','Lasure / vernis bois','Ravalement façade','Peinture façade','Traitement fissures façade'],
+  maconnerie: ['Fondations béton','Dalle béton','Chape traditionnelle','Chape fluide autonivelante','Élévation murs parpaing','Élévation murs brique','Ouverture mur porteur','Pose linteau','Poteaux béton armé','Terrasse béton','Mur de clôture','Escalier maçonné','Reprise fissures','Ragréage','Démolition cloison','Coffrage','Ferraillage','Étanchéité fondations'],
+  menuiserie: ['Dépose anciens éléments','Pose porte intérieure','Pose porte extérieure','Pose fenêtre PVC','Pose fenêtre aluminium','Pose fenêtre bois','Pose volet battant','Pose volet roulant','Pose placard / dressing sur mesure','Pose cuisine','Bibliothèque sur mesure','Mobilier sur mesure','Pose parquet flottant','Pose parquet massif collé','Dépose parquet','Pose escalier bois','Réglages et calages','Étanchéité / mastic joints'],
+  plaquiste: ['Dépose cloison existante','Cloison simple BA13','Cloison double BA13','Cloison hydrofuge salle de bain','Cloison acoustique','Cloison alvéolaire','Cloison avec isolation thermique','Faux-plafond suspendu BA13','Faux-plafond acoustique','Doublage mur extérieur','Isolation murs laine de verre','Isolation plafond','Bandes à joints','Enduit de finition / ratissage','Protection angles'],
+  charpentier: ['Fabrication charpente traditionnelle','Pose charpente traditionnelle','Charpente industrielle fermettes','Charpente métallique','Pose liteaux / chevrons','Rénovation charpente partielle','Traitement bois (insectes/champignons)','Renforcement structure existante','Ossature bois','Sarking (isolation toiture extérieur)','Aménagement combles perdus','Pose OSB / voligeage','Surélévation','Pergola / auvent bois'],
+  isolation: ['Isolation combles perdus (soufflage)','Isolation rampants toiture','Isolation murs par l\'intérieur','ITE (isolation thermique extérieure)','Isolation plancher bas','Doublage thermique','Isolation phonique murs','Isolation phonique plafond','Pose pare-vapeur','Pose frein-vapeur','Traitement ponts thermiques'],
+  chauffage: ['Pose chaudière gaz à condensation','Pose chaudière fioul','Pose pompe à chaleur air/eau','Pose pompe à chaleur air/air','Pose plancher chauffant hydraulique','Pose plancher chauffant électrique','Pose radiateurs hydrauliques','Dépose ancienne installation','Raccordement réseau chauffage','Pose thermostat / régulation','Maintenance / entretien chaudière','Pose climatisation split','Pose VMC double flux','Remplacement ballon tampon'],
+  couverture: ['Dépose toiture existante','Pose tuiles terre cuite','Pose tuiles béton','Pose ardoises naturelles','Pose ardoises fibrociment','Pose bac acier / bac alu','Pose EPDM (toiture plate)','Pose membrane bitumineuse','Zinguerie (gouttières, chéneaux)','Faîtage et noues','Remplacement voligeage','Traitement / nettoyage toiture','Pose fenêtre de toit (Velux)','Isolation toiture par extérieur'],
+  serrurerie: ['Pose porte blindée','Pose serrure multipoints','Remplacement cylindre','Pose portail coulissant','Pose portail battant','Automatisme portail / porte garage','Garde-corps acier / alu','Escalier métallique','Grilles de défense','Pose clôture métal','Soudure / réparation métallerie','Pose boîte aux lettres sécurisée'],
+  terrassement: ['Terrassement général','Décaissement','Remblaiement','Nivellement terrain','Fondations','Tranchées réseaux','Voirie (béton / enrobé)','Pose dallage extérieur','Pose gravier décoratif','Drainage','Assainissement individuel (fosse)','Clôture et portail','Mur de soutènement','Création accès véhicule'],
+  tous: ['Protection et installation chantier','Dépose générale','Démolition cloisons','Gros œuvre / maçonnerie','Plomberie / sanitaire','Électricité courants forts','Isolation','Plâtrerie / cloisons','Carrelage / sols','Peinture / finitions','Menuiserie intérieure','Menuiserie extérieure','Chauffage / VMC','Nettoyage fin de chantier','Levée des réserves']
+};
+
+let prestationsActives = {};
+
+function afficherPrestations(key) {
+  const zone = document.getElementById('prestations-zone');
+  const list = PRESTATIONS[key] || [];
+  if(!prestationsActives[key]) {
+    const saved = localStorage.getItem('prest_'+key);
+    prestationsActives[key] = saved ? JSON.parse(saved) : list.map(p=>({nom:p,actif:true,prix:'',unite:''}));
+    list.forEach(p => {
+      if(!prestationsActives[key].find(x=>x.nom===p)) prestationsActives[key].push({nom:p,actif:true,prix:'',unite:''});
+    });
+  }
+
+  let html = '<div style="background:var(--bg3);border-radius:8px;padding:12px;border:1px solid var(--border)">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+  html += '<span style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2)">Mes prestations — cochez, entrez votre prix et unité</span>';
+  html += '<button onclick="savePrestations(\''+key+'\')" style="background:var(--orange);color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer">💾 Sauver</button>';
+  html += '</div>';
+
+  html += '<div style="display:grid;grid-template-columns:20px 1fr 80px 70px 60px;gap:6px;padding:0 4px;margin-bottom:4px">';
+  html += '<span></span>';
+  html += '<span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2)">Prestation</span>';
+  html += '<span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);text-align:center">Prix HT</span>';
+  html += '<span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);text-align:center">Unité</span>';
+  html += '<span></span>';
+  html += '</div>';
+
+  html += '<div style="display:flex;flex-direction:column;gap:5px">';
+  prestationsActives[key].forEach((p, i) => {
+    html += `<div style="display:grid;grid-template-columns:20px 1fr 80px 70px 60px;gap:6px;align-items:center;padding:5px 6px;border-radius:6px;border:1px solid var(--border);background:var(--card)">
+      <input type="checkbox" ${p.actif?'checked':''} onchange="togglePrestation('${key}',${i},this.checked)" style="accent-color:var(--orange);width:14px;height:14px;">
+      <input type="text" value="${p.nom.replace(/'/g,'&#39;')}" onchange="renommerPrestation('${key}',${i},this.value)"
+        style="width:100%;padding:4px 6px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text)">
+      <input type="number" value="${p.prix||''}" placeholder="0" min="0" step="0.5"
+        onchange="setPrix('${key}',${i},this.value)"
+        style="width:100%;padding:4px 6px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text);text-align:right">
+      <select onchange="setUnite('${key}',${i},this.value)"
+        style="width:100%;padding:4px 4px;border:1.5px solid var(--border);border-radius:5px;font-size:11px;background:var(--input-bg);color:var(--text)">
+        <option value="m²" ${(p.unite||'m²')==='m²'?'selected':''}>m²</option>
+        <option value="ml" ${p.unite==='ml'?'selected':''}>ml</option>
+        <option value="u" ${p.unite==='u'?'selected':''}>u</option>
+        <option value="h" ${p.unite==='h'?'selected':''}>h</option>
+        <option value="forfait" ${p.unite==='forfait'?'selected':''}>forfait</option>
+        <option value="m³" ${p.unite==='m³'?'selected':''}>m³</option>
+      </select>
+      <button onclick="supprimerPrestation('${key}',${i})" title="Supprimer"
+        style="background:rgba(220,50,50,.12);color:#e04040;border:1px solid rgba(220,50,50,.2);border-radius:5px;padding:4px 8px;font-size:13px;cursor:pointer">🗑</button>
+    </div>`;
+  });
+  html += '</div>';
+
+  html += `<div style="margin-top:10px;display:flex;gap:6px;align-items:center">
+    <input type="text" id="new-prest-${key}" placeholder="Ajouter une prestation personnalisée…"
+      style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;background:var(--input-bg);color:var(--text)">
+    <button onclick="ajouterPrestation('${key}')"
+      style="background:var(--orange);color:#fff;border:none;padding:8px 14px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">+ Ajouter</button>
+  </div>`;
+
+  html += '<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">';
+  html += '<button onclick="toutCocher(\''+key+'\',true)" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:5px 12px;border-radius:6px;font-size:11px;cursor:pointer">✅ Tout cocher</button>';
+  html += '<button onclick="toutCocher(\''+key+'\',false)" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:5px 12px;border-radius:6px;font-size:11px;cursor:pointer">⬜ Tout décocher</button>';
+  html += '</div></div>';
+
+  zone.innerHTML = html;
+  zone.style.display = 'block';
+}
+
+function togglePrestation(key, idx, val) { if(prestationsActives[key]) prestationsActives[key][idx].actif = val; }
+function renommerPrestation(key, idx, val) { if(prestationsActives[key]) prestationsActives[key][idx].nom = val; }
+function supprimerPrestation(key, idx) { if(prestationsActives[key]){prestationsActives[key].splice(idx,1);afficherPrestations(key);} }
+function ajouterPrestation(key) {
+  const input = document.getElementById('new-prest-'+key);
+  const nom = input ? input.value.trim() : '';
+  if(!nom) return;
+  if(!prestationsActives[key]) prestationsActives[key] = [];
+  prestationsActives[key].push({nom, actif:true, prix:'', unite:'forfait'});
+  afficherPrestations(key);
+}
+function setPrix(key, idx, val) { if(prestationsActives[key]) prestationsActives[key][idx].prix = val; }
+function setUnite(key, idx, val) { if(prestationsActives[key]) prestationsActives[key][idx].unite = val; }
+function toutCocher(key, val) { if(prestationsActives[key]){prestationsActives[key].forEach(p=>p.actif=val);afficherPrestations(key);} }
+function savePrestations(key) {
+  localStorage.setItem('prest_'+key, JSON.stringify(prestationsActives[key]));
+  const btn = document.querySelector('#prestations-zone button');
+  if(btn){btn.textContent='✓ Sauvé!';setTimeout(()=>btn.textContent='💾 Sauver',1500);}
+}
+function getPrestationsActives() {
+  let res = [];
+  // Lire d'abord la mémoire vive (session en cours)
+  const enMemoire = Object.keys(prestationsActives);
+  if(enMemoire.length > 0){
+    Object.values(prestationsActives).forEach(arr => arr.forEach(p=>{
+      if(p.actif && p.prix) res.push(p.nom + ' — '+p.prix+'€/'+p.unite);
+    }));
+  } else {
+    // Sinon lire le localStorage (données sauvegardées)
+    const cles = Object.keys(localStorage).filter(k=>k.startsWith('prest_'));
+    cles.forEach(cle=>{
+      try{
+        const arr=JSON.parse(localStorage.getItem(cle));
+        arr.forEach(p=>{if(p.actif && p.prix) res.push(p.nom+' — '+p.prix+'€/'+p.unite);});
+      }catch(e){}
+    });
+  }
+  return res;
+}
+
+// ===== MICRO WEB AUDIO =====
+let recog=null,isRec=false,audioCtx=null,analyser=null,micStream=null,animFrame=null;
+
+function toggleMic(){
+  if(!('webkitSpeechRecognition'in window)&&!('SpeechRecognition'in window)){setLbl('❌ Non supporté sur ce navigateur',false);return;}
+  if(isRec){stopMic();}else{setLbl('⏳ Initialisation…',false);setTimeout(()=>startMic(),100);}
+}
+
+function startMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  // Toujours créer un nouvel objet SR propre
+  if(recog){try{recog.abort();}catch(e){} recog=null;}
+  recog=new SR();recog.lang='fr-FR';recog.continuous=true;recog.interimResults=true;
+  const el=document.getElementById('dictee-text');
+  let base=el.innerText.trim();if(base)base+=' ';
+  recog.onstart=()=>{
+    isRec=true;
+    document.getElementById('mic-btn').classList.add('rec');
+    document.getElementById('mic-wrap').classList.add('recording');
+    setLbl('🔴 Parlez maintenant…',true);
+    startAudioViz();
+  };
+  recog.onresult=(e)=>{
+    let int='',fin=base;
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal){fin+=e.results[i][0].transcript+' ';base=fin;}
+      else int+=e.results[i][0].transcript;
+    }
+    el.innerText=fin+int;
+  };
+  recog.onerror=(e)=>{
+    if(e.error==='aborted')return; // ignore les arrêts volontaires
+    setLbl('❌ Erreur: '+e.error,false);
+    stopMic();
+  };
+  recog.onend=()=>{
+    if(!isRec)return;
+    // Recréer un objet propre pour le redémarrage automatique
+    setTimeout(()=>{if(isRec)startMic();},150);
+  };
+  try{recog.start();}catch(e){setLbl('❌ Micro indisponible — rechargez',false);}
+}
+
+function stopMic(){
+  isRec=false;
+  if(recog)recog.stop();
+  stopAudioViz();
+  document.getElementById('mic-btn').classList.remove('rec');
+  document.getElementById('mic-wrap').classList.remove('recording');
+  setLbl('✅ Dictée terminée — vérifiez le texte',false);
+}
+
+function startAudioViz(){
+  navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
+    micStream=stream;
+    audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    const src=audioCtx.createMediaStreamSource(stream);
+    analyser=audioCtx.createAnalyser();
+    analyser.fftSize=64;
+    src.connect(analyser);
+    drawRings();
+  }).catch(()=>{
+    // Pas de permission micro — anneaux CSS de fallback
+    document.getElementById('mic-wrap').classList.add('recording');
+  });
+}
+
+function drawRings(){
+  const rpl1=document.querySelector('.rpl-1');
+  const rpl2=document.querySelector('.rpl-2');
+  const rpl3=document.querySelector('.rpl-3');
+  const data=new Uint8Array(analyser.frequencyBinCount);
+  const SEUIL=10;
+  let volLisse=0; // volume lissé pour fluidité
+  function loop(){
+    if(!isRec){
+      rpl1.style.opacity='0';rpl2.style.opacity='0';rpl3.style.opacity='0';
+      rpl1.style.transform='scale(1)';rpl2.style.transform='scale(1)';rpl3.style.transform='scale(1)';
+      return;
+    }
+    animFrame=requestAnimationFrame(loop);
+    analyser.getByteFrequencyData(data);
+    const volBrut=Array.from(data).reduce((a,b)=>a+b,0)/data.length;
+    // Lissage exponentiel — élimine la saccade
+    volLisse=volLisse*0.75+volBrut*0.25;
+    if(volLisse < SEUIL){
+      rpl1.style.opacity='0';rpl2.style.opacity='0';rpl3.style.opacity='0';
+      document.getElementById('mic-btn').style.transform='scale(1)';
+    } else {
+      const force=Math.min(volLisse/80, 1); // 0 à 1, seuil plus haut = anneaux moins gros
+      // Anneaux petits et proportionnels
+      rpl1.style.transform=`scale(${1+force*0.25})`;rpl1.style.opacity=String(Math.min(0.6,force*0.8));
+      rpl2.style.transform=`scale(${1+force*0.45})`;rpl2.style.opacity=String(Math.min(0.4,force*0.55));
+      rpl3.style.transform=`scale(${1+force*0.65})`;rpl3.style.opacity=String(Math.min(0.2,force*0.3));
+      document.getElementById('mic-btn').style.transform=`scale(${1+force*0.05})`;
+    }
+  }
+  loop();
+}
+
+function stopAudioViz(){
+  if(animFrame)cancelAnimationFrame(animFrame);
+  if(micStream)micStream.getTracks().forEach(t=>t.stop());
+  if(audioCtx)audioCtx.close();
+  document.querySelectorAll('.rpl').forEach(r=>{r.style.opacity='0';r.style.transform='scale(1)';});
+  document.getElementById('mic-btn').style.transform='scale(1)';
+}
+
+function setLbl(m,on){const el=document.getElementById('mic-lbl');el.textContent=m;el.className='mic-lbl'+(on?' on':'');}
+
+async function genererDevis(){
+  const dictee=document.getElementById('dictee-text').innerText.trim();
+  if(!dictee){alert('Dictez ou saisissez vos postes de travaux.');return;}
+  const entNom=ls('ent-nom')||'Votre Entreprise',entSiret=ls('ent-siret')||'',entTel=ls('ent-tel')||'',entAdr=ls('ent-adr')||'',entEmail=ls('ent-email')||'',tva=ls('t-tva')||'10';
+  gMentions=ls('mentions')||''; gDecCompagnie=ls('ent-decennale-compagnie')||''; gDecNumero=ls('ent-decennale-numero')||''; gIban=ls('ent-iban')||''; gBic=ls('ent-bic')||''; gBanque=ls('ent-banque')||''; gTitulaire=ls('ent-titulaire')||'';
+  const clientNom=document.getElementById('client-nom').value||'Client';
+  const clientEmail=document.getElementById('client-email').value||'';
+  const chantierAdr=document.getElementById('chantier-adresse').value||'';
+  const nature=document.getElementById('nature-travaux').value||metier||'';
+  const delai=document.getElementById('delai-execution').value||'';
+  document.getElementById('btn-gen').disabled=true;
+  document.getElementById('result-box').style.display='none';
+  const num='DV-'+new Date().getFullYear()+'-'+String(Math.floor(Math.random()*900)+100);
+  const today=new Date().toLocaleDateString('fr-FR');
+  const prixArtisan=getPrestationsActives();
+  const prixBlock=prixArtisan.length>0?`\nTARIFS ENREGISTRÉS PAR L'ARTISAN (utilise ces prix en priorité absolue):\n${prixArtisan.map(p=>'- '+p).join('\n')}\n`:'';
+
+  // ── Barre de progression ──
+  function showProgress(etape,total,label){
+    const pct=Math.round((etape/total)*100);
+    showS('loading',`<div style="text-align:center;padding:4px 0 8px"><div style="font-size:13px;font-weight:600;margin-bottom:10px">${label}</div><div style="background:var(--bg3);border-radius:20px;height:8px;width:100%;overflow:hidden;margin-bottom:6px"><div style="background:var(--orange);height:100%;width:${pct}%;border-radius:20px;transition:width .4s ease"></div></div><div style="font-size:11px;color:var(--text2)">${etape > 0 ? `Passe ${etape} / ${total} terminée` : 'Démarrage...'} • ${pct}%</div></div>`);
+  }
+
+  // ── Découpe la dictée en passes de max 5 métiers ──
+  const TAILLE_PASSE=5;
+  const MOTS_METIER=['carrelage','peinture','plaquiste','placo','plomberie','chauffage','électricité','electricite','maçonnerie','maconnerie','menuiserie','serrurerie','charpente','couverture','isolation','terrassement'];
+  function decouperEnPasses(texte){
+    const nb=MOTS_METIER.filter(m=>texte.toLowerCase().includes(m)).length;
+    const nbPasses=Math.max(1,Math.ceil(nb/TAILLE_PASSE));
+    if(nbPasses<=1)return[texte];
+    const passes=[];
+    const chunkSize=Math.ceil(texte.length/nbPasses);
+    let pos=0;
+    for(let i=0;i<nbPasses;i++){
+      let end=Math.min(pos+chunkSize,texte.length);
+      if(end<texte.length){
+        const zone=texte.substring(Math.max(0,end-40),Math.min(texte.length,end+40));
+        const cut=zone.lastIndexOf(',');
+        if(cut>=0)end=Math.max(0,end-40)+cut+1;
+      }
+      const chunk=texte.substring(pos,end).trim();
+      if(chunk)passes.push(chunk);
+      pos=end;
+    }
+    const reste=texte.substring(pos).trim();
+    if(reste)passes[passes.length-1]+=' '+reste;
+    return passes.filter(p=>p.length>0);
+  }
+
+  const passes=decouperEnPasses(dictee);
+  const totalPasses=passes.length;
+  let toutesLesSections=[];
+  let idCounter=1;
+
+  showProgress(0,totalPasses,'⚙️ Démarrage de la génération…');
+
+  const BIBLIO=`VOCABULAIRE — corrige les erreurs de reconnaissance vocale:
+"grésérum/grey serum/grès sérum/graissera" → Grès cérame
+"ragréige/ragreage" → Ragréage
+"fayance/faience" → Faïence
+"plaquiste/placo" → Plaquiste
+"charpentier/charpente" → Charpentier
+"terrassement/terasse" → Terrassement
+"serrurerie/serurerie" → Serrurerie
+"isolation/isolant" → Isolation
+"couverture/toiture" → Couverture
+
+BIBLIOTHÈQUE POSTES STANDARDISÉS — utilise EXACTEMENT ces titres et descriptions, sans les modifier:
+
+📦 CARRELAGE:
+- "Dépose carrelage existant" | desc:"Dépose et évacuation du carrelage existant sur sol" | unité:m²
+- "Ragréage sol" | desc:"Ragréage du sol avant pose carrelage" | unité:m²
+- "Primaire d'accrochage" | desc:"Application primaire d'accrochage sur sol" | unité:m²
+- "Pose carrelage grès cérame" | desc:"Pose carrelage grès cérame avec mortier-colle et joints" | unité:m²
+- "Pose faïence murale" | desc:"Pose faïence murale avec mortier-colle et joints" | unité:m²
+- "Réalisation joints carrelage" | desc:"Réalisation des joints de carrelage au coulis" | unité:m²
+- "Pose plinthe carrelage" | desc:"Pose plinthe carrelage assortie au sol" | unité:ml
+- "Découpe carrelage" | desc:"Découpe et ajustement carrelage autour obstacles" | unité:Forfait
+- "Pose seuil de porte" | desc:"Fourniture et pose seuil de porte en carrelage ou marbre" | unité:u
+- "Imperméabilisation receveur douche" | desc:"Application d'étanchéité sous carrelage receveur de douche" | unité:m²
+
+📦 PEINTURE:
+- "Protection sol" | desc:"Protection du sol pendant travaux de peinture (bâches)" | unité:m²
+- "Lessivage murs" | desc:"Lessivage des murs avant peinture" | unité:m²
+- "Ponçage supports" | desc:"Ponçage des supports muraux" | unité:m²
+- "Rebouchage fissures" | desc:"Rebouchage des fissures avant peinture" | unité:u
+- "Peinture murs" | desc:"Application peinture sur murs (2 couches finition)" | unité:m²
+- "Peinture plafond" | desc:"Application peinture sur plafond (2 couches finition)" | unité:m²
+- "Peinture boiseries" | desc:"Peinture boiseries, portes et huisseries" | unité:Forfait
+- "Sous-couche universelle" | desc:"Application sous-couche universelle avant peinture finition" | unité:m²
+- "Enduit de lissage" | desc:"Application enduit de lissage 3 passes avec ponçage intermédiaire" | unité:m²
+- "Peinture façade" | desc:"Application peinture façade anti-salissure (2 couches)" | unité:m²
+
+📦 PLAQUISTE:
+- "Dépose cloisons existantes" | desc:"Dépose des cloisons existantes et évacuation gravats" | unité:m²
+- "Cloisonnement BA13" | desc:"Pose de cloison simple BA13 sur ossature métallique" | unité:m²
+- "Cloison double BA13" | desc:"Pose de cloison double BA13 sur ossature métallique" | unité:m²
+- "Bandes à joints" | desc:"Réalisation des bandes à joints sur cloisons" | unité:m²
+- "Enduit de finition / ratissage" | desc:"Application enduit de finition ratissage sur cloisons" | unité:m²
+- "Protection angles" | desc:"Pose de protection d'angles métalliques" | unité:ml
+- "Faux plafond BA13" | desc:"Pose faux plafond suspendu BA13 sur ossature métallique" | unité:m²
+- "Isolation phonique cloison" | desc:"Fourniture et pose laine de verre en cloison pour isolation phonique" | unité:m²
+- "Habillage gaine technique" | desc:"Habillage gaine technique en BA13" | unité:Forfait
+- "Trappe de visite" | desc:"Fourniture et pose trappe de visite" | unité:u
+
+📦 PLOMBERIE:
+- "Dépose ancien chauffe-eau" | desc:"Dépose et évacuation de l'ancien chauffe-eau existant" | unité:Forfait
+- "Pose chauffe-eau électrique" | desc:"Fourniture et pose chauffe-eau électrique avec raccordements eau froide et eau chaude" | unité:Forfait
+- "Pose chauffe-eau thermodynamique" | desc:"Fourniture et pose chauffe-eau thermodynamique avec raccordement réseau eau froide, eau chaude, groupe de sécurité, raccordement électrique et évacuation condensats" | unité:Forfait
+- "Pose chaudière gaz à condensation" | desc:"Fourniture et pose chaudière gaz à condensation avec raccordements gaz, eau et évacuation condensats" | unité:Forfait
+- "Remplacement robinetterie" | desc:"Remplacement robinetterie mitigeur avec fourniture et pose" | unité:u
+- "Pose receveur de douche" | desc:"Fourniture et pose receveur de douche avec siphon et raccordements" | unité:Forfait
+- "Pose WC suspendu" | desc:"Fourniture et pose WC suspendu avec bâti-support et plaque de commande" | unité:Forfait
+- "Pose lavabo" | desc:"Fourniture et pose lavabo avec robinetterie et siphon" | unité:Forfait
+- "Remplacement éviers" | desc:"Dépose ancien évier et fourniture et pose nouvel évier avec robinetterie" | unité:Forfait
+- "Pose baignoire" | desc:"Fourniture et pose baignoire avec robinetterie et raccordements" | unité:Forfait
+- "Raccordement électroménager" | desc:"Raccordement électroménager (lave-vaisselle, lave-linge) eau froide, eau chaude et évacuation" | unité:Forfait
+- "Détartrage réseau" | desc:"Détartrage et entretien réseau eau chaude sanitaire" | unité:Forfait
+
+📦 CHAUFFAGE:
+- "Pose radiateur" | desc:"Fourniture et pose radiateur à eau chaude avec raccordements" | unité:u
+- "Remplacement radiateur" | desc:"Dépose ancien radiateur et fourniture et pose nouveau radiateur avec raccordements" | unité:u
+- "Pose plancher chauffant" | desc:"Fourniture et pose plancher chauffant hydraulique avec collecteur" | unité:m²
+- "Équilibrage réseau chauffage" | desc:"Équilibrage et réglage du réseau de chauffage" | unité:Forfait
+- "Pose pompe à chaleur air/air" | desc:"Fourniture et pose pompe à chaleur air/air avec unités intérieure et extérieure et raccordements électriques et frigorifiques" | unité:Forfait
+- "Pose pompe à chaleur air/eau" | desc:"Fourniture et pose pompe à chaleur air/eau avec raccordements hydrauliques et électriques" | unité:Forfait
+- "Entretien chaudière" | desc:"Entretien annuel chaudière avec ramonage et vérification brûleur" | unité:Forfait
+- "Pose thermostat programmable" | desc:"Fourniture et pose thermostat programmable connecté" | unité:u
+- "Pose VMC" | desc:"Fourniture et pose VMC simple flux avec bouches d'extraction et réseau de gaines" | unité:Forfait
+- "Pose VMC double flux" | desc:"Fourniture et pose VMC double flux avec échangeur thermique et réseau de gaines" | unité:Forfait
+
+📦 ÉLECTRICITÉ:
+- "Tableau électrique" | desc:"Fourniture et pose tableau électrique avec disjoncteurs différentiels et fusibles" | unité:Forfait
+- "Mise aux normes tableau" | desc:"Mise aux normes tableau électrique existant selon NF C 15-100" | unité:Forfait
+- "Pose prises de courant" | desc:"Fourniture et pose prises de courant 2P+T encastrées" | unité:u
+- "Pose interrupteurs" | desc:"Fourniture et pose interrupteurs va-et-vient encastrés" | unité:u
+- "Pose points lumineux" | desc:"Fourniture et pose points lumineux encastrés avec câblage" | unité:u
+- "Pose spots LED encastrés" | desc:"Fourniture et pose spots LED encastrés avec câblage" | unité:u
+- "Câblage électrique" | desc:"Câblage électrique encastré avec saignées et rebouchage" | unité:ml
+- "Pose VMC électrique" | desc:"Raccordement électrique VMC avec câblage et protection" | unité:Forfait
+- "Pose interphone/visiophone" | desc:"Fourniture et pose interphone/visiophone avec câblage" | unité:Forfait
+- "Pose borne recharge véhicule" | desc:"Fourniture et pose borne de recharge véhicule électrique avec raccordement tableau" | unité:Forfait
+- "Mise à la terre" | desc:"Réalisation prise de terre et liaisons équipotentielles" | unité:Forfait
+
+📦 MAÇONNERIE:
+- "Démolition mur porteur" | desc:"Démolition mur porteur avec étaiement, découpe et évacuation gravats" | unité:Forfait
+- "Pose linteau" | desc:"Fourniture et pose linteau béton armé ou acier avec reprise maçonnerie" | unité:Forfait
+- "Ouverture mur porteur" | desc:"Création ouverture en mur porteur avec étaiement, pose poutre IPN et reprise maçonnerie" | unité:Forfait
+- "Démolition cloison" | desc:"Démolition cloison existante et évacuation gravats" | unité:m²
+- "Montage mur parpaing" | desc:"Montage mur en parpaing creux avec mortier" | unité:m²
+- "Ragréage mural" | desc:"Ragréage et rebouchage des supports maçonnés" | unité:m²
+- "Chape mortier" | desc:"Réalisation chape mortier dosée à 350 kg/m³" | unité:m²
+- "Reprise d'enduit façade" | desc:"Reprise enduit façade sur zones dégradées" | unité:m²
+- "Pose appui de fenêtre" | desc:"Fourniture et pose appui de fenêtre béton ou pierre" | unité:u
+- "Injection fissures" | desc:"Injection résine époxy dans fissures structurelles" | unité:ml
+
+📦 MENUISERIE:
+- "Pose porte intérieure" | desc:"Fourniture et pose porte intérieure avec huisserie, paumelles et serrure" | unité:u
+- "Pose porte blindée" | desc:"Fourniture et pose porte blindée avec serrure multipoints et huisserie" | unité:u
+- "Pose porte-fenêtre" | desc:"Fourniture et pose porte-fenêtre PVC ou aluminium double vitrage avec raccordements" | unité:u
+- "Remplacement fenêtre" | desc:"Dépose fenêtre existante et fourniture et pose fenêtre PVC double vitrage avec joint périphérique" | unité:u
+- "Pose volet roulant" | desc:"Fourniture et pose volet roulant motorisé avec coffre et tablier aluminium" | unité:u
+- "Pose placard sur mesure" | desc:"Fourniture et pose placard sur mesure avec portes coulissantes, étagères et penderie" | unité:Forfait
+- "Pose parquet flottant" | desc:"Fourniture et pose parquet flottant avec sous-couche acoustique et plinthes" | unité:m²
+- "Pose parquet massif" | desc:"Fourniture et pose parquet massif collé avec plinthes et seuils" | unité:m²
+- "Dépose parquet existant" | desc:"Dépose parquet existant et évacuation" | unité:m²
+- "Pose escalier" | desc:"Fourniture et pose escalier en bois avec main courante et balustre" | unité:Forfait
+
+📦 SERRURERIE:
+- "Pose serrure multipoints" | desc:"Fourniture et pose serrure multipoints sur porte existante" | unité:u
+- "Remplacement cylindre" | desc:"Remplacement cylindre de serrure avec fourniture clés" | unité:u
+- "Pose garde-corps" | desc:"Fourniture et pose garde-corps métallique avec fixation et finition laquée" | unité:ml
+- "Pose portail motorisé" | desc:"Fourniture et pose portail motorisé avec motorisation, télécommande et pilier" | unité:Forfait
+- "Pose grille de défense" | desc:"Fourniture et pose grille de défense sur fenêtre avec fixation" | unité:u
+- "Pose main courante" | desc:"Fourniture et pose main courante inox ou acier laqué" | unité:ml
+- "Pose store banne" | desc:"Fourniture et pose store banne motorisé avec coffre et bras" | unité:Forfait
+- "Remplacement serrure" | desc:"Remplacement serrure encastrée avec fourniture et pose" | unité:u
+
+📦 CHARPENTIER:
+- "Dépose charpente existante" | desc:"Dépose et évacuation charpente bois existante" | unité:Forfait
+- "Pose charpente traditionnelle" | desc:"Fourniture et pose charpente traditionnelle bois massif avec fermettes, pannes et faîtage" | unité:m²
+- "Pose charpente industrielle" | desc:"Fourniture et pose charpente industrielle en fermettes préfabriquées" | unité:m²
+- "Traitement charpente" | desc:"Traitement fongicide et insecticide de la charpente existante" | unité:m²
+- "Renforcement charpente" | desc:"Renforcement et consolidation charpente existante par ajout de pièces bois" | unité:Forfait
+- "Pose vélux" | desc:"Fourniture et pose fenêtre de toit Vélux avec raccord d'étanchéité" | unité:u
+- "Pose lambris" | desc:"Fourniture et pose lambris bois en sous-face de charpente" | unité:m²
+- "Création soupente" | desc:"Création soupente avec plancher bois et trappe d'accès" | unité:Forfait
+
+📦 COUVERTURE:
+- "Dépose toiture existante" | desc:"Dépose et évacuation couverture tuiles/ardoises existante" | unité:m²
+- "Pose tuiles terre cuite" | desc:"Fourniture et pose tuiles terre cuite sur volige avec faîtage et rives" | unité:m²
+- "Pose ardoises naturelles" | desc:"Fourniture et pose ardoises naturelles avec crochets inox" | unité:m²
+- "Pose bac acier" | desc:"Fourniture et pose couverture bac acier laqué avec fixations et joints" | unité:m²
+- "Réfection faîtage" | desc:"Dépose et réfection complète du faîtage au mortier" | unité:ml
+- "Réparation toiture" | desc:"Remplacement tuiles/ardoises cassées et reprise étanchéité" | unité:Forfait
+- "Nettoyage toiture" | desc:"Nettoyage et démoussage toiture avec traitement hydrofuge" | unité:m²
+- "Pose gouttières" | desc:"Fourniture et pose gouttières PVC ou zinc avec descentes et crochets" | unité:ml
+- "Réfection noue" | desc:"Réfection noue avec pose plomb ou zinc" | unité:ml
+- "Pose sous-toiture" | desc:"Fourniture et pose écran de sous-toiture respirant" | unité:m²
+
+📦 ISOLATION:
+- "Isolation combles perdus" | desc:"Fourniture et pose isolation combles perdus en laine de verre soufflée" | unité:m²
+- "Isolation combles aménagés" | desc:"Fourniture et pose isolation combles aménagés en laine de roche entre chevrons" | unité:m²
+- "ITE façade" | desc:"Isolation thermique extérieure façade avec polystyrène expansé, enduit de finition et chevilles" | unité:m²
+- "ITI murs" | desc:"Isolation thermique intérieure murs avec laine de verre et pare-vapeur" | unité:m²
+- "Isolation sol" | desc:"Fourniture et pose isolation thermique sol en polystyrène extrudé avant chape" | unité:m²
+- "Isolation phonique cloison" | desc:"Fourniture et pose isolation phonique laine de roche en cloison" | unité:m²
+- "Pose pare-vapeur" | desc:"Fourniture et pose pare-vapeur avec adhésif sur joints" | unité:m²
+- "Isolation toiture-terrasse" | desc:"Fourniture et pose isolation toiture-terrasse en polyuréthane avec relevés" | unité:m²
+
+📦 TERRASSEMENT:
+- "Terrassement général" | desc:"Terrassement général mécanisé avec évacuation terres en décharge" | unité:m³
+- "Décaissement sol" | desc:"Décaissement sol sur épaisseur définie avec évacuation terres" | unité:m³
+- "Remblai compacté" | desc:"Remblaiement avec grave compactée par couches successives" | unité:m³
+- "Remblai concassé" | desc:"Remblayage avec du concassé sur profondeur définie" | unité:m³
+- "Décaissement le long des haies" | desc:"Décaissement le long des haies et clôtures avec évacuation terres" | unité:ml
+- "Création tranchée" | desc:"Création tranchée pour passage réseaux avec remblayage et compactage" | unité:ml
+- "Nivellement terrain" | desc:"Nivellement et mise à niveau terrain avec compactage" | unité:m²
+- "Pose dallage béton" | desc:"Fourniture et pose dallage béton armé avec treillis soudé" | unité:m²
+- "Création dalle de propreté" | desc:"Réalisation dalle de propreté béton maigre dosé à 150 kg/m³" | unité:m²
+- "Évacuation gravats" | desc:"Chargement et évacuation gravats en décharge agréée" | unité:m³
+
+CONNAISSANCE MÉTIER — complète automatiquement les sous-tâches implicites:
+- "peinture X couches" → inclure: 1) Préparation support (lessivage, rebouchage) 2) Ponçage 3) Sous-couche 4) Peinture X couches
+- "enduit / enduit de lissage" → inclure: 1) Enduit 3 passes 2) Ponçage intermédiaire 3) Finition
+- "ballon thermodynamique / chauffe-eau thermodynamique" → inclure: pose + raccordement réseau eau froide + raccordement réseau eau chaude + pose groupe de sécurité + raccordement électrique + évacuation condensats
+- "carrelage / grès cérame / faïence" → si ragréage non mentionné et sol concerné, ajouter ragréage en amont
+- "pose parquet" → inclure: 1) Ragréage 2) Pose parquet 3) Plinthes
+- "ouverture mur porteur" → inclure: 1) Étaiement 2) Découpe 3) Pose linteau 4) Reprise maçonnerie
+
+STRUCTURE OBLIGATOIRE — groupe les postes par corps de métier dans "sections":
+Chaque section a: "metier" (nom du corps de métier), "emoji" (emoji représentatif), "postes" (liste des postes de ce métier)
+
+REGROUPEMENT OBLIGATOIRE — ces postes appartiennent toujours à la section indiquée:
+- Ragréage, chape, primaire d'accrochage → section "Carrelage / Sols" (pas une section séparée)
+- Lessivage, rebouchage, ponçage, préparation support, sous-couche → section "Peinture" (pas une section séparée)
+- Dépose ancienne installation → même section que la pose qui suit
+- Protection chantier → section "Préparation chantier" uniquement si mentionnée
+
+Ordre logique des sections: Démolition/Dépose → Maçonnerie → Plomberie → Électricité → Isolation → Plâtrerie/Cloisons → Carrelage/Sols (inclut ragréage) → Peinture (inclut préparation support) → Menuiserie → Nettoyage
+Numérote les postes en continu sur tout le devis (id 1, 2, 3... sans recommencer à 1 dans chaque section)
+
+Réponds UNIQUEMENT JSON sans backticks:
+{"numero":"${num}","date":"${today}","validite":"3 mois","entreprise":{"nom":"","siret":"","tel":"","adresse":"","email":""},"client":{"nom":"","email":""},"chantier":{"adresse":"","nature":"","delai":""},"sections":[{"metier":"Carrelage / Sols","emoji":"🪨","postes":[{"id":1,"titre":"","description":"","qte":1,"unite":"Forfait","pu_ht":0,"total_ht":0}]}],"total_ht":0,"tva_pct":${tva},"tva_montant":0,"total_ttc":0,"total_lettres":"","mentions":"${gMentions||'TVA '+tva+'% applicable'}","conditions":"30% à la commande, solde à réception et levée des réserves"}
+RÈGLES ABSOLUES: Ne jamais inventer un prix. Utiliser uniquement les prix dictés. Si un sous-poste n'a pas de prix dicté, regroupe-le dans la description du poste principal. Pour l'unité: utiliser "m²" pour les surfaces, "ml" pour les linéaires, "h" pour les heures, "Forfait" pour tout le reste (dépose, installation, prestation globale). Ne jamais utiliser "ens".`;
+
+  const structureJSON=`{"numero":"${num}","date":"${today}","validite":"3 mois","entreprise":{"nom":"${entNom}","siret":"${entSiret}","tel":"${entTel}","adresse":"","email":"${entEmail}"},"client":{"nom":"${clientNom}","email":"${clientEmail}"},"chantier":{"adresse":"${chantierAdr}","nature":"${nature}","delai":"${delai}"},"sections":[{"metier":"Carrelage / Sols","emoji":"🪨","postes":[{"id":1,"titre":"","description":"","qte":1,"unite":"Forfait","pu_ht":0,"total_ht":0}]}],"total_ht":0,"tva_pct":${tva},"tva_montant":0,"total_ttc":0,"total_lettres":"","mentions":"${gMentions||'TVA '+tva+'% applicable'}","conditions":"30% à la commande, solde à réception et levée des réserves"}`;
+
+  try{
+    for(let i=0;i<passes.length;i++){
+      showProgress(i,totalPasses,`⚙️ Génération passe ${i+1} / ${totalPasses}…`);
+      const estDernierePasse=(i===passes.length-1);
+      const promptPasse=`Tu es expert devis BTP artisans français. Génère un JSON de sections de devis.
+ENTREPRISE: ${entNom}|SIRET:${entSiret}|Tél:${entTel}|${entAdr}|${entEmail}
+CLIENT: ${clientNom}|${clientEmail}
+CHANTIER: ${chantierAdr}|Nature:${nature}|Délai:${delai}
+TVA: ${tva}% | Numéro: ${num} | Date: ${today}
+${prixBlock}
+DICTÉE (partie ${i+1}/${passes.length}): ${passes[i]}
+NUMÉROTATION: commence les IDs à ${idCounter} (continue depuis la passe précédente)
+
+${BIBLIO}
+
+STRUCTURE OBLIGATOIRE — groupe les postes par corps de métier dans "sections":
+Chaque section a: "metier", "emoji", "postes"
+Numérote les postes en continu depuis ${idCounter}
+
+${estDernierePasse
+  ? `C'est la DERNIÈRE PASSE. Réponds avec le JSON COMPLET incluant tous les totaux:
+${structureJSON}`
+  : `Ce n'est PAS la dernière passe. Réponds UNIQUEMENT avec ce format JSON (sans totaux):
+{"sections":[{"metier":"Nom métier","emoji":"🔧","postes":[{"id":${idCounter},"titre":"","description":"","qte":1,"unite":"Forfait","pu_ht":0,"total_ht":0}]}]}`
+}
+RÈGLES ABSOLUES: Ne jamais inventer un prix. Utiliser uniquement les prix dictés. Pour l'unité: "m²" surfaces, "ml" linéaires, "h" heures, "Forfait" tout le reste. Ne jamais utiliser "ens".`;
+
+      const ctrl=new AbortController();
+      const timer=setTimeout(()=>ctrl.abort(),55000);
+      const r=await fetch(BACKEND+'/api/claude',{
+        method:'POST',signal:ctrl.signal,
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({payload:{model:'claude-sonnet-4-5',max_tokens:8000,messages:[{role:'user',content:promptPasse}]}})
+      });
+      clearTimeout(timer);
+      const res=await r.json();
+      if(res.error)throw new Error(res.error);
+      const txt=res.content?.[0]?.text||'';
+      if(!txt)throw new Error('Réponse vide passe '+(i+1));
+      const clean=txt.replace(/```json|```/g,'').trim();
+      let parsed;
+      try{parsed=JSON.parse(clean);}catch(pe){throw new Error('JSON invalide passe '+(i+1)+' — réessayez');}
+
+      if(estDernierePasse){
+        // Dernière passe : JSON complet avec totaux
+        // Fusion des sections des passes précédentes
+        if(toutesLesSections.length>0){
+          parsed.sections=[...toutesLesSections,...(parsed.sections||[])];
+          // Recalcul totaux
+          const totalHT=parsed.sections.reduce((a,s)=>a+s.postes.reduce((b,p)=>b+Number(p.total_ht),0),0);
+          const tvaMontant=totalHT*(Number(parsed.tva_pct||tva)/100);
+          parsed.total_ht=Math.round(totalHT*100)/100;
+          parsed.tva_montant=Math.round(tvaMontant*100)/100;
+          parsed.total_ttc=Math.round((totalHT+tvaMontant)*100)/100;
+        }
+        showProgress(totalPasses,totalPasses,'✅ Finalisation…');
+        devisData=parsed;
+        renderDevis(parsed);
+        document.getElementById('result-box').style.display='block';
+        showS('success','✅ Devis généré avec succès !');
+        setTimeout(()=>document.getElementById('result-box').scrollIntoView({behavior:'smooth'}),200);
+        fetch(BACKEND+'/api/devis/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+          id:parsed.numero,data:parsed,
+          artisanEmail:ls('ent-email')||'',
+          clientEmail:document.getElementById('client-email').value||''
+        })}).catch(()=>{});
+      } else {
+        // Passes intermédiaires : accumule les sections
+        const sections=parsed.sections||[];
+        sections.forEach(s=>{
+          s.postes.forEach(p=>{ p.id=idCounter++; });
+        });
+        toutesLesSections=[...toutesLesSections,...sections];
+      }
+    }
+  }catch(e){
+    if(e.name==='AbortError')showS('error','❌ Timeout — le serveur met trop longtemps, réessayez');
+    else showS('error','❌ '+e.message);
+  }
+  finally{document.getElementById('btn-gen').disabled=false;}
+}
+
+function renderDevis(d){
+  // Support ancien format (postes) et nouveau format (sections)
+  let sectionsHtml='';
+  if(d.sections && d.sections.length){
+    sectionsHtml=d.sections.map(s=>{
+      const rows=s.postes.map(p=>`
+        <tr>
+          <td style="padding:7px 9px;border-bottom:1px solid var(--border);vertical-align:top">
+            <span style="font-size:11px;color:var(--text2);font-weight:600;margin-right:8px">${p.id}.</span>
+            <div class="ptit" style="display:inline">${p.titre}</div>
+            <div class="pdesc">${p.description}</div>
+          </td>
+          <td style="padding:7px 9px;border-bottom:1px solid var(--border);text-align:center">${p.qte}</td>
+          <td style="padding:7px 9px;border-bottom:1px solid var(--border);text-align:center">${p.unite}</td>
+          <td style="padding:7px 9px;border-bottom:1px solid var(--border);text-align:right">${fmt(p.pu_ht)}</td>
+          <td style="padding:7px 9px;border-bottom:1px solid var(--border);text-align:right"><strong>${fmt(p.total_ht)}</strong></td>
+        </tr>`).join('');
+      const sousTotalSection=s.postes.reduce((a,p)=>a+Number(p.total_ht),0);
+      return `
+        <tr>
+          <td colspan="5" style="padding:10px 9px 6px;background:var(--bg3);border-bottom:1px solid var(--border)">
+            <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--orange)">${s.emoji} ${s.metier}</span>
+          </td>
+        </tr>
+        ${rows}
+        <tr>
+          <td colspan="4" style="padding:5px 9px 10px;text-align:right;font-size:11px;color:var(--text2);font-style:italic;border-bottom:2px solid var(--border)">Sous-total ${s.metier}</td>
+          <td style="padding:5px 9px 10px;text-align:right;font-size:12px;font-weight:600;color:var(--text);border-bottom:2px solid var(--border)">${fmt(sousTotalSection)} €</td>
+        </tr>`;
+    }).join('');
+  } else {
+    // Fallback ancien format
+    sectionsHtml=(d.postes||[]).map(p=>`<tr><td><div class="ptit">${p.id ? p.id+'. ' : ''}${p.titre}</div><div class="pdesc">${p.description}</div></td><td style="text-align:center">${p.qte}</td><td style="text-align:center">${p.unite}</td><td style="text-align:right">${fmt(p.pu_ht)}</td><td style="text-align:right"><strong>${fmt(p.total_ht)}</strong></td></tr>`).join('');
+  }
+
+  document.getElementById('devis-preview').innerHTML=`
+  <h1>DEVIS N° ${d.numero}</h1>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Date : ${d.date} &nbsp;|&nbsp; Validité : ${d.validite}</div>
+  <div class="hgrid">
+    <div class="iblk"><h2>Entreprise</h2><p><strong>${d.entreprise.nom}</strong><br>${d.entreprise.siret?'SIRET : '+d.entreprise.siret+'<br>':''}${d.entreprise.tel?'📞 '+d.entreprise.tel+'<br>':''}${d.entreprise.adresse?'📍 '+d.entreprise.adresse+'<br>':''}${d.entreprise.email?'✉️ '+d.entreprise.email:''}</p></div>
+    <div class="iblk"><h2>Maître d'Ouvrage</h2><p><strong>${d.client.nom}</strong><br>${d.client.email?'✉️ '+d.client.email+'<br>':''}${d.chantier.adresse?'<br>📍 '+d.chantier.adresse:''}</p></div>
+  </div>
+  <div class="iblk" style="margin-bottom:14px"><p><strong>Nature des travaux :</strong> ${d.chantier.nature} &nbsp; <strong>Délai :</strong> ${d.chantier.delai}</p></div>
+  <h2>Descriptif des Ouvrages</h2>
+  <table><thead><tr><th>Désignation</th><th style="text-align:center">Qté</th><th style="text-align:center">Unité</th><th style="text-align:right">P.U. HT €</th><th style="text-align:right">Total HT €</th></tr></thead><tbody>${sectionsHtml}</tbody></table>
+  <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+    <div class="totaux-box">
+      <div class="trow"><span>Total HT</span><span>${fmt(d.total_ht)} €</span></div>
+      <div class="trow"><span>TVA ${d.tva_pct}%</span><span>${fmt(d.tva_montant)} €</span></div>
+      <div class="trow"><span>TOTAL TTC</span><span>${fmt(d.total_ttc)} €</span></div>
+    </div>
+  </div>
+  <div class="tlettres">Arrêté à : <em>${d.total_lettres}</em></div>
+  <div class="cond-box"><strong>Conditions :</strong> ${d.conditions}<br>${gMentions}${gDecCompagnie ? "<br>🛡️ Assurance décennale : "+gDecCompagnie+(gDecNumero?" — Police n° "+gDecNumero:"") : ""}</div>
+  ${gIban ? '<div class="cond-box" style="margin-top:8px">🏦 <strong>Coordonnées bancaires</strong><br>'+(gBanque?gBanque+"<br>":"")+"IBAN : "+gIban+(gBic?" — BIC : "+gBic:"")+(gTitulaire?"<br>Titulaire : "+gTitulaire:"")+"</div>" : ""}
+  <div class="validite-txt">Bon pour accord : _________________ &nbsp; Date : _________________</div>`;
+}
+
+function fmt(n){return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+async function envoyerDevis(){
+  const ce=document.getElementById('client-email').value.trim();
+  if(!ce){alert('Email client requis.');return;}
+  const rk=document.getElementById('resend-key').value||ls('resend-key')||'';
+  if(!rk){alert('Clé API Resend manquante dans Mon Profil.');return;}
+  if(!devisData){alert('Générez d\'abord un devis.');return;}
+  const d=devisData;
+  const exp=document.getElementById('email-exp').value||'onboarding@resend.dev';
+
+  // Générer les lignes email avec sections
+  let rowsHtml='';
+  if(d.sections && d.sections.length){
+    d.sections.forEach(s=>{
+      rowsHtml+=`<tr><td colspan="5" style="padding:8px 8px 4px;background:#fff3ee;border-bottom:1px solid #ffd0b0"><strong style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#FF4500">${s.emoji} ${s.metier}</strong></td></tr>`;
+      s.postes.forEach((p,i)=>{
+        rowsHtml+=`<tr style="background:${i%2?'#f9f9f9':'#fff'}"><td style="padding:8px;border-bottom:1px solid #eee"><strong>${p.id}. ${p.titre}</strong><br><span style="font-size:11px;color:#777">${p.description}</span></td><td style="padding:8px;text-align:center;border-bottom:1px solid #eee">${p.qte}</td><td style="padding:8px;text-align:center;border-bottom:1px solid #eee">${p.unite}</td><td style="padding:8px;text-align:right;border-bottom:1px solid #eee">${fmt(p.pu_ht)} €</td><td style="padding:8px;text-align:right;border-bottom:1px solid #eee"><strong>${fmt(p.total_ht)} €</strong></td></tr>`;
+      });
+    });
+  } else {
+    (d.postes||[]).forEach((p,i)=>{
+      rowsHtml+=`<tr style="background:${i%2?'#f9f9f9':'#fff'}"><td style="padding:8px;border-bottom:1px solid #eee"><strong>${p.titre}</strong><br><span style="font-size:11px;color:#777">${p.description}</span></td><td style="padding:8px;text-align:center;border-bottom:1px solid #eee">${p.qte}</td><td style="padding:8px;text-align:center;border-bottom:1px solid #eee">${p.unite}</td><td style="padding:8px;text-align:right;border-bottom:1px solid #eee">${fmt(p.pu_ht)} €</td><td style="padding:8px;text-align:right;border-bottom:1px solid #eee"><strong>${fmt(p.total_ht)} €</strong></td></tr>`;
+    });
+  }
+
+  const artisanEmail=ls('ent-email')||'';
+  const artisanNom=ls('ent-nom')||'Votre artisan';
+  const montantTTC=fmt(d.total_ttc)+' €';
+
+  // Lien de confirmation — pointe vers la page accept.html sur Netlify
+  const acceptUrl=`${window.location.origin}/accept.html?numero=${encodeURIComponent(d.numero)}&client=${encodeURIComponent(d.client.nom)}&artisan=${encodeURIComponent(artisanNom)}&artisanEmail=${encodeURIComponent(artisanEmail)}&montant=${encodeURIComponent(montantTTC)}&resendKey=${encodeURIComponent(rk)}`;
+  // Lien PDF — pointe vers la page devis-pdf.html
+  const pdfUrl=`${window.location.origin}/devis-pdf.html?id=${encodeURIComponent(d.numero)}`;
+
+  const html=`<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#222"><div style="background:#FF4500;padding:18px 22px;border-radius:8px 8px 0 0"><h1 style="color:#fff;font-size:20px;margin:0">DEVIS N° ${d.numero}</h1><p style="color:rgba(255,255,255,.85);margin:3px 0 0;font-size:12px">Date : ${d.date} — Validité : ${d.validite}</p></div><div style="background:#fff;padding:22px;border:1px solid #eee;border-top:none"><table style="width:100%;font-size:12px;margin-bottom:18px"><tr><td style="width:50%;vertical-align:top;padding-right:10px"><strong style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#999">Entreprise</strong><br><br><strong>${d.entreprise.nom}</strong><br>${d.entreprise.siret?'SIRET : '+d.entreprise.siret+'<br>':''}${d.entreprise.tel?d.entreprise.tel+'<br>':''}</td><td style="width:50%;vertical-align:top;background:#f9f9f9;padding:10px;border-radius:6px"><strong style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#999">Maître d'Ouvrage</strong><br><br><strong>${d.client.nom}</strong><br>${d.chantier.adresse||''}</td></tr></table><p style="font-size:12px;margin-bottom:14px"><strong>Nature :</strong> ${d.chantier.nature} &nbsp;|&nbsp; <strong>Délai :</strong> ${d.chantier.delai}</p><table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:18px"><thead><tr style="background:#FF4500;color:#fff"><th style="padding:8px;text-align:left">Désignation</th><th style="padding:8px;text-align:center">Qté</th><th style="padding:8px;text-align:center">Unité</th><th style="padding:8px;text-align:right">P.U. HT</th><th style="padding:8px;text-align:right">Total HT</th></tr></thead><tbody>${rowsHtml}</tbody></table><div style="text-align:right;margin-bottom:16px"><table style="margin-left:auto;font-size:12px;border-collapse:collapse"><tr><td style="padding:3px 14px 3px 0;color:#666">Total HT</td><td style="padding:3px 0;font-weight:600">${fmt(d.total_ht)} €</td></tr><tr><td style="padding:3px 14px 3px 0;color:#666">TVA ${d.tva_pct}%</td><td style="padding:3px 0;font-weight:600">${fmt(d.tva_montant)} €</td></tr><tr style="border-top:2px solid #FF4500"><td style="padding:7px 14px 3px 0;font-weight:700;font-size:14px">TOTAL TTC</td><td style="padding:7px 0 3px;font-weight:700;font-size:14px;color:#FF4500">${fmt(d.total_ttc)} €</td></tr></table></div><p style="font-size:11px;color:#999;font-style:italic;margin-bottom:14px">Arrêté à : ${d.total_lettres}</p><div style="background:#f5f5f5;padding:10px 12px;border-radius:6px;font-size:11px;color:#777">${d.conditions}<br>${gMentions}</div>
+  <div style="text-align:center;margin-top:24px;padding:20px;background:#fff8f5;border-radius:8px;border:1px solid #ffd0b0">
+    <p style="font-size:13px;color:#555;margin-bottom:14px">Ce devis vous convient ? Acceptez-le en un clic :</p>
+    <a href="${acceptUrl}" style="display:inline-block;background:#FF4500;color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:700;font-size:15px;letter-spacing:.5px">✅ Accepter ce devis</a>
+    <br><br>
+    <a href="${pdfUrl}" style="display:inline-block;background:#fff;color:#FF4500;text-decoration:none;padding:10px 24px;border-radius:8px;font-weight:600;font-size:13px;border:2px solid #FF4500">📄 Télécharger en PDF</a>
+  </div>
+  <p style="margin-top:18px;font-size:11px;color:#ccc;text-align:center">Généré avec DevisVoice</p></div></div>`;
+  showES('loading','📧 Envoi en cours…');
+  try{
+    const r=await fetch(BACKEND+'/api/resend',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({apiKey:rk,payload:{from:exp,to:[ce],subject:'Devis N° '+d.numero+' — '+d.chantier.nature,html}})});
+    const res=await r.json();
+    if(!r.ok)throw new Error(res.message||'Erreur envoi');
+    showES('success','✅ Email envoyé à '+ce);
+  }catch(e){showES('error','❌ '+e.message);}
+}
+
+async function imprimerDevis(){
+  if(!devisData)return;
+  const { jsPDF } = window.jspdf;
+  const element = document.getElementById('devis-preview');
+
+  // Forcer fond blanc pour le PDF
+  const oldBg = element.style.background;
+  element.style.background = '#ffffff';
+  element.style.color = '#222222';
+
+  try{
+    const canvas = await html2canvas(element, {
+      scale:2, useCORS:true, backgroundColor:'#ffffff', windowWidth:800
+    });
+    element.style.background = oldBg;
+    element.style.color = '';
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.9);
+    const pdf = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const imgW = pageW - 20;
+    const imgH = (canvas.height * imgW) / canvas.width;
+    let posY = 10;
+    let heightLeft = imgH;
+    pdf.addImage(imgData,'JPEG',10,posY,imgW,imgH);
+    heightLeft -= (pageH - posY - 10);
+    while(heightLeft > 0){
+      pdf.addPage();
+      posY = -(imgH - heightLeft) - 10;
+      pdf.addImage(imgData,'JPEG',10,posY,imgW,imgH);
+      heightLeft -= (pageH - 10);
+    }
+    pdf.save('Devis-'+devisData.numero+'.pdf');
+  }catch(e){
+    element.style.background = oldBg;
+    element.style.color = '';
+    alert('Erreur génération PDF — réessayez');
+  }
+}
+
+function nouveauDevis(){
+  if(!confirm('Commencer un nouveau devis ?'))return;
+  ['client-nom','client-email','chantier-adresse','nature-travaux','delai-execution'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('dictee-text').innerText='';
+  document.getElementById('result-box').style.display='none';
+  document.getElementById('sbar').className='sbar';
+  devisData=null;setLbl('Appuyez pour dicter',false);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function saveProfil(){
+  ['ent-nom','ent-siret','ent-tel','ent-adr','ent-email','mentions','resend-key','email-exp','ent-decennale-compagnie','ent-decennale-numero','ent-banque','ent-iban','ent-bic','ent-titulaire'].forEach(id=>{const el=document.getElementById(id);if(el)localStorage.setItem(id,el.value);});
+  flash('p-badge');
+}
+function saveTarifs(){
+  ['t-mo','t-tva'].forEach(id=>{const el=document.getElementById(id);if(el)localStorage.setItem(id,el.value);});
+  // Mentions légales automatiques selon TVA
+  const tva=document.getElementById('t-tva').value;
+  const mentionsAuto={
+    '10':'TVA à taux réduit 10% applicable — Art. 279 du CGI',
+    '20':'TVA à taux normal 20% applicable',
+    '5.5':'TVA à taux réduit 5,5% applicable — Art. 278-0 bis du CGI',
+    '0':'TVA non applicable — Art. 293 B du CGI'
+  };
+  const mentionsEl=document.getElementById('mentions');
+  if(mentionsEl && mentionsAuto[tva]){
+    mentionsEl.value=mentionsAuto[tva];
+    localStorage.setItem('mentions',mentionsAuto[tva]);
+  }
+  flash('t-badge');
+}
+function flash(id){const el=document.getElementById(id);el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
+
+function loadAll(){
+  const map={'ent-nom':'ent-nom','ent-siret':'ent-siret','ent-tel':'ent-tel','ent-adr':'ent-adr','ent-email':'ent-email','mentions':'mentions','resend-key':'resend-key','email-exp':'email-exp','ent-decennale-compagnie':'ent-decennale-compagnie','ent-decennale-numero':'ent-decennale-numero','ent-banque':'ent-banque','ent-iban':'ent-iban','ent-bic':'ent-bic','ent-titulaire':'ent-titulaire','t-mo':'t-mo','t-tva':'t-tva'};
+  Object.keys(map).forEach(k=>{const v=localStorage.getItem(k);const el=document.getElementById(map[k]);if(v&&el)el.value=v;});
+  // Charger toutes les prestations sauvegardées en mémoire vive au démarrage
+  const cles=Object.keys(localStorage).filter(k=>k.startsWith('prest_'));
+  cles.forEach(cle=>{
+    try{
+      const key=cle.replace('prest_','');
+      const data=JSON.parse(localStorage.getItem(cle));
+      if(data && data.length) prestationsActives[key]=data;
+    }catch(e){}
+  });
+}
+
+function ls(k){return localStorage.getItem(k)||'';}
+function showS(t,m){const s=document.getElementById('sbar');s.className='sbar '+t;s.innerHTML=t==='loading'?`<div class="spin"></div><span>${m}</span>`:m;}
+function showES(t,m){const s=document.getElementById('email-sbar');s.className='sbar '+t;s.style.display='flex';s.innerHTML=t==='loading'?`<div class="spin"></div><span>${m}</span>`:m;}
+
+loadAll();
+</script>
+</body>
+</html>
