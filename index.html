@@ -618,15 +618,17 @@ async function genererDevis(){
   // ── Barre de progression ──
   function showProgress(etape,total,label){
     const pct=Math.round((etape/total)*100);
-    showS('loading',`<div style="text-align:center;padding:4px 0 8px"><div style="font-size:13px;font-weight:600;margin-bottom:10px">${label}</div><div style="background:var(--bg3);border-radius:20px;height:8px;width:100%;overflow:hidden;margin-bottom:6px"><div style="background:var(--orange);height:100%;width:${pct}%;border-radius:20px;transition:width .4s ease"></div></div><div style="font-size:11px;color:var(--text2)">${etape > 0 ? `Passe ${etape} / ${total} terminée` : 'Démarrage...'} • ${pct}%</div></div>`);
+    showS('loading',`<div style="text-align:center;padding:4px 0 8px"><div style="font-size:13px;font-weight:600;margin-bottom:10px">${label}</div><div style="background:var(--bg3);border-radius:20px;height:8px;width:100%;overflow:hidden;margin-bottom:6px"><div id="prog-bar" style="background:var(--orange);height:100%;width:${pct}%;border-radius:20px"></div></div><div style="font-size:11px;color:var(--text2)">${etape > 0 ? 'Passe '+etape+' / '+total+' terminée' : 'Analyse en cours...'} • ${pct}%</div></div>`);
+    setTimeout(()=>{ const b=document.getElementById('prog-bar'); if(b)b.style.width=pct+'%'; },50);
   }
 
   // ── Découpe la dictée en passes de max 5 métiers ──
-  const TAILLE_PASSE=5;
-  const MOTS_METIER=['carrelage','peinture','plaquiste','placo','plomberie','chauffage','électricité','electricite','maçonnerie','maconnerie','menuiserie','serrurerie','charpente','couverture','isolation','terrassement'];
+  const TAILLE_PASSE=12; // postes max par passe
   function decouperEnPasses(texte){
-    const nb=MOTS_METIER.filter(m=>texte.toLowerCase().includes(m)).length;
-    const nbPasses=Math.max(1,Math.ceil(nb/TAILLE_PASSE));
+    // Compte les postes par les virgules (chaque poste = séparé par virgule)
+    const postes=texte.split(',').map(s=>s.trim()).filter(s=>s.length>0);
+    const nbPostes=postes.length;
+    const nbPasses=Math.max(1,Math.ceil(nbPostes/TAILLE_PASSE));
     if(nbPasses<=1)return[texte];
     const passes=[];
     const chunkSize=Math.ceil(texte.length/nbPasses);
