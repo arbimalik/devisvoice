@@ -323,9 +323,9 @@ function nombreEnLettres(n){
   function dizaines(n){
     if(n < 20) return u[n];
     const di = Math.floor(n/10), un = n%10;
-    if(di === 7) return 'soixante-'+(un===1?'et-onze':u[10+un]);
-    if(di === 9) return 'quatre-vingt-'+(un===0?'s':u[10+un] ? u[10+un] : '');
-    if(di === 8) return un===0?'quatre-vingts':'quatre-vingt-'+u[un];
+    if(di === 7) return un===1 ? 'soixante-et-onze' : 'soixante-'+u[10+un];
+    if(di === 9) return un===0 ? 'quatre-vingt-dix' : 'quatre-vingt-'+u[10+un];
+    if(di === 8) return un===0 ? 'quatre-vingts' : 'quatre-vingt-'+u[un];
     return d[di]+(un===1&&di!==8?' et '+u[un]:un>0?'-'+u[un]:'');
   }
 
