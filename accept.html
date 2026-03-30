@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acceptation de Devis — DevisVoice</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;500;600&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Inter',sans-serif;
+  background:#f5f4f1;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  padding:32px 16px 60px;
+}
+
+/* ===== LOGO ===== */
+.logo{
+  font-family:'Syne',sans-serif;
+  font-size:22px;
+  font-weight:800;
+  color:#111;
+  margin-bottom:32px;
+  letter-spacing:-.5px;
+}
+.logo span{color:#FF4500;}
+
+/* ===== CARTE PRINCIPALE ===== */
+.card{
+  background:#fff;
+  border-radius:16px;
+  max-width:520px;
+  width:100%;
+  overflow:hidden;
+  box-shadow:0 4px 32px rgba(0,0,0,0.08);
+}
+
+/* En-tête orange */
+.card-header{
+  background:#FF4500;
+  padding:24px 28px;
+  color:#fff;
+}
+.card-header .label{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  opacity:.8;
+  margin-bottom:6px;
+}
+.card-header h1{
+  font-family:'Syne',sans-serif;
+  font-size:20px;
+  font-weight:800;
+  margin-bottom:4px;
+}
+.card-header .meta{
+  font-size:12px;
+  opacity:.8;
+}
+
+/* Corps */
+.card-body{padding:28px;}
+
+/* Récap devis */
+.recap{
+  background:#f8f8f8;
+  border-radius:10px;
+  padding:16px 18px;
+  margin-bottom:24px;
+}
+.recap-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:5px 0;
+  font-size:13px;
+  border-bottom:1px solid #eee;
+}
+.recap-row:last-child{border:none;}
+.recap-row .rlabel{color:#888;font-size:12px;}
+.recap-row .rval{font-weight:600;color:#111;}
+.recap-total{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:14px;
+  padding:12px 18px;
+  background:#fff3ee;
+  border-radius:8px;
+  border:1px solid #ffd0b0;
+}
+.recap-total .tl{font-size:13px;color:#888;}
+.recap-total .tv{font-size:20px;font-weight:800;color:#FF4500;}
+
+/* Séparateur */
+.sep{
+  height:1px;
+  background:#f0f0f0;
+  margin:20px 0;
+}
+
+/* Section signature */
+.section-title{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:#888;
+  margin-bottom:14px;
+}
+
+/* Conditions */
+.conditions-box{
+  background:#f8f8f8;
+  border-radius:8px;
+  padding:12px 14px;
+  font-size:11px;
+  color:#666;
+  line-height:1.7;
+  margin-bottom:16px;
+  max-height:100px;
+  overflow-y:auto;
+}
+
+/* Checkbox */
+.check-row{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  margin-bottom:20px;
+  cursor:pointer;
+}
+.check-row input[type="checkbox"]{
+  width:18px;
+  height:18px;
+  accent-color:#FF4500;
+  flex-shrink:0;
+  margin-top:1px;
+  cursor:pointer;
+}
+.check-row label{
+  font-size:13px;
+  color:#444;
+  line-height:1.5;
+  cursor:pointer;
+}
+.check-row label strong{color:#111;}
+
+/* Input nom */
+.input-group{margin-bottom:16px;}
+.input-group label{
+  display:block;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:#888;
+  margin-bottom:6px;
+}
+.input-group input{
+  width:100%;
+  padding:12px 14px;
+  border:1.5px solid #e0e0e0;
+  border-radius:8px;
+  font-family:'Inter',sans-serif;
+  font-size:14px;
+  color:#111;
+  outline:none;
+  transition:border-color .2s;
+}
+.input-group input:focus{border-color:#FF4500;}
+.input-group input::placeholder{color:#bbb;}
+
+/* Date auto */
+.date-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:12px;
+  color:#888;
+  margin-bottom:20px;
+}
+.date-row strong{color:#111;}
+
+/* Bouton signer */
+.btn-sign{
+  width:100%;
+  background:#FF4500;
+  color:#fff;
+  border:none;
+  padding:16px;
+  font-family:'Syne',sans-serif;
+  font-weight:700;
+  font-size:16px;
+  letter-spacing:.5px;
+  border-radius:10px;
+  cursor:pointer;
+  transition:background .2s, transform .1s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+.btn-sign:hover{background:#e03d00;}
+.btn-sign:active{transform:scale(.98);}
+.btn-sign:disabled{background:#ddd;cursor:not-allowed;}
+
+/* Barre de statut */
+.sbar{
+  display:none;
+  align-items:center;
+  gap:10px;
+  padding:12px 14px;
+  border-radius:8px;
+  margin-top:14px;
+  font-size:13px;
+  font-weight:500;
+}
+.sbar.loading{display:flex;background:rgba(255,69,0,.08);color:#FF4500;border:1px solid rgba(255,69,0,.2);}
+.sbar.error{display:flex;background:rgba(220,50,50,.08);color:#e04040;border:1px solid rgba(220,50,50,.2);}
+.spin{width:15px;height:15px;border:2px solid rgba(255,69,0,.3);border-top-color:#FF4500;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ===== PAGE SUCCÈS ===== */
+#page-success{display:none;max-width:520px;width:100%;}
+
+.success-card{
+  background:#fff;
+  border-radius:16px;
+  padding:48px 32px;
+  text-align:center;
+  box-shadow:0 4px 32px rgba(0,0,0,0.08);
+}
+.success-icon{
+  width:72px;
+  height:72px;
+  background:#e8f8ef;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto 20px;
+  font-size:32px;
+}
+.success-card h2{
+  font-family:'Syne',sans-serif;
+  font-size:22px;
+  font-weight:800;
+  color:#111;
+  margin-bottom:10px;
+}
+.success-card p{
+  font-size:14px;
+  color:#666;
+  line-height:1.7;
+  margin-bottom:24px;
+}
+.success-details{
+  background:#f8f8f8;
+  border-radius:10px;
+  padding:16px 18px;
+  text-align:left;
+  margin-bottom:24px;
+}
+.success-details .srow{
+  display:flex;
+  justify-content:space-between;
+  padding:4px 0;
+  font-size:12px;
+  border-bottom:1px solid #eee;
+}
+.success-details .srow:last-child{border:none;}
+.success-details .srow .sl{color:#888;}
+.success-details .srow .sv{font-weight:600;color:#111;}
+
+.stamp{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:#e8f8ef;
+  color:#00a651;
+  font-size:12px;
+  font-weight:700;
+  padding:8px 18px;
+  border-radius:20px;
+  border:1px solid #b8e8cc;
+  letter-spacing:.5px;
+}
+
+/* ===== PAGE ERREUR ===== */
+#page-error{display:none;max-width:520px;width:100%;}
+.error-card{
+  background:#fff;
+  border-radius:16px;
+  padding:48px 32px;
+  text-align:center;
+  box-shadow:0 4px 32px rgba(0,0,0,0.08);
+}
+.error-card h2{
+  font-family:'Syne',sans-serif;
+  font-size:20px;
+  font-weight:800;
+  color:#111;
+  margin-bottom:10px;
+}
+.error-card p{font-size:14px;color:#666;line-height:1.7;}
+
+/* ===== PAGE DÉJÀ ACCEPTÉ ===== */
+#page-already{display:none;max-width:520px;width:100%;}
+.already-card{
+  background:#fff;
+  border-radius:16px;
+  padding:48px 32px;
+  text-align:center;
+  box-shadow:0 4px 32px rgba(0,0,0,0.08);
+}
+.already-card h2{
+  font-family:'Syne',sans-serif;
+  font-size:20px;
+  font-weight:800;
+  color:#111;
+  margin-bottom:10px;
+}
+.already-card p{font-size:14px;color:#666;line-height:1.7;}
+</style>
+</head>
+<body>
+
+<div class="logo">Devis<span>Voice</span></div>
+
+<!-- ===== PAGE ACCEPTATION ===== -->
+<div id="page-accept" style="max-width:520px;width:100%;">
+  <div class="card">
+    <div class="card-header">
+      <div class="label">Devis à accepter</div>
+      <h1 id="hdr-numero">—</h1>
+      <div class="meta" id="hdr-meta">—</div>
+    </div>
+    <div class="card-body">
+
+      <!-- Récap -->
+      <div class="recap">
+        <div class="recap-row">
+          <span class="rlabel">Artisan</span>
+          <span class="rval" id="rc-artisan">—</span>
+        </div>
+        <div class="recap-row">
+          <span class="rlabel">Nature des travaux</span>
+          <span class="rval" id="rc-nature">—</span>
+        </div>
+        <div class="recap-row">
+          <span class="rlabel">Validité</span>
+          <span class="rval" id="rc-validite">3 mois</span>
+        </div>
+      </div>
+      <div class="recap-total">
+        <span class="tl">Montant TTC</span>
+        <span class="tv" id="rc-montant">—</span>
+      </div>
+
+      <div class="sep"></div>
+
+      <!-- Conditions -->
+      <div class="section-title">Conditions du devis</div>
+      <div class="conditions-box" id="conditions-box">
+        30% à la commande, solde à réception et levée des réserves.<br>
+        TVA applicable selon taux en vigueur.
+      </div>
+
+      <!-- Checkbox -->
+      <div class="check-row">
+        <input type="checkbox" id="check-accept">
+        <label for="check-accept">
+          J'ai lu et j'accepte les conditions du devis.<br>
+          <strong>Cette acceptation vaut bon pour accord.</strong>
+        </label>
+      </div>
+
+      <!-- Nom complet -->
+      <div class="input-group">
+        <label>Votre nom complet</label>
+        <input type="text" id="input-nom" placeholder="Prénom NOM">
+      </div>
+
+      <!-- Date -->
+      <div class="date-row">
+        <span>Date d'acceptation</span>
+        <strong id="date-today">—</strong>
+      </div>
+
+      <!-- Bouton -->
+      <button class="btn-sign" id="btn-sign" onclick="signerDevis()">
+        ✅ Signer et accepter le devis
+      </button>
+      <div class="sbar" id="sbar"></div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAGE SUCCÈS ===== -->
+<div id="page-success">
+  <div class="success-card">
+    <div class="success-icon">✅</div>
+    <h2>Devis accepté !</h2>
+    <p>Votre acceptation a bien été enregistrée.<br>L'artisan a été notifié et vous recevrez<br>une confirmation par email.</p>
+    <div class="success-details" id="success-details"></div>
+    <div class="stamp">✓ &nbsp;BON POUR ACCORD</div>
+  </div>
+</div>
+
+<!-- ===== PAGE DÉJÀ ACCEPTÉ ===== -->
+<div id="page-already">
+  <div class="already-card">
+    <div style="font-size:48px;margin-bottom:16px">📋</div>
+    <h2>Devis déjà accepté</h2>
+    <p>Ce devis a déjà été accepté.<br>Contactez votre artisan pour plus d'informations.</p>
+  </div>
+</div>
+
+<!-- ===== PAGE ERREUR ===== -->
+<div id="page-error">
+  <div class="error-card">
+    <div style="font-size:48px;margin-bottom:16px">⚠️</div>
+    <h2>Lien invalide</h2>
+    <p>Ce lien a expiré ou est invalide.<br>Contactez votre artisan pour obtenir un nouveau devis.</p>
+  </div>
+</div>
+
+<script>
+const BACKEND = 'https://devisvoice-backend-production-9ed2.up.railway.app';
+
+// Récupère les paramètres URL
+const params = new URLSearchParams(window.location.search);
+const numero      = params.get('numero')    || '';
+const clientNom   = params.get('client')    || '';
+const artisanNom  = params.get('artisan')   || '';
+const artisanEmail= params.get('artisanEmail') || '';
+const montant     = params.get('montant')   || '';
+const resendKey   = params.get('resendKey') || '';
+
+function showPage(id){
+  ['page-accept','page-success','page-already','page-error'].forEach(p=>{
+    document.getElementById(p).style.display = p===id ? 'block' : 'none';
+  });
+}
+
+function showS(type, msg){
+  const s = document.getElementById('sbar');
+  s.className = 'sbar '+type;
+  s.innerHTML = type==='loading'
+    ? `<div class="spin"></div><span>${msg}</span>`
+    : msg;
+}
+
+// Initialisation
+function init(){
+  if(!numero){ showPage('page-error'); return; }
+
+  // Date du jour
+  const today = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('date-today').textContent = today;
+
+  // Remplir les champs
+  document.getElementById('hdr-numero').textContent = 'DEVIS N° ' + numero;
+  document.getElementById('hdr-meta').textContent   = 'De ' + artisanNom + ' — ' + today;
+  document.getElementById('rc-artisan').textContent  = artisanNom || '—';
+  document.getElementById('rc-montant').textContent  = montant    || '—';
+
+  // Charger le devis depuis le backend pour récupérer nature + conditions
+  fetch(BACKEND + '/api/devis/' + encodeURIComponent(numero))
+    .then(r => r.ok ? r.json() : null)
+    .then(row => {
+      if(!row) return;
+      const d = typeof row.data === 'string' ? JSON.parse(row.data) : row.data;
+
+      // Vérifier si déjà accepté
+      if(row.accepted){ showPage('page-already'); return; }
+
+      // Nature des travaux
+      if(d.chantier && d.chantier.nature){
+        document.getElementById('rc-nature').textContent = d.chantier.nature;
+      }
+      // Validité
+      if(d.validite){
+        document.getElementById('rc-validite').textContent = d.validite;
+      }
+      // Conditions
+      if(d.conditions || d.mentions){
+        document.getElementById('conditions-box').innerHTML =
+          (d.conditions || '') + (d.mentions ? '<br>' + d.mentions : '');
+      }
+    })
+    .catch(()=>{});
+}
+
+async function signerDevis(){
+  const checked = document.getElementById('check-accept').checked;
+  const nom     = document.getElementById('input-nom').value.trim();
+
+  if(!checked){
+    showS('error','❌ Veuillez cocher la case pour accepter les conditions.');
+    return;
+  }
+  if(!nom){
+    showS('error','❌ Veuillez entrer votre nom complet.');
+    return;
+  }
+
+  document.getElementById('btn-sign').disabled = true;
+  showS('loading','⏳ Enregistrement de votre acceptation…');
+
+  const today = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const dateISO = new Date().toISOString();
+
+  try {
+    // 1. Marquer le devis comme accepté en base
+    const r = await fetch(BACKEND + '/api/devis/accept', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        id: numero,
+        acceptedBy: nom,
+        acceptedAt: dateISO
+      })
+    });
+    if(!r.ok) throw new Error('Erreur serveur');
+
+    // 2. Envoyer email à l'artisan si resendKey disponible
+    if(resendKey && artisanEmail){
+      const emailArtisan = {
+        from: 'onboarding@resend.dev',
+        to: [artisanEmail],
+        subject: `✅ Devis ${numero} accepté par ${nom}`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#222">
+            <div style="background:#FF4500;padding:20px 24px;border-radius:8px 8px 0 0">
+              <h1 style="color:#fff;font-size:18px;margin:0">✅ Devis accepté !</h1>
+            </div>
+            <div style="background:#fff;padding:24px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
+              <p style="font-size:14px;margin-bottom:16px">Bonne nouvelle ! Votre devis vient d'être accepté.</p>
+              <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:20px">
+                <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #f0f0f0">Devis</td><td style="padding:8px 0;font-weight:600;border-bottom:1px solid #f0f0f0">${numero}</td></tr>
+                <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #f0f0f0">Client</td><td style="padding:8px 0;font-weight:600;border-bottom:1px solid #f0f0f0">${nom}</td></tr>
+                <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #f0f0f0">Montant TTC</td><td style="padding:8px 0;font-weight:600;color:#FF4500;border-bottom:1px solid #f0f0f0">${montant}</td></tr>
+                <tr><td style="padding:8px 0;color:#888">Date d'acceptation</td><td style="padding:8px 0;font-weight:600">${today}</td></tr>
+              </table>
+              <div style="background:#e8f8ef;border-radius:8px;padding:12px 16px;text-align:center">
+                <span style="color:#00a651;font-weight:700;font-size:14px">✓ BON POUR ACCORD — ${nom} — ${today}</span>
+              </div>
+              <p style="font-size:11px;color:#aaa;margin-top:20px;text-align:center">Généré avec DevisVoice</p>
+            </div>
+          </div>`
+      };
+
+      await fetch(BACKEND + '/api/resend', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ apiKey: resendKey, payload: emailArtisan })
+      }).catch(()=>{});
+    }
+
+    // 3. Envoyer email de confirmation au client
+    if(resendKey && clientNom){
+      // On essaie de récupérer l'email client depuis le backend
+      fetch(BACKEND + '/api/devis/' + encodeURIComponent(numero))
+        .then(r => r.json())
+        .then(row => {
+          const d = typeof row.data === 'string' ? JSON.parse(row.data) : row.data;
+          const clientEmail = d?.client?.email || '';
+          if(!clientEmail) return;
+
+          const emailClient = {
+            from: 'onboarding@resend.dev',
+            to: [clientEmail],
+            subject: `Confirmation — Devis ${numero} accepté`,
+            html: `
+              <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#222">
+                <div style="background:#111;padding:20px 24px;border-radius:8px 8px 0 0">
+                  <h1 style="color:#fff;font-size:18px;margin:0">Confirmation d'acceptation</h1>
+                </div>
+                <div style="background:#fff;padding:24px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
+                  <p style="font-size:14px;margin-bottom:16px">Bonjour ${nom},<br><br>Votre acceptation du devis <strong>${numero}</strong> a bien été enregistrée.</p>
+                  <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:20px">
+                    <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #f0f0f0">Artisan</td><td style="padding:8px 0;font-weight:600;border-bottom:1px solid #f0f0f0">${artisanNom}</td></tr>
+                    <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #f0f0f0">Montant TTC</td><td style="padding:8px 0;font-weight:600;color:#FF4500;border-bottom:1px solid #f0f0f0">${montant}</td></tr>
+                    <tr><td style="padding:8px 0;color:#888">Date</td><td style="padding:8px 0;font-weight:600">${today}</td></tr>
+                  </table>
+                  <div style="background:#e8f8ef;border-radius:8px;padding:12px 16px;text-align:center">
+                    <span style="color:#00a651;font-weight:700;font-size:14px">✓ BON POUR ACCORD — ${nom} — ${today}</span>
+                  </div>
+                  <p style="font-size:11px;color:#aaa;margin-top:20px;text-align:center">Généré avec DevisVoice</p>
+                </div>
+              </div>`
+          };
+
+          fetch(BACKEND + '/api/resend', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ apiKey: resendKey, payload: emailClient })
+          }).catch(()=>{});
+        }).catch(()=>{});
+    }
+
+    // 4. Afficher la page succès
+    document.getElementById('success-details').innerHTML = `
+      <div class="srow"><span class="sl">Devis</span><span class="sv">${numero}</span></div>
+      <div class="srow"><span class="sl">Accepté par</span><span class="sv">${nom}</span></div>
+      <div class="srow"><span class="sl">Montant TTC</span><span class="sv" style="color:#FF4500">${montant}</span></div>
+      <div class="srow"><span class="sl">Date</span><span class="sv">${today}</span></div>
+    `;
+    showPage('page-success');
+
+  } catch(e){
+    showS('error', '❌ Erreur — réessayez ou contactez votre artisan.');
+    document.getElementById('btn-sign').disabled = false;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
