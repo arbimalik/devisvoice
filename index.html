@@ -1056,7 +1056,6 @@ function renderDevis(d){
       <div class="trow"><span>TOTAL TTC</span><span>${fmt(d.total_ttc)} €</span></div>
     </div>
   </div>
-  <div class="tlettres">Arrêté à : <em>${d.total_lettres}</em></div>
   <div class="cond-box"><strong>Conditions :</strong> ${d.conditions}<br>${gMentions}${gDecCompagnie ? "<br>🛡️ Assurance décennale : "+gDecCompagnie+(gDecNumero?" — Police n° "+gDecNumero:"") : ""}</div>
   ${gIban ? '<div class="cond-box" style="margin-top:8px">🏦 <strong>Coordonnées bancaires</strong><br>'+(gBanque?gBanque+"<br>":"")+"IBAN : "+gIban+(gBic?" — BIC : "+gBic:"")+(gTitulaire?"<br>Titulaire : "+gTitulaire:"")+"</div>" : ""}
   <div class="validite-txt">Bon pour accord : _________________ &nbsp; Date : _________________</div>`;
