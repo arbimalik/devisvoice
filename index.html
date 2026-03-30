@@ -1116,43 +1116,9 @@ async function envoyerDevis(){
 
 async function imprimerDevis(){
   if(!devisData)return;
-  const { jsPDF } = window.jspdf;
-  const element = document.getElementById('devis-preview');
-
-  // Forcer fond blanc pour le PDF
-  const oldBg = element.style.background;
-  element.style.background = '#ffffff';
-  element.style.color = '#222222';
-
-  try{
-    const canvas = await html2canvas(element, {
-      scale:2, useCORS:true, backgroundColor:'#ffffff', windowWidth:800
-    });
-    element.style.background = oldBg;
-    element.style.color = '';
-
-    const imgData = canvas.toDataURL('image/jpeg', 0.9);
-    const pdf = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
-    const pageW = pdf.internal.pageSize.getWidth();
-    const pageH = pdf.internal.pageSize.getHeight();
-    const imgW = pageW - 20;
-    const imgH = (canvas.height * imgW) / canvas.width;
-    let posY = 10;
-    let heightLeft = imgH;
-    pdf.addImage(imgData,'JPEG',10,posY,imgW,imgH);
-    heightLeft -= (pageH - posY - 10);
-    while(heightLeft > 0){
-      pdf.addPage();
-      posY = -(imgH - heightLeft) - 10;
-      pdf.addImage(imgData,'JPEG',10,posY,imgW,imgH);
-      heightLeft -= (pageH - 10);
-    }
-    pdf.save('Devis-'+devisData.numero+'.pdf');
-  }catch(e){
-    element.style.background = oldBg;
-    element.style.color = '';
-    alert('Erreur génération PDF — réessayez');
-  }
+  // Même rendu que le PDF client — redirige vers devis-pdf.html
+  const pdfUrl=`${window.location.origin}/devis-pdf.html?id=${encodeURIComponent(devisData.numero)}`;
+  window.open(pdfUrl,'_blank');
 }
 
 function nouveauDevis(){
