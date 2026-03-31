@@ -20,7 +20,6 @@ h1{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:8p
 .btn{display:inline-block;background:#FF4500;color:#fff;border:none;padding:14px 32px;border-radius:8px;font-weight:700;font-size:15px;cursor:pointer;text-decoration:none;}
 .btn:hover{background:#ff6a35;}
 
-/* ===== CONTENEUR PDF (caché hors écran) ===== */
 #devis-container{
   display:none;
   position:fixed;
@@ -34,7 +33,6 @@ h1{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:8p
   line-height:1.5;
 }
 
-/* ===== STYLES DU DEVIS IMPRIMABLE ===== */
 .pdf-wrap{padding:28px 32px;}
 
 .pdf-header{
@@ -84,7 +82,6 @@ h1{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:8p
 .pdf-trow:last-child{border:none;background:#FF4500;color:#fff;font-weight:800;font-size:14px;padding:9px 12px;}
 .pdf-trow-label{color:#666;}
 .pdf-trow:last-child .pdf-trow-label{color:#fff;}
-/* Ligne acompte en orange discret */
 .pdf-trow-acompte{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;font-size:12px;border-bottom:1px solid #f0f0f0;background:#fff8f5;color:#FF4500;font-weight:700;}
 
 .pdf-lettres{text-align:right;font-style:italic;font-size:10px;color:#999;margin-top:6px;margin-bottom:16px;}
@@ -131,7 +128,6 @@ function fmt(n){
   return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 
-// ===== MONTANT EN LETTRES =====
 function nombreEnLettres(n){
   const nb = Math.round(n * 100) / 100;
   const entier = Math.floor(nb);
@@ -181,7 +177,6 @@ function nombreEnLettres(n){
   return res;
 }
 
-// ===== RENDU HTML DU DEVIS =====
 function renderHtml(d){
   const ent = d.entreprise || {};
   const client = d.client || {};
@@ -194,8 +189,7 @@ function renderHtml(d){
   const bic          = d.bic      || ent.bic      || '';
   const titulaire    = d.titulaire|| ent.titulaire|| '';
 
-  // Acompte — uniquement si > 0
-  const acomptePct    = d.acompte_pct || 0;
+  const acomptePct     = d.acompte_pct || 0;
   const acompteMontant = d.acompte_montant || 0;
   const acompteHtml = acomptePct > 0
     ? `<div class="pdf-trow-acompte">
@@ -204,13 +198,8 @@ function renderHtml(d){
        </div>`
     : '';
 
-  // Date de début
   const dateDebut = d.date_debut || '';
-  const dateDebutHtml = dateDebut
-    ? `&nbsp;&nbsp;|&nbsp;&nbsp;<strong>Début :</strong> ${dateDebut}`
-    : '';
 
-  // Tableau des postes avec sections
   let sectionsHtml = '';
   let rowCounter = 0;
 
@@ -247,12 +236,13 @@ function renderHtml(d){
   const totalTTC = Number(d.total_ttc) || 0;
   const lettres = nombreEnLettres(totalTTC);
 
-  const ribHtml = iban ? `
-    <div class="pdf-rib">
-      <strong>🏦 Coordonnées bancaires</strong><br>
-      ${banque ? banque + '<br>' : ''}
-      IBAN : ${iban}${bic ? ' — BIC : ' + bic : ''}${titulaire ? '<br>Titulaire : ' + titulaire : ''}
-    </div>` : '';
+  // RIB fusionné dans le bloc conditions pour éviter page blanche
+  const ribInline = iban ? `
+    <br><br>
+    <strong>🏦 Coordonnées bancaires</strong><br>
+    ${banque ? banque + '<br>' : ''}
+    IBAN : ${iban}${bic ? ' — BIC : ' + bic : ''}${titulaire ? '<br>Titulaire : ' + titulaire : ''}
+  ` : '';
 
   const decHtml = decCompagnie ? `<br>🛡️ Assurance décennale : ${decCompagnie}${decNumero ? ' — Police n° ' + decNumero : ''}` : '';
 
@@ -263,34 +253,32 @@ function renderHtml(d){
   document.getElementById('devis-container').innerHTML = `
   <div class="pdf-wrap">
 
-    <!-- EN-TÊTE -->
     <div class="pdf-header">
       <div class="pdf-logo">${logoHtml}</div>
       <div class="pdf-num">
         <h1>DEVIS N° ${d.numero}</h1>
-        <div class="meta">Date : ${d.date} &nbsp;|&nbsp; Validité : ${d.validite}${dateDebutHtml}</div>
+        <div class="meta">Date : ${d.date} &nbsp;|&nbsp; Validité : ${d.validite}${dateDebut ? ' &nbsp;|&nbsp; <strong>Début :</strong> ' + dateDebut : ''}</div>
       </div>
     </div>
 
-    <!-- ENTREPRISE / CLIENT -->
     <div class="pdf-parties">
       <div class="pdf-bloc">
         <div class="pdf-bloc-label">Entreprise</div>
         <strong>${ent.nom || ''}</strong><br>
-        ${ent.siret ? 'SIRET : ' + ent.siret + '<br>' : ''}
-        ${ent.tel   ? '📞 ' + ent.tel + '<br>' : ''}
+        ${ent.siret   ? 'SIRET : ' + ent.siret + '<br>' : ''}
+        ${ent.tel     ? '📞 ' + ent.tel + '<br>' : ''}
         ${ent.adresse ? '📍 ' + ent.adresse + '<br>' : ''}
         ${ent.email   ? '✉️ ' + ent.email : ''}
       </div>
       <div class="pdf-bloc">
         <div class="pdf-bloc-label">Maître d'Ouvrage</div>
         <strong>${client.nom || ''}</strong><br>
-        ${client.email   ? '✉️ ' + client.email + '<br>' : ''}
+        ${client.email ? '✉️ ' + client.email + '<br>' : ''}
+        ${client.tel   ? '📞 ' + client.tel + '<br>' : ''}
         ${chantier.adresse ? '📍 ' + chantier.adresse : ''}
       </div>
     </div>
 
-    <!-- NATURE / DÉLAI -->
     <div class="pdf-nature">
       <strong>Nature des travaux :</strong> ${chantier.nature || '—'}
       &nbsp;&nbsp;|&nbsp;&nbsp;
@@ -298,7 +286,6 @@ function renderHtml(d){
       ${dateDebut ? '&nbsp;&nbsp;|&nbsp;&nbsp;<strong>Début :</strong> ' + dateDebut : ''}
     </div>
 
-    <!-- TABLEAU DESCRIPTIF -->
     <div class="pdf-section-title">Descriptif des Ouvrages</div>
     <table class="pdf-table">
       <thead>
@@ -313,7 +300,6 @@ function renderHtml(d){
       <tbody>${sectionsHtml}</tbody>
     </table>
 
-    <!-- TOTAUX -->
     <div class="pdf-totaux-wrap">
       <div class="pdf-totaux">
         <div class="pdf-trow">
@@ -332,30 +318,22 @@ function renderHtml(d){
       </div>
     </div>
 
-    <!-- MONTANT EN LETTRES -->
     <div class="pdf-lettres">Arrêté à : <em>${lettres}</em></div>
 
-    <!-- CONDITIONS -->
     <div class="pdf-footer-bloc">
       <strong>Conditions :</strong> ${d.conditions || 'Solde à réception et levée des réserves'}<br>
-      ${d.mentions || ''}${decHtml}
+      ${d.mentions || ''}${decHtml}${ribInline}
     </div>
 
-    <!-- RIB -->
-    ${ribHtml}
-
-    <!-- SIGNATURE -->
     <div class="pdf-signature">
       Bon pour accord : _________________________ &nbsp;&nbsp;&nbsp; Date : _________________________
     </div>
 
-    <!-- CRÉDIT -->
     <div class="pdf-credit">Généré avec DevisVoice</div>
 
   </div>`;
 }
 
-// ===== GÉNÉRATION PDF avec coupures propres =====
 async function telecharger(){
   if(!devisData) return;
   const { jsPDF } = window.jspdf;
@@ -438,7 +416,6 @@ async function telecharger(){
   document.getElementById('success').style.display = 'block';
 }
 
-// ===== INIT =====
 async function init(){
   const id = new URLSearchParams(window.location.search).get('id');
   if(!id){
