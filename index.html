@@ -197,14 +197,19 @@ select option{background:var(--card);color:var(--text);}
   <div class="card">
     <div class="card-header ch-orange">📋 Maître d'Ouvrage &amp; Chantier</div>
     <div class="card-body">
-      <div class="form-group"><label>Nom du Client</label><input type="text" id="client-nom" placeholder="M. et Mme Dupont" oninput="majDevisTempsReel()"></div>
-      <div class="form-group"><label>Email Client</label><input type="email" id="client-email" placeholder="client@email.fr" oninput="majDevisTempsReel()"></div>
+      <div class="form-row">
+        <div><label>Prénom du Client</label><input type="text" id="client-prenom" placeholder="Jean" oninput="majDevisTempsReel()"></div>
+        <div><label>Nom du Client</label><input type="text" id="client-nom" placeholder="Dupont" oninput="majDevisTempsReel()"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Email Client</label><input type="email" id="client-email" placeholder="client@email.fr" oninput="majDevisTempsReel()"></div>
+        <div><label>Téléphone Client</label><input type="tel" id="client-tel" placeholder="06 12 34 56 78" oninput="majDevisTempsReel()"></div>
+      </div>
       <div class="form-group"><label>Adresse du Chantier</label><input type="text" id="chantier-adresse" placeholder="12 rue des Lilas, 75011 Paris" oninput="majDevisTempsReel()"></div>
       <div class="form-row">
         <div><label>Nature des Travaux</label><input type="text" id="nature-travaux" placeholder="Rénovation salle de bain" oninput="majDevisTempsReel()"></div>
         <div><label>Délai d'Exécution</label><input type="text" id="delai-execution" placeholder="3 semaines" oninput="majDevisTempsReel()"></div>
       </div>
-      <!-- NOUVEAU : date début + validité + acompte -->
       <div class="form-row-3">
         <div>
           <label>Date de début des travaux</label>
@@ -415,6 +420,12 @@ function setTheme(t,btn){document.documentElement.setAttribute('data-theme',t);d
 
 function showTab(n,el){document.querySelectorAll('.content').forEach(c=>c.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');el.classList.add('active');}
 
+function getClientNomComplet(){
+  const p=document.getElementById('client-prenom').value.trim();
+  const n=document.getElementById('client-nom').value.trim();
+  return (p+' '+n).trim()||'Client';
+}
+
 let metier='';
 function selMetier(el, key) {
   document.querySelectorAll('.mc').forEach(c=>c.classList.remove('sel'));
@@ -427,9 +438,9 @@ function selMetier(el, key) {
 // ===== MISE À JOUR TEMPS RÉEL =====
 function majDevisTempsReel() {
   if(!devisData) return;
-  // Patch les champs modifiables directement sur devisData
-  devisData.client.nom    = document.getElementById('client-nom').value    || devisData.client.nom;
+  devisData.client.nom    = getClientNomComplet();
   devisData.client.email  = document.getElementById('client-email').value  || devisData.client.email;
+  devisData.client.tel    = document.getElementById('client-tel').value    || devisData.client.tel || '';
   devisData.chantier.adresse = document.getElementById('chantier-adresse').value || devisData.chantier.adresse;
   devisData.chantier.nature  = document.getElementById('nature-travaux').value   || devisData.chantier.nature;
   devisData.chantier.delai   = document.getElementById('delai-execution').value  || devisData.chantier.delai;
@@ -447,14 +458,11 @@ function majDevisTempsReel() {
     devisData.acompte_montant = 0;
   }
 
-  // Mettre à jour les conditions automatiquement selon acompte
   devisData.conditions = buildConditions(acomptePct);
-
   renderDevis(devisData);
 }
 
 function formaterDate(iso) {
-  // iso = "2025-04-15" → "15/04/2025"
   if(!iso) return '';
   const [y, m, d] = iso.split('-');
   return `${d}/${m}/${y}`;
@@ -755,13 +763,13 @@ async function genererDevis(){
   if(!dictee){alert('Dictez ou saisissez vos postes de travaux.');return;}
   const entNom=ls('ent-nom')||'Votre Entreprise',entSiret=ls('ent-siret')||'',entTel=ls('ent-tel')||'',entAdr=ls('ent-adr')||'',entEmail=ls('ent-email')||'',tva=ls('t-tva')||'10';
   gMentions=ls('mentions')||''; gDecCompagnie=ls('ent-decennale-compagnie')||''; gDecNumero=ls('ent-decennale-numero')||''; gIban=ls('ent-iban')||''; gBic=ls('ent-bic')||''; gBanque=ls('ent-banque')||''; gTitulaire=ls('ent-titulaire')||'';
-  const clientNom=document.getElementById('client-nom').value||'Client';
+  const clientNom=getClientNomComplet();
   const clientEmail=document.getElementById('client-email').value||'';
+  const clientTel=document.getElementById('client-tel').value||'';
   const chantierAdr=document.getElementById('chantier-adresse').value||'';
   const nature=document.getElementById('nature-travaux').value||metier||'';
   const delai=document.getElementById('delai-execution').value||'';
 
-  // Récupérer les nouveaux champs
   const dateDebutISO  = document.getElementById('date-debut').value;
   const dateDebutFmt  = dateDebutISO ? formaterDate(dateDebutISO) : '';
   const validiteDevis = document.getElementById('validite-devis').value.trim() || '3 mois';
@@ -812,7 +820,6 @@ async function genererDevis(){
 
   showProgress(0,totalPasses,'⚙️ Démarrage de la génération…');
 
-  // Construire les conditions selon l'acompte
   const conditionsDevis = acomptePct > 0
     ? `${acomptePct}% à la commande, solde à réception et levée des réserves`
     : 'Solde à réception et levée des réserves';
@@ -994,29 +1001,27 @@ CONNAISSANCE MÉTIER — complète automatiquement les sous-tâches implicites:
 STRUCTURE OBLIGATOIRE — groupe les postes par corps de métier dans "sections":
 Chaque section a: "metier" (nom du corps de métier), "emoji" (emoji représentatif), "postes" (liste des postes de ce métier)
 
-REGROUPEMENT OBLIGATOIRE — ces postes appartiennent toujours à la section indiquée:
-- Ragréage, chape, primaire d'accrochage → section "Carrelage / Sols" (pas une section séparée)
-- Lessivage, rebouchage, ponçage, préparation support, sous-couche → section "Peinture" (pas une section séparée)
+REGROUPEMENT OBLIGATOIRE:
+- Ragréage, chape, primaire d'accrochage → section "Carrelage / Sols"
+- Lessivage, rebouchage, ponçage, préparation support, sous-couche → section "Peinture"
 - Dépose ancienne installation → même section que la pose qui suit
-- Protection chantier → section "Préparation chantier" uniquement si mentionnée
-- Évacuation terres, décaissement, remblai, terrassement → TOUJOURS dans la section "Terrassement / VRD"
-- Évacuation gravats → TOUJOURS dans la section "Maçonnerie" (les gravats viennent d'une démolition, pas d'un terrassement)
-- Démolition cloison, ragréage mural → section "Maçonnerie" (pas Terrassement)
+- Évacuation terres, décaissement, remblai, terrassement → TOUJOURS dans "Terrassement / VRD"
+- Évacuation gravats → TOUJOURS dans "Maçonnerie"
+- Démolition cloison, ragréage mural → section "Maçonnerie"
 
-SECTIONS AUTORISÉES — utilise UNIQUEMENT ces noms exacts pour le champ "metier":
+SECTIONS AUTORISÉES:
 "Carrelage / Sols" | "Peinture" | "Plaquiste" | "Plomberie" | "Chauffage" | "Électricité" | "Maçonnerie" | "Menuiserie" | "Serrurerie" | "Charpentier" | "Couverture" | "Isolation" | "Terrassement / VRD"
-Ne jamais créer de section avec un nom différent de cette liste.
 
-Ordre logique des sections: Maçonnerie → Plomberie → Chauffage → Électricité → Isolation → Plaquiste → Carrelage / Sols → Peinture → Menuiserie → Serrurerie → Charpentier → Couverture → Terrassement / VRD
-Numérote les postes en continu sur tout le devis (id 1, 2, 3... sans recommencer à 1 dans chaque section)
+Ordre logique: Maçonnerie → Plomberie → Chauffage → Électricité → Isolation → Plaquiste → Carrelage / Sols → Peinture → Menuiserie → Serrurerie → Charpentier → Couverture → Terrassement / VRD
+Numérote les postes en continu sur tout le devis.
 
-RÈGLE ANTI-DOUBLON ABSOLUE : Chaque nom de section ne peut apparaître qu'UNE SEULE FOIS. Tous les postes de terrassement (évacuation gravats, décaissement, remblai, évacuation terres) vont dans UNE SEULE section "Terrassement / VRD". Si tu hésites entre deux sections, choisis celle de la liste ci-dessus la plus logique et n'en crée pas une nouvelle.
+RÈGLE ANTI-DOUBLON ABSOLUE: Chaque nom de section ne peut apparaître qu'UNE SEULE FOIS.
 
 Réponds UNIQUEMENT JSON sans backticks:
-{"numero":"${num}","date":"${today}","validite":"${validiteDevis}","entreprise":{"nom":"","siret":"","tel":"","adresse":"","email":""},"client":{"nom":"","email":""},"chantier":{"adresse":"","nature":"","delai":""},"sections":[{"metier":"Carrelage / Sols","emoji":"🪨","postes":[{"id":1,"titre":"","description":"","qte":1,"unite":"Forfait","pu_ht":0,"total_ht":0}]}],"total_ht":0,"tva_pct":${tva},"tva_montant":0,"total_ttc":0,"total_lettres":"","mentions":"${gMentions||'TVA '+tva+'% applicable'}","conditions":"${conditionsDevis}"}
-RÈGLES ABSOLUES: Ne jamais inventer un prix. Utiliser uniquement les prix dictés. Si un sous-poste n'a pas de prix dicté, regroupe-le dans la description du poste principal. Pour l'unité: utiliser "m²" pour les surfaces, "ml" pour les linéaires, "h" pour les heures, "Forfait" pour tout le reste (dépose, installation, prestation globale). Ne jamais utiliser "ens".`;
+{"numero":"${num}","date":"${today}","validite":"${validiteDevis}","entreprise":{"nom":"","siret":"","tel":"","adresse":"","email":""},"client":{"nom":"","email":"","tel":""},"chantier":{"adresse":"","nature":"","delai":""},"sections":[{"metier":"Carrelage / Sols","emoji":"🪨","postes":[{"id":1,"titre":"","description":"","qte":1,"unite":"Forfait","pu_ht":0,"total_ht":0}]}],"total_ht":0,"tva_pct":${tva},"tva_montant":0,"total_ttc":0,"total_lettres":"","mentions":"${gMentions||'TVA '+tva+'% applicable'}","conditions":"${conditionsDevis}"}
+RÈGLES ABSOLUES: Ne jamais inventer un prix. Utiliser uniquement les prix dictés. Pour l'unité: "m²" surfaces, "ml" linéaires, "h" heures, "Forfait" tout le reste. Ne jamais utiliser "ens".`;
 
-  const structureJSON=`{"numero":"${num}","date":"${today}","validite":"${validiteDevis}","entreprise":{"nom":"${entNom}","siret":"${entSiret}","tel":"${entTel}","adresse":"","email":"${entEmail}"},"client":{"nom":"${clientNom}","email":"${clientEmail}"},"chantier":{"adresse":"${chantierAdr}","nature":"${nature}","delai":"${delai}"},"sections":[{"metier":"Carrelage / Sols","emoji":"🪨","postes":[{"id":1,"titre":"","description":"","qte":1,"unite":"Forfait","pu_ht":0,"total_ht":0}]}],"total_ht":0,"tva_pct":${tva},"tva_montant":0,"total_ttc":0,"total_lettres":"","mentions":"${gMentions||'TVA '+tva+'% applicable'}","conditions":"${conditionsDevis}"}`;
+  const structureJSON=`{"numero":"${num}","date":"${today}","validite":"${validiteDevis}","entreprise":{"nom":"${entNom}","siret":"${entSiret}","tel":"${entTel}","adresse":"","email":"${entEmail}"},"client":{"nom":"${clientNom}","email":"${clientEmail}","tel":"${clientTel}"},"chantier":{"adresse":"${chantierAdr}","nature":"${nature}","delai":"${delai}"},"sections":[{"metier":"Carrelage / Sols","emoji":"🪨","postes":[{"id":1,"titre":"","description":"","qte":1,"unite":"Forfait","pu_ht":0,"total_ht":0}]}],"total_ht":0,"tva_pct":${tva},"tva_montant":0,"total_ttc":0,"total_lettres":"","mentions":"${gMentions||'TVA '+tva+'% applicable'}","conditions":"${conditionsDevis}"}`;
 
   try{
     for(let i=0;i<passes.length;i++){
@@ -1024,7 +1029,7 @@ RÈGLES ABSOLUES: Ne jamais inventer un prix. Utiliser uniquement les prix dict�
       const estDernierePasse=(i===passes.length-1);
       const promptPasse=`Tu es expert devis BTP artisans français. Génère un JSON de sections de devis.
 ENTREPRISE: ${entNom}|SIRET:${entSiret}|Tél:${entTel}|${entAdr}|${entEmail}
-CLIENT: ${clientNom}|${clientEmail}
+CLIENT: ${clientNom}|${clientEmail}|Tél:${clientTel}
 CHANTIER: ${chantierAdr}|Nature:${nature}|Délai:${delai}
 TVA: ${tva}% | Numéro: ${num} | Date: ${today}
 ${prixBlock}
@@ -1072,14 +1077,12 @@ RÈGLES ABSOLUES: Ne jamais inventer un prix. Utiliser uniquement les prix dict�
         }
         showProgress(totalPasses,totalPasses,'✅ Finalisation…');
 
-        // Injecter les champs supplémentaires
         parsed.validite      = validiteDevis;
         parsed.date_debut    = dateDebutFmt;
         parsed.acompte_pct   = acomptePct;
         parsed.acompte_montant = acomptePct > 0
           ? Math.round(parsed.total_ttc * acomptePct / 100 * 100) / 100
           : 0;
-        // Conditions finales avec montant calculé
         if(acomptePct > 0) {
           parsed.conditions = `${acomptePct}% à la commande (${fmt(parsed.acompte_montant)} € TTC), solde à réception et levée des réserves`;
         } else {
@@ -1092,7 +1095,6 @@ RÈGLES ABSOLUES: Ne jamais inventer un prix. Utiliser uniquement les prix dict�
         showS('success','✅ Devis généré avec succès !');
         setTimeout(()=>document.getElementById('result-box').scrollIntoView({behavior:'smooth'}),200);
 
-        // Enrichir avec RIB, décennale, logo avant sauvegarde
         parsed.iban      = ls('ent-iban')||'';
         parsed.bic       = ls('ent-bic')||'';
         parsed.banque    = ls('ent-banque')||'';
@@ -1153,7 +1155,6 @@ function renderDevis(d){
     sectionsHtml=(d.postes||[]).map(p=>`<tr><td><div class="ptit">${p.id ? p.id+'. ' : ''}${p.titre}</div><div class="pdesc">${p.description}</div></td><td style="text-align:center">${p.qte}</td><td style="text-align:center">${p.unite}</td><td style="text-align:right">${fmt(p.pu_ht)}</td><td style="text-align:right"><strong>${fmt(p.total_ht)}</strong></td></tr>`).join('');
   }
 
-  // Ligne acompte — uniquement si > 0
   const acomptePct    = d.acompte_pct || 0;
   const acompteMontant = d.acompte_montant || 0;
   const acompteHtml = acomptePct > 0
@@ -1163,17 +1164,19 @@ function renderDevis(d){
        </div>`
     : '';
 
-  // Date de début
   const dateDebutHtml = d.date_debut
     ? `&nbsp;&nbsp;|&nbsp;&nbsp;<strong>Début :</strong> ${d.date_debut}`
     : '';
+
+  const clientTelHtml = d.client.tel
+    ? `<br>📞 ${d.client.tel}` : '';
 
   document.getElementById('devis-preview').innerHTML=`
   <h1>DEVIS N° ${d.numero}</h1>
   <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Date : ${d.date} &nbsp;|&nbsp; Validité : ${d.validite}${dateDebutHtml}</div>
   <div class="hgrid">
     <div class="iblk"><h2>Entreprise</h2><p><strong>${d.entreprise.nom}</strong><br>${d.entreprise.siret?'SIRET : '+d.entreprise.siret+'<br>':''}${d.entreprise.tel?'📞 '+d.entreprise.tel+'<br>':''}${d.entreprise.adresse?'📍 '+d.entreprise.adresse+'<br>':''}${d.entreprise.email?'✉️ '+d.entreprise.email:''}</p></div>
-    <div class="iblk"><h2>Maître d'Ouvrage</h2><p><strong>${d.client.nom}</strong><br>${d.client.email?'✉️ '+d.client.email+'<br>':''}${d.chantier.adresse?'<br>📍 '+d.chantier.adresse:''}</p></div>
+    <div class="iblk"><h2>Maître d'Ouvrage</h2><p><strong>${d.client.nom}</strong><br>${d.client.email?'✉️ '+d.client.email:''}${clientTelHtml}${d.chantier.adresse?'<br>📍 '+d.chantier.adresse:''}</p></div>
   </div>
   <div class="iblk" style="margin-bottom:14px"><p><strong>Nature des travaux :</strong> ${d.chantier.nature} &nbsp; <strong>Délai :</strong> ${d.chantier.delai}</p></div>
   <h2>Descriptif des Ouvrages</h2>
@@ -1220,20 +1223,21 @@ async function envoyerDevis(){
   const artisanNom=ls('ent-nom')||'Votre artisan';
   const montantTTC=fmt(d.total_ttc)+' €';
 
-  // Ligne acompte email
   const acomptePct = d.acompte_pct || 0;
   const acompteEmailHtml = acomptePct > 0
     ? `<tr><td style="padding:3px 14px 3px 0;color:#666">Acompte ${acomptePct}%</td><td style="padding:3px 0;font-weight:600;color:#FF4500">${fmt(d.acompte_montant)} €</td></tr>`
     : '';
 
-  // Date de début email
   const dateDebutEmailHtml = d.date_debut
     ? `<br><strong>Début des travaux :</strong> ${d.date_debut}` : '';
+
+  const clientTelEmailHtml = d.client.tel
+    ? `<br>📞 ${d.client.tel}` : '';
 
   const acceptUrl=`${window.location.origin}/accept.html?numero=${encodeURIComponent(d.numero)}&client=${encodeURIComponent(d.client.nom)}&artisan=${encodeURIComponent(artisanNom)}&artisanEmail=${encodeURIComponent(artisanEmail)}&montant=${encodeURIComponent(montantTTC)}&resendKey=${encodeURIComponent(rk)}`;
   const pdfUrl=`${window.location.origin}/devis-pdf.html?id=${encodeURIComponent(d.numero)}`;
 
-  const html=`<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#222"><div style="background:#FF4500;padding:18px 22px;border-radius:8px 8px 0 0"><h1 style="color:#fff;font-size:20px;margin:0">DEVIS N° ${d.numero}</h1><p style="color:rgba(255,255,255,.85);margin:3px 0 0;font-size:12px">Date : ${d.date} — Validité : ${d.validite}</p></div><div style="background:#fff;padding:22px;border:1px solid #eee;border-top:none"><table style="width:100%;font-size:12px;margin-bottom:18px"><tr><td style="width:50%;vertical-align:top;padding-right:10px"><strong style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#999">Entreprise</strong><br><br><strong>${d.entreprise.nom}</strong><br>${d.entreprise.siret?'SIRET : '+d.entreprise.siret+'<br>':''}${d.entreprise.tel?d.entreprise.tel+'<br>':''}</td><td style="width:50%;vertical-align:top;background:#f9f9f9;padding:10px;border-radius:6px"><strong style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#999">Maître d'Ouvrage</strong><br><br><strong>${d.client.nom}</strong><br>${d.chantier.adresse||''}</td></tr></table><p style="font-size:12px;margin-bottom:14px"><strong>Nature :</strong> ${d.chantier.nature} &nbsp;|&nbsp; <strong>Délai :</strong> ${d.chantier.delai}${dateDebutEmailHtml}</p><table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:18px"><thead><tr style="background:#FF4500;color:#fff"><th style="padding:8px;text-align:left">Désignation</th><th style="padding:8px;text-align:center">Qté</th><th style="padding:8px;text-align:center">Unité</th><th style="padding:8px;text-align:right">P.U. HT</th><th style="padding:8px;text-align:right">Total HT</th></tr></thead><tbody>${rowsHtml}</tbody></table><div style="text-align:right;margin-bottom:16px"><table style="margin-left:auto;font-size:12px;border-collapse:collapse"><tr><td style="padding:3px 14px 3px 0;color:#666">Total HT</td><td style="padding:3px 0;font-weight:600">${fmt(d.total_ht)} €</td></tr><tr><td style="padding:3px 14px 3px 0;color:#666">TVA ${d.tva_pct}%</td><td style="padding:3px 0;font-weight:600">${fmt(d.tva_montant)} €</td></tr><tr style="border-top:2px solid #FF4500"><td style="padding:7px 14px 3px 0;font-weight:700;font-size:14px">TOTAL TTC</td><td style="padding:7px 0 3px;font-weight:700;font-size:14px;color:#FF4500">${fmt(d.total_ttc)} €</td></tr>${acompteEmailHtml}</table></div><p style="font-size:11px;color:#999;font-style:italic;margin-bottom:14px">Arrêté à : ${d.total_lettres}</p><div style="background:#f5f5f5;padding:10px 12px;border-radius:6px;font-size:11px;color:#777">${d.conditions}<br>${gMentions}</div>
+  const html=`<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#222"><div style="background:#FF4500;padding:18px 22px;border-radius:8px 8px 0 0"><h1 style="color:#fff;font-size:20px;margin:0">DEVIS N° ${d.numero}</h1><p style="color:rgba(255,255,255,.85);margin:3px 0 0;font-size:12px">Date : ${d.date} — Validité : ${d.validite}</p></div><div style="background:#fff;padding:22px;border:1px solid #eee;border-top:none"><table style="width:100%;font-size:12px;margin-bottom:18px"><tr><td style="width:50%;vertical-align:top;padding-right:10px"><strong style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#999">Entreprise</strong><br><br><strong>${d.entreprise.nom}</strong><br>${d.entreprise.siret?'SIRET : '+d.entreprise.siret+'<br>':''}${d.entreprise.tel?d.entreprise.tel+'<br>':''}</td><td style="width:50%;vertical-align:top;background:#f9f9f9;padding:10px;border-radius:6px"><strong style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#999">Maître d'Ouvrage</strong><br><br><strong>${d.client.nom}</strong><br>${d.client.email||''}${clientTelEmailHtml}<br>${d.chantier.adresse||''}</td></tr></table><p style="font-size:12px;margin-bottom:14px"><strong>Nature :</strong> ${d.chantier.nature} &nbsp;|&nbsp; <strong>Délai :</strong> ${d.chantier.delai}${dateDebutEmailHtml}</p><table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:18px"><thead><tr style="background:#FF4500;color:#fff"><th style="padding:8px;text-align:left">Désignation</th><th style="padding:8px;text-align:center">Qté</th><th style="padding:8px;text-align:center">Unité</th><th style="padding:8px;text-align:right">P.U. HT</th><th style="padding:8px;text-align:right">Total HT</th></tr></thead><tbody>${rowsHtml}</tbody></table><div style="text-align:right;margin-bottom:16px"><table style="margin-left:auto;font-size:12px;border-collapse:collapse"><tr><td style="padding:3px 14px 3px 0;color:#666">Total HT</td><td style="padding:3px 0;font-weight:600">${fmt(d.total_ht)} €</td></tr><tr><td style="padding:3px 14px 3px 0;color:#666">TVA ${d.tva_pct}%</td><td style="padding:3px 0;font-weight:600">${fmt(d.tva_montant)} €</td></tr><tr style="border-top:2px solid #FF4500"><td style="padding:7px 14px 3px 0;font-weight:700;font-size:14px">TOTAL TTC</td><td style="padding:7px 0 3px;font-weight:700;font-size:14px;color:#FF4500">${fmt(d.total_ttc)} €</td></tr>${acompteEmailHtml}</table></div><p style="font-size:11px;color:#999;font-style:italic;margin-bottom:14px">Arrêté à : ${d.total_lettres}</p><div style="background:#f5f5f5;padding:10px 12px;border-radius:6px;font-size:11px;color:#777">${d.conditions}<br>${gMentions}</div>
   <div style="text-align:center;margin-top:24px;padding:20px;background:#fff8f5;border-radius:8px;border:1px solid #ffd0b0">
     <p style="font-size:13px;color:#555;margin-bottom:14px">Ce devis vous convient ? Acceptez-le en un clic :</p>
     <a href="${acceptUrl}" style="display:inline-block;background:#FF4500;color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:700;font-size:15px;letter-spacing:.5px">✅ Accepter ce devis</a>
@@ -1258,7 +1262,7 @@ async function imprimerDevis(){
 
 function nouveauDevis(){
   if(!confirm('Commencer un nouveau devis ?'))return;
-  ['client-nom','client-email','chantier-adresse','nature-travaux','delai-execution'].forEach(id=>document.getElementById(id).value='');
+  ['client-prenom','client-nom','client-email','client-tel','chantier-adresse','nature-travaux','delai-execution'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('date-debut').value='';
   document.getElementById('validite-devis').value='3 mois';
   document.getElementById('acompte-pct').value='30';
