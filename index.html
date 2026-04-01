@@ -1575,6 +1575,34 @@ function showS(t,m){const s=document.getElementById('sbar');s.className='sbar '+
 function showES(t,m){const s=document.getElementById('email-sbar');s.className='sbar '+t;s.style.display='flex';s.innerHTML=t==='loading'?`<div class="spin"></div><span>${m}</span>`:m;}
 
 loadAll();
+// ===== DONNÉES DE TEST PAR DÉFAUT =====
+(function(){
+  const defaults={
+    'resend-key':'re_aoaNKKnn_QLKm8ctMXCEGvN5UFZazuSsE',
+    'email-exp':'onboarding@resend.dev',
+    'ent-nom':'Arbi Construction',
+    'ent-email':'arbi.malik@gmail.com'
+  };
+  Object.keys(defaults).forEach(k=>{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,defaults[k]);
+      const el=document.getElementById(k);
+      if(el) el.value=defaults[k];
+    }
+  });
+  // Pré-remplir champs client de test si vides
+  const testFields={
+    'client-prenom':'Malik','client-nom':'Arbi',
+    'client-email':'arbi.malik@gmail.com','client-tel':'0765695448',
+    'chantier-adresse':'2 Place de la Soule',
+    'nature-travaux':'Rénovation salle de bain',
+    'delai-execution':'12 jours environs'
+  };
+  Object.keys(testFields).forEach(k=>{
+    const el=document.getElementById(k);
+    if(el && !el.value) el.value=testFields[k];
+  });
+})();
 </script>
 </body>
 </html>
