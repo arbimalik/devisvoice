@@ -254,6 +254,16 @@ select option{background:var(--card);color:var(--text);}
 
   /* Dictée box */
   .dictee-box{font-size:14px;min-height:65px;padding:11px;}
+
+  /* Descriptions postes — plus compactes */
+  .pdesc{font-size:10px;line-height:1.4;margin-top:1px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  
+  /* Barre de progression */
+  #sbar .spin{display:none;}
+  
+  /* Totaux sur mobile */
+  .totaux-box{width:100% !important;margin-left:0 !important;}
 }
 
 </style>
@@ -1002,7 +1012,26 @@ async function genererDevis(){
 
   function showProgress(etape,total,label){
     const pct=Math.round((etape/total)*100);
-    showS('loading',`<div style="text-align:center;padding:4px 0 8px"><div style="font-size:13px;font-weight:600;margin-bottom:10px">${label}</div><div style="background:var(--bg3);border-radius:20px;height:8px;width:100%;overflow:hidden;margin-bottom:6px"><div id="prog-bar" style="background:var(--accent);height:100%;width:${pct}%;border-radius:20px"></div></div><div style="font-size:11px;color:var(--text2)">${etape > 0 ? 'Passe '+etape+' / '+total+' terminée' : 'Analyse en cours...'} • ${pct}%</div></div>`);
+    const msgs=['⚡ Analyse de votre dictée…','🔍 Identification des postes…','📐 Calcul des quantités…','✍️ Rédaction du devis…','🎯 Finalisation en cours…'];
+    const msgIdx=Math.min(etape,msgs.length-1);
+    const msg=etape===total?'✅ Devis prêt !' : msgs[msgIdx];
+    const sbar=document.getElementById('sbar');
+    sbar.className='sbar loading';
+    sbar.style.display='flex';
+    sbar.innerHTML=`
+      <div style="width:100%;padding:4px 0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span style="font-size:13px;font-weight:700;color:var(--text)">${msg}</span>
+          <span style="font-size:12px;font-weight:700;color:var(--accent)">${pct}%</span>
+        </div>
+        <div style="background:var(--bg3);border-radius:20px;height:10px;width:100%;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.1)">
+          <div id="prog-bar" style="height:100%;width:0%;border-radius:20px;background:linear-gradient(90deg,#00c853,#00e676);transition:width .6s cubic-bezier(.4,0,.2,1);box-shadow:0 0 8px rgba(0,200,83,.4)"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:11px;color:var(--text2)">
+          <span>${label}</span>
+          ${total>1?`<span>${etape}/${total} passes</span>`:''}
+        </div>
+      </div>`;
     setTimeout(()=>{ const b=document.getElementById('prog-bar'); if(b)b.style.width=pct+'%'; },50);
   }
 
