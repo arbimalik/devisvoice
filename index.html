@@ -285,6 +285,7 @@ select option{background:var(--card);color:var(--text);}
 
 <div class="tabs">
   <button class="tab active" onclick="showTab('devis',this)">Devis</button>
+  <button class="tab" onclick="showTab('chantiers',this)">🏗 Chantiers</button>
   <button class="tab" onclick="showTab('profil',this)">Mon Profil</button>
   <button class="tab" onclick="showTab('tarifs',this)">Mes Tarifs</button>
 </div>
@@ -399,6 +400,33 @@ select option{background:var(--card);color:var(--text);}
       </div>
       <div class="sbar" id="email-sbar" style="margin:0 16px 14px;"></div>
     </div>
+  </div>
+</div>
+
+
+<!-- CHANTIERS -->
+<div id="tab-chantiers" class="content">
+  <div class="card">
+    <div class="card-header ch-orange">🏗 Chantiers en cours</div>
+    <div class="card-body" id="chantiers-list">
+      <div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">Chargement…</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FACTURE -->
+<div id="facture-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;overflow-y:auto;padding:20px;">
+  <div style="background:var(--card);border-radius:var(--radius);max-width:720px;margin:0 auto;overflow:hidden;border:1px solid var(--border);">
+    <div style="background:var(--accent);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-family:'Syne',sans-serif;font-weight:800;color:#fff;font-size:14px;letter-spacing:1px;text-transform:uppercase;">📄 Facture</span>
+      <button onclick="fermerFacture()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px;">✕ Fermer</button>
+    </div>
+    <div style="padding:20px;" id="facture-content"></div>
+    <div style="padding:14px 20px;background:var(--bg3);border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn-primary" onclick="envoyerFacture()" style="flex:1;min-width:140px;">📧 Envoyer la Facture</button>
+      <button class="btn-sec" onclick="telechargerFacturePDF()">📄 Télécharger PDF</button>
+    </div>
+    <div class="sbar" id="facture-sbar" style="margin:0 20px 14px;"></div>
   </div>
 </div>
 
@@ -578,7 +606,7 @@ async function loadStats(){
   }catch(e){ document.getElementById('stat-derniers').textContent='Impossible de charger les stats.'; }
 }
 
-function showTab(n,el){document.querySelectorAll('.content').forEach(c=>c.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');el.classList.add('active');if(n==='profil')loadStats();}
+function showTab(n,el){document.querySelectorAll('.content').forEach(c=>c.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');el.classList.add('active');if(n==='profil')loadStats();if(n==='chantiers')loadChantiers();}
 
 function getClientNomComplet(){
   const p=document.getElementById('client-prenom').value.trim();
@@ -1758,6 +1786,170 @@ function saveTarifs(){
   flash('t-badge');
 }
 function flash(id){const el=document.getElementById(id);el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
+
+
+// ===== CHANTIERS & FACTURES =====
+let factureEnCours = null;
+
+async function loadChantiers(){
+  const email = ls('ent-email');
+  const container = document.getElementById('chantiers-list');
+  if(!email){ container.innerHTML='<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">Renseignez votre email pro dans Mon Profil.</div>'; return; }
+  container.innerHTML='<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;"><div class="spin" style="display:inline-block;margin-right:8px;vertical-align:middle;"></div>Chargement…</div>';
+  try{
+    const r = await fetch(BACKEND+'/api/stats?email='+encodeURIComponent(email));
+    const s = await r.json();
+    const chantiers = (s.derniers||[]).filter(d=>d.accepted);
+    if(!chantiers.length){
+      container.innerHTML='<div style="text-align:center;padding:30px;color:var(--text2);font-size:13px;">Aucun chantier en cours.<br><span style="font-size:11px;">Les devis acceptés apparaîtront ici.</span></div>';
+      return;
+    }
+    container.innerHTML = chantiers.map(d=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-weight:600;font-size:13px;color:var(--text)">${d.id}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px;">${d.client||'Client'}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="text-align:right;">
+            <div style="font-weight:800;font-size:14px;color:var(--accent)">${d.montant?fmt(parseFloat(d.montant))+' €':'—'}</div>
+            <div style="font-size:10px;color:#00b450;font-weight:600;">✓ Accepté</div>
+          </div>
+          <button onclick="ouvrirFacture('${d.id}')" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">📄 Facturer</button>
+        </div>
+      </div>`).join('');
+  }catch(e){
+    container.innerHTML='<div style="text-align:center;padding:20px;color:#e04040;font-size:13px;">Impossible de charger les chantiers.</div>';
+  }
+}
+
+async function ouvrirFacture(devisId){
+  const modal = document.getElementById('facture-modal');
+  const content = document.getElementById('facture-content');
+  content.innerHTML='<div style="text-align:center;padding:30px;"><div class="spin" style="display:inline-block;margin-right:8px;vertical-align:middle;"></div>Chargement…</div>';
+  modal.style.display='block';
+  try{
+    const r = await fetch(BACKEND+'/api/devis/'+encodeURIComponent(devisId));
+    const row = await r.json();
+    const d = typeof row.data==='string'?JSON.parse(row.data):row.data;
+    factureEnCours = {devis:d, row};
+    renderFacture(d);
+  }catch(e){
+    content.innerHTML='<div style="color:#e04040;padding:20px;">Erreur chargement.</div>';
+  }
+}
+
+function renderFacture(d){
+  const content = document.getElementById('facture-content');
+  const entNom = d.entreprise?.nom||ls('ent-nom')||'';
+  const entSiret = d.entreprise?.siret||ls('ent-siret')||'';
+  const entTel = d.entreprise?.tel||ls('ent-tel')||'';
+  const entAdr = d.entreprise?.adresse||ls('ent-adr')||'';
+  const entEmail = d.entreprise?.email||ls('ent-email')||'';
+  const iban = d.iban||ls('ent-iban')||'';
+  const bic = d.bic||ls('ent-bic')||'';
+  const banque = d.banque||ls('ent-banque')||'';
+  const tva = d.tva_pct||ls('t-tva')||'10';
+  const today = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const factureNum = 'F-'+d.numero+'-'+new Date().getFullYear();
+  let rowsHtml='';
+  if(d.sections?.length){
+    d.sections.forEach(s=>{
+      rowsHtml+=`<tr><td colspan="5" style="padding:6px 8px;background:var(--bg3);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent)">${s.emoji||''} ${s.metier}</td></tr>`;
+      s.postes.forEach(p=>{
+        rowsHtml+=`<tr><td style="padding:7px 8px;border-bottom:1px solid var(--border);font-size:12px;">${p.id}. <strong>${p.titre}</strong><br><span style="font-size:10px;color:var(--text2)">${p.description||''}</span></td><td style="padding:7px 8px;border-bottom:1px solid var(--border);text-align:center;font-size:12px;">${p.qte}</td><td style="padding:7px 8px;border-bottom:1px solid var(--border);text-align:center;font-size:12px;">${p.unite}</td><td style="padding:7px 8px;border-bottom:1px solid var(--border);text-align:right;font-size:12px;">${fmt(p.pu_ht)} €</td><td style="padding:7px 8px;border-bottom:1px solid var(--border);text-align:right;font-size:12px;font-weight:600;">${fmt(p.total_ht)} €</td></tr>`;
+      });
+    });
+  }
+  const mentionTVA = d.mentions||ls('mentions')||`TVA ${tva}% applicable`;
+  const cgv = `Clause de réserve de propriété : Conformément à la loi 80-335 du 12 mai 1980, nous réservons la propriété des biens jusqu'au paiement intégral du prix.<br>Pénalité de retard : 3 fois le taux d'intérêt légal. Indemnité forfaitaire : 40 €.`;
+  content.innerHTML=`<div id="facture-preview" style="font-family:'Inter',sans-serif;font-size:12px;color:var(--text);line-height:1.6;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+      <div>${d.logo?`<img src="${d.logo}" style="max-height:50px;max-width:160px;object-fit:contain;margin-bottom:10px;display:block;">`:''}
+        <div style="font-weight:800;font-size:14px;margin-bottom:4px;">${entNom}</div>
+        ${entAdr?`<div style="color:var(--text2);font-size:11px;">${entAdr}</div>`:''}
+        ${entTel?`<div style="color:var(--text2);font-size:11px;">📞 ${entTel}</div>`:''}
+        ${entEmail?`<div style="color:var(--text2);font-size:11px;">✉️ ${entEmail}</div>`:''}
+        ${entSiret?`<div style="color:var(--text2);font-size:11px;">SIRET : ${entSiret}</div>`:''}
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--accent);margin-bottom:4px;">FACTURE</div>
+        <div style="font-size:13px;font-weight:700;">N° ${factureNum}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:4px;">Date : ${today}</div>
+        <div style="margin-top:12px;background:var(--bg3);border-radius:8px;padding:10px;text-align:left;border:1px solid var(--border);">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:4px;">Client</div>
+          <div style="font-weight:700;font-size:13px;">${d.client?.nom||'—'}</div>
+          ${d.client?.email?`<div style="font-size:11px;color:var(--text2);">${d.client.email}</div>`:''}
+          ${d.client?.tel?`<div style="font-size:11px;color:var(--text2);">📞 ${d.client.tel}</div>`:''}
+          ${d.chantier?.adresse?`<div style="font-size:11px;color:var(--text2);">📍 ${d.chantier.adresse}</div>`:''}
+        </div>
+      </div>
+    </div>
+    <div style="background:var(--accent-bg);border-left:3px solid var(--accent);padding:8px 12px;margin-bottom:14px;border-radius:0 6px 6px 0;font-size:11px;color:var(--text2);">Réf. devis : <strong>${d.numero}</strong> — ${d.chantier?.nature||''}</div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+      <thead><tr style="background:var(--accent);">
+        <th style="padding:8px;text-align:left;color:#fff;font-size:11px;">Désignation</th>
+        <th style="padding:8px;text-align:center;color:#fff;font-size:11px;">Qté</th>
+        <th style="padding:8px;text-align:center;color:#fff;font-size:11px;">Unité</th>
+        <th style="padding:8px;text-align:right;color:#fff;font-size:11px;">PU HT</th>
+        <th style="padding:8px;text-align:right;color:#fff;font-size:11px;">Total HT</th>
+      </tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+      <div style="width:240px;background:var(--bg3);border-radius:8px;padding:12px 14px;border:1px solid var(--border);">
+        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid var(--border);"><span>Total HT</span><span style="font-weight:600;">${fmt(d.total_ht)} €</span></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid var(--border);"><span>TVA ${tva}%</span><span style="font-weight:600;">${fmt(d.tva_montant)} €</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0 4px;font-size:15px;font-weight:800;color:var(--accent);"><span>TOTAL TTC</span><span>${fmt(d.total_ttc)} €</span></div>
+      </div>
+    </div>
+    ${iban?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+      <div style="background:var(--bg3);border-radius:8px;padding:12px;border:1px solid var(--border);">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:6px;">Conditions de paiement</div>
+        <div style="font-size:11px;color:var(--text2);">Paiement à réception de facture</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:8px;padding:12px;border:1px solid var(--border);">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:6px;">Coordonnées bancaires</div>
+        ${banque?`<div style="font-size:11px;color:var(--text2);">${banque}</div>`:''}
+        <div style="font-size:11px;color:var(--text2);">IBAN : ${iban}</div>
+        ${bic?`<div style="font-size:11px;color:var(--text2);">BIC : ${bic}</div>`:''}
+      </div>
+    </div>`:''}
+    <div style="font-size:10px;color:var(--text2);border-top:1px solid var(--border);padding-top:10px;line-height:1.7;">${mentionTVA}<br>${cgv}</div>
+  </div>`;
+}
+
+function fermerFacture(){
+  document.getElementById('facture-modal').style.display='none';
+  factureEnCours=null;
+}
+
+async function envoyerFacture(){
+  if(!factureEnCours) return;
+  const d = factureEnCours.devis;
+  const artisanNom = ls('ent-nom')||'';
+  const artisanEmail = ls('ent-email')||'';
+  const clientEmail = d.client?.email||'';
+  const sbar = document.getElementById('facture-sbar');
+  if(!clientEmail){ sbar.className='sbar error'; sbar.style.display='flex'; sbar.innerHTML='❌ Email client manquant.'; return; }
+  sbar.className='sbar loading'; sbar.style.display='flex'; sbar.innerHTML='<div class="spin"></div><span>Envoi en cours…</span>';
+  const htmlFacture = document.getElementById('facture-preview').innerHTML;
+  try{
+    const r = await fetch(BACKEND+'/api/send-devis',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({artisanNom, artisanEmail, clientEmail, subject:`Facture — ${d.chantier?.nature||'Travaux'} — ${artisanNom}`, html:`<div style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto;padding:20px;">${htmlFacture}</div>`})
+    });
+    const res = await r.json();
+    if(!r.ok) throw new Error(res.error||'Erreur');
+    sbar.className='sbar success'; sbar.innerHTML='✅ Facture envoyée à '+clientEmail;
+  }catch(e){ sbar.className='sbar error'; sbar.innerHTML='❌ '+e.message; }
+}
+
+function telechargerFacturePDF(){
+  if(!factureEnCours) return;
+  const d = factureEnCours.devis;
+  window.open(`https://arbimalik.github.io/devisvoice/devis-pdf.html?id=${encodeURIComponent(d.numero)}&type=facture`,'_blank');
+}
 
 function loadAll(){
   const map={'ent-nom':'ent-nom','ent-siret':'ent-siret','ent-tel':'ent-tel','ent-adr':'ent-adr','ent-email':'ent-email','mentions':'mentions','ent-decennale-compagnie':'ent-decennale-compagnie','ent-decennale-numero':'ent-decennale-numero','ent-banque':'ent-banque','ent-iban':'ent-iban','ent-bic':'ent-bic','ent-titulaire':'ent-titulaire','t-mo':'t-mo','t-tva':'t-tva'};
