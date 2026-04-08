@@ -425,6 +425,7 @@ select option{background:var(--card);color:var(--text);}
     <div style="padding:14px 20px;background:var(--bg3);border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;">
       <button class="btn-primary" onclick="envoyerFacture()" style="flex:1;min-width:140px;">📧 Envoyer la Facture</button>
       <button class="btn-sec" onclick="telechargerFacturePDF()">📄 Télécharger PDF</button>
+      <button class="btn-sec" onclick="marquerPayee()" style="color:#00b450;border-color:rgba(0,180,80,.3);">✅ Payée</button>
     </div>
     <div class="sbar" id="facture-sbar" style="margin:0 20px 14px;"></div>
   </div>
@@ -1527,6 +1528,15 @@ function renderDevis(d){
   <div class="iblk" style="margin-bottom:14px"><p><strong>Nature des travaux :</strong> ${d.chantier.nature} &nbsp; <strong>Délai :</strong> ${d.chantier.delai}</p></div>
   <h2>Descriptif des Ouvrages</h2>
   <table><thead><tr><th>Désignation</th><th style="text-align:center">Qté</th><th style="text-align:center">Unité</th><th style="text-align:right">P.U. HT €</th><th style="text-align:right">Total HT €</th></tr></thead><tbody>${sectionsHtml}</tbody></table>
+  <div style="margin-bottom:14px">
+    <div style="background:var(--bg3);border:1.5px dashed var(--border);border-radius:8px;padding:12px 14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);">📝 Observations / Notes pour le client</span>
+        <button onclick="toggleObsVoice()" id="obs-mic-btn" style="background:var(--accent);color:#fff;border:none;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;">🎙 Dicter</button>
+      </div>
+      <textarea id="obs-textarea" placeholder="Ex : Nous devrons couper l'eau pendant 2h pour le remplacement des radiateurs. Prévoir le remplacement du carrelage fissuré découvert lors du chantier…" style="width:100%;min-height:70px;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-family:'Inter',sans-serif;font-size:13px;color:var(--text);resize:vertical;outline:none;" oninput="majObservations(this.value)">${d.observations||''}</textarea>
+    </div>
+  </div>
   <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
     <div class="totaux-box">
       <div class="trow"><span>Total HT</span><span>${fmt(d.total_ht)} €</span></div>
@@ -1582,6 +1592,7 @@ async function envoyerDevis(){
   const pdfUrl=`${BASE_URL}/devis-pdf.html?id=${encodeURIComponent(d.numero)}`;
 
   const html=`<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#222"><div style="background:#FF4500;padding:18px 22px;border-radius:8px 8px 0 0"><h1 style="color:#fff;font-size:20px;margin:0">DEVIS N° ${d.numero}</h1><p style="color:rgba(255,255,255,.85);margin:3px 0 0;font-size:12px">Date : ${d.date} — Validité : ${d.validite}</p></div><div style="background:#fff;padding:22px;border:1px solid #eee;border-top:none"><table style="width:100%;font-size:12px;margin-bottom:18px"><tr><td style="width:50%;vertical-align:top;padding-right:10px"><strong style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#999">Entreprise</strong><br><br><strong>${d.entreprise.nom}</strong><br>${d.entreprise.siret?'SIRET : '+d.entreprise.siret+'<br>':''}${d.entreprise.tel?d.entreprise.tel+'<br>':''}</td><td style="width:50%;vertical-align:top;background:#f9f9f9;padding:10px;border-radius:6px"><strong style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#999">Maître d'Ouvrage</strong><br><br><strong>${d.client.nom}</strong><br>${d.client.email||''}${clientTelEmailHtml}<br>${d.chantier.adresse||''}</td></tr></table><p style="font-size:12px;margin-bottom:14px"><strong>Nature :</strong> ${d.chantier.nature} &nbsp;|&nbsp; <strong>Délai :</strong> ${d.chantier.delai}${dateDebutEmailHtml}</p><table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:18px"><thead><tr style="background:#FF4500;color:#fff"><th style="padding:8px;text-align:left">Désignation</th><th style="padding:8px;text-align:center">Qté</th><th style="padding:8px;text-align:center">Unité</th><th style="padding:8px;text-align:right">P.U. HT</th><th style="padding:8px;text-align:right">Total HT</th></tr></thead><tbody>${rowsHtml}</tbody></table><div style="text-align:right;margin-bottom:16px"><table style="margin-left:auto;font-size:12px;border-collapse:collapse"><tr><td style="padding:3px 14px 3px 0;color:#666">Total HT</td><td style="padding:3px 0;font-weight:600">${fmt(d.total_ht)} €</td></tr><tr><td style="padding:3px 14px 3px 0;color:#666">TVA ${d.tva_pct}%</td><td style="padding:3px 0;font-weight:600">${fmt(d.tva_montant)} €</td></tr><tr style="border-top:2px solid #FF4500"><td style="padding:7px 14px 3px 0;font-weight:700;font-size:14px">TOTAL TTC</td><td style="padding:7px 0 3px;font-weight:700;font-size:14px;color:#FF4500">${fmt(d.total_ttc)} €</td></tr>${acompteEmailHtml}</table></div><p style="font-size:11px;color:#999;font-style:italic;margin-bottom:14px">Arrêté à : ${d.total_lettres}</p><div style="background:#f5f5f5;padding:10px 12px;border-radius:6px;font-size:11px;color:#777">${d.conditions}<br>${gMentions}</div>
+  ${d.observations?`<div style="background:#fffbf0;border-left:3px solid #f59e0b;padding:10px 12px;margin-top:10px;border-radius:0 6px 6px 0;font-size:12px;color:#444"><strong>📝 Observations :</strong><br>${d.observations}</div>`:''}
   <div style="text-align:center;margin-top:24px;padding:20px;background:#fff8f5;border-radius:8px;border:1px solid #ffd0b0">
     <p style="font-size:13px;color:#555;margin-bottom:14px">Ce devis vous convient ? Acceptez-le en un clic :</p>
     <a href="${acceptUrl}" style="display:inline-block;background:#FF4500;color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:700;font-size:15px;letter-spacing:.5px">✅ Accepter ce devis</a>
@@ -1815,7 +1826,8 @@ async function loadChantiers(){
             <div style="font-weight:800;font-size:14px;color:var(--accent)">${d.montant?fmt(parseFloat(d.montant))+' €':'—'}</div>
             <div style="font-size:10px;color:#00b450;font-weight:600;">✓ Accepté</div>
           </div>
-          <button onclick="ouvrirFacture('${d.id}')" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">📄 Facturer</button>
+          <div style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;text-align:center;${getStatutFacture(d.id)==='payee'?'background:rgba(0,180,80,.12);color:#00b450':getStatutFacture(d.id)==='envoyee'?'background:rgba(255,165,0,.12);color:#e08000':'background:var(--bg3);color:var(--text2)'}">${getStatutFacture(d.id)==='payee'?'✅ Payée':getStatutFacture(d.id)==='envoyee'?'📨 Envoyée':'📋 À facturer'}</div>
+          <button onclick="ouvrirFacture('${d.id}')" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">📄 Facture</button>
         </div>
       </div>`).join('');
   }catch(e){
@@ -1837,6 +1849,13 @@ async function ouvrirFacture(devisId){
   }catch(e){
     content.innerHTML='<div style="color:#e04040;padding:20px;">Erreur chargement.</div>';
   }
+}
+
+function getStatutFacture(devisId){
+  return localStorage.getItem('facture-statut-'+devisId)||'non_envoyee';
+}
+function setStatutFacture(devisId, statut){
+  localStorage.setItem('facture-statut-'+devisId, statut);
 }
 
 function renderFacture(d){
@@ -1941,7 +1960,9 @@ async function envoyerFacture(){
     });
     const res = await r.json();
     if(!r.ok) throw new Error(res.error||'Erreur');
+    setStatutFacture(factureEnCours.devis.numero, 'envoyee');
     sbar.className='sbar success'; sbar.innerHTML='✅ Facture envoyée à '+clientEmail;
+    loadChantiers();
   }catch(e){ sbar.className='sbar error'; sbar.innerHTML='❌ '+e.message; }
 }
 
@@ -1949,6 +1970,63 @@ function telechargerFacturePDF(){
   if(!factureEnCours) return;
   const d = factureEnCours.devis;
   window.open(`https://arbimalik.github.io/devisvoice/devis-pdf.html?id=${encodeURIComponent(d.numero)}&type=facture`,'_blank');
+}
+
+
+// ===== OBSERVATIONS =====
+let obsRecog = null;
+let obsIsRec = false;
+
+function majObservations(val){
+  if(devisData) devisData.observations = val;
+}
+
+function toggleObsVoice(){
+  if(!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)){
+    alert('Dictée vocale non supportée sur ce navigateur.');
+    return;
+  }
+  if(obsIsRec){ stopObsVoice(); return; }
+  startObsVoice();
+}
+
+function startObsVoice(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(obsRecog){ try{obsRecog.abort();}catch(e){} }
+  obsRecog = new SR();
+  obsRecog.lang='fr-FR'; obsRecog.continuous=true; obsRecog.interimResults=true;
+  const el = document.getElementById('obs-textarea');
+  const btn = document.getElementById('obs-mic-btn');
+  let base = el.value.trim(); if(base) base+=' ';
+  obsRecog.onstart=()=>{ obsIsRec=true; btn.textContent='⏹ Stop'; btn.style.background='#cc0000'; };
+  obsRecog.onresult=(e)=>{
+    let fin=base, int='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal){fin+=e.results[i][0].transcript+' ';base=fin;}
+      else int+=e.results[i][0].transcript;
+    }
+    el.value=fin+int;
+    majObservations(el.value);
+  };
+  obsRecog.onerror=()=>stopObsVoice();
+  obsRecog.onend=()=>{ if(obsIsRec) setTimeout(()=>{if(obsIsRec)startObsVoice();},150); };
+  obsRecog.start();
+}
+
+function stopObsVoice(){
+  obsIsRec=false;
+  if(obsRecog){ try{obsRecog.stop();}catch(e){} }
+  const btn=document.getElementById('obs-mic-btn');
+  if(btn){ btn.textContent='🎙 Dicter'; btn.style.background='var(--accent)'; }
+}
+
+
+function marquerPayee(){
+  if(!factureEnCours) return;
+  setStatutFacture(factureEnCours.devis.numero, 'payee');
+  const sbar = document.getElementById('facture-sbar');
+  sbar.className='sbar success'; sbar.style.display='flex'; sbar.innerHTML='✅ Facture marquée comme payée';
+  loadChantiers();
 }
 
 function loadAll(){
