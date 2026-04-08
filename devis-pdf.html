@@ -200,6 +200,7 @@ function renderHtml(d){
       <thead><tr><th>Désignation</th><th style="text-align:center;width:48px">Qté</th><th style="text-align:center;width:52px">Unité</th><th style="text-align:right;width:72px">P.U. HT €</th><th style="text-align:right;width:80px">Total HT €</th></tr></thead>
       <tbody>${sectionsHtml}</tbody>
     </table>
+    ${d.observations?`<div style="background:#fffbf0;border-left:3px solid #e08000;border-radius:0 6px 6px 0;padding:10px 13px;margin-bottom:10px;font-size:10px;color:#555;line-height:1.7;"><strong style="color:#e08000;">📝 Observations :</strong><br>${d.observations}</div>`:''}
     <div class="pdf-totaux-wrap">
       <div class="pdf-totaux">
         <div class="pdf-trow"><span class="pdf-trow-label">Total HT</span><span>${fmt(d.total_ht)} €</span></div>
@@ -210,7 +211,6 @@ function renderHtml(d){
     </div>
     <div class="pdf-lettres">Arrêté à : <em>${lettres}</em></div>
     <div class="pdf-footer-bloc"><strong>Conditions :</strong> ${d.conditions||'Solde à réception et levée des réserves'}<br>${d.mentions||''}${decHtml}${ribInline}</div>
-    ${d.observations?`<div style="background:#fffbf0;border-left:3px solid #e08000;border-radius:0 6px 6px 0;padding:10px 13px;margin-bottom:10px;font-size:10px;color:#555;line-height:1.7;"><strong style="color:#e08000;">📝 Observations :</strong><br>${d.observations}</div>`:''}
     <div class="pdf-signature">${sigBloc}</div>
     <div class="pdf-credit">Généré avec DevisVoice</div>
   </div>`;
