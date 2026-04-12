@@ -182,7 +182,8 @@ function renderHtml(d){
   const lettres=nombreEnLettres(totalTTC);
   const ribInline=iban?`<br><br><strong>🏦 Coordonnées bancaires</strong><br>${banque?banque+'<br>':''}IBAN : ${iban}${bic?' — BIC : '+bic:''}${titulaire?'<br>Titulaire : '+titulaire:''}`:'';
   const decHtml=decCompagnie?`<br>🛡️ Assurance décennale : ${decCompagnie}${decNumero?' — Police n° '+decNumero:''}`:'' ;
-  const logoHtml=d.logo?`<img src="${d.logo}" style="max-height:52px;max-width:160px;object-fit:contain;">`:`<div style="font-family:'Arial Black',sans-serif;font-size:20px;font-weight:900;color:#111;letter-spacing:-0.5px">${ent.nom||'Votre Entreprise'}</div>`;
+  const logoSrc=d.logo||localStorage.getItem('ent-logo')||'';
+  const logoHtml=logoSrc?`<img src="${logoSrc}" style="max-height:52px;max-width:160px;object-fit:contain;">`:`<div style="font-family:'Arial Black',sans-serif;font-size:20px;font-weight:900;color:#111;letter-spacing:-0.5px">${ent.nom||'Votre Entreprise'}</div>`;
 
   document.getElementById('devis-container').innerHTML=`
   <div class="pdf-wrap">
@@ -274,8 +275,9 @@ function renderFactureHtml(d){
       });
     });
   }
-  const logoHtml = d.logo
-    ? `<img src="${d.logo}" style="max-height:52px;max-width:160px;object-fit:contain;">`
+  const logoSrcF = d.logo||localStorage.getItem('ent-logo')||'';
+  const logoHtml = logoSrcF
+    ? `<img src="${logoSrcF}" style="max-height:52px;max-width:160px;object-fit:contain;">`
     : `<div style="font-family:'Arial Black',sans-serif;font-size:20px;font-weight:900;color:#111;">${ent.nom||''}</div>`;
 
   const el = document.getElementById('devis-container');

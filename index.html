@@ -533,7 +533,7 @@ select option{background:var(--card);color:var(--text);}
       <div class="form-group"><label>Taux Horaire Main d'Œuvre (€/h)</label><input type="number" id="t-mo" placeholder="45"></div>
       <div class="form-row">
         <div><label>TVA par Défaut</label>
-          <select id="t-tva">
+          <select id="t-tva" onchange="majTvaDevis(this.value)">
             <option value="10">10% — Rénovation</option>
             <option value="20">20% — Standard</option>
             <option value="5.5">5.5% — Éco-énergie</option>
@@ -850,6 +850,18 @@ Réponds UNIQUEMENT avec le JSON brut, sans markdown, sans explication, sans tex
     let updated;
     try { updated = JSON.parse(jsonMatch[0]); }
     catch(parseErr) { await genererDevis(); return; }
+    // Préserver les champs meta que Claude ne retourne pas
+    updated.date          = updated.date          || devisData.date;
+    updated.logo          = updated.logo          || devisData.logo          || localStorage.getItem('ent-logo') || '';
+    updated.iban          = updated.iban          || devisData.iban;
+    updated.bic           = updated.bic           || devisData.bic;
+    updated.banque        = updated.banque        || devisData.banque;
+    updated.titulaire     = updated.titulaire     || devisData.titulaire;
+    updated.decennale_compagnie = updated.decennale_compagnie || devisData.decennale_compagnie;
+    updated.decennale_numero    = updated.decennale_numero    || devisData.decennale_numero;
+    updated.acompte_pct    = updated.acompte_pct   ?? devisData.acompte_pct;
+    updated.acompte_montant= updated.acompte_montant ?? devisData.acompte_montant;
+    updated.date_debut     = updated.date_debut    || devisData.date_debut;
     devisData = updated;
     renderDevis(devisData);
     document.getElementById('dictee-text').innerText = '';
@@ -888,6 +900,14 @@ function majQtePoste(sIdx, pIdx, val){
   const poste = devisData.sections[sIdx].postes[pIdx];
   poste.qte = qte;
   poste.total_ht = Math.round(poste.pu_ht * qte * 100) / 100;
+  recalculerTotaux();
+  renderDevis(devisData);
+}
+
+function majTvaDevis(val){
+  localStorage.setItem('t-tva', val);
+  if(!devisData) return;
+  devisData.tva_pct = Number(val);
   recalculerTotaux();
   renderDevis(devisData);
 }
