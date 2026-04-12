@@ -895,7 +895,7 @@ function majQtePoste(sIdx, pIdx, val){
 function recalculerTotaux(){
   if(!devisData) return;
   const tva = devisData.tva_pct || 10;
-  const totalHT = devisData.sections.reduce((a,s) => a + s.postes.reduce((b,p) => b + Number(p.total_ht), 0), 0);
+  const totalHT = devisData.sections.reduce((a,s) => a + (s.postes||[]).reduce((b,p) => b + Number(p.total_ht), 0), 0);
   const tvaMontant = totalHT * tva / 100;
   devisData.total_ht = Math.round(totalHT * 100) / 100;
   devisData.tva_montant = Math.round(tvaMontant * 100) / 100;
@@ -1571,7 +1571,7 @@ RÃˆGLES ABSOLUES: Ne jamais inventer un prix. Utiliser uniquement les prix dictÃ
       if(estDernierePasse){
         if(toutesLesSections.length>0){
           parsed.sections=fusionnerSections([...toutesLesSections,...(parsed.sections||[])]);
-          const totalHT=parsed.sections.reduce((a,s)=>a+s.postes.reduce((b,p)=>b+Number(p.total_ht),0),0);
+          const totalHT=parsed.sections.reduce((a,s)=>a+(s.postes||[]).reduce((b,p)=>b+Number(p.total_ht),0),0);
           const tvaMontant=totalHT*(Number(parsed.tva_pct||tva)/100);
           parsed.total_ht=Math.round(totalHT*100)/100;
           parsed.tva_montant=Math.round(tvaMontant*100)/100;
@@ -1615,7 +1615,7 @@ RÃˆGLES ABSOLUES: Ne jamais inventer un prix. Utiliser uniquement les prix dictÃ
       } else {
         const sections=parsed.sections||[];
         sections.forEach(s=>{
-          s.postes.forEach(p=>{ p.id=idCounter++; });
+          (s.postes||[]).forEach(p=>{ p.id=idCounter++; });
         });
         toutesLesSections=[...toutesLesSections,...sections];
       }
@@ -1636,7 +1636,7 @@ function supprimerPoste(sIdx, pIdx){
     devisData.sections.splice(sIdx, 1);
   }
   // Recalculer totaux
-  const totalHT = devisData.sections.reduce((a,s)=>a+s.postes.reduce((b,p)=>b+Number(p.total_ht),0),0);
+  const totalHT = devisData.sections.reduce((a,s)=>a+(s.postes||[]).reduce((b,p)=>b+Number(p.total_ht),0),0);
   const tvaPct = Number(devisData.tva_pct||10);
   devisData.total_ht = Math.round(totalHT*100)/100;
   devisData.tva_montant = Math.round(totalHT*(tvaPct/100)*100)/100;
@@ -1648,7 +1648,7 @@ function supprimerPoste(sIdx, pIdx){
 function renderDevis(d){
   let sectionsHtml='';
   if(d.sections && d.sections.length){
-    sectionsHtml=d.sections.map((s,sIdx)=>{
+    sectionsHtml=d.sections.filter(s=>s&&s.postes&&s.postes.length).map((s,sIdx)=>{
       const rows=s.postes.map((p,pIdx)=>`
         <tr>
           <td style="padding:7px 9px;border-bottom:1px solid var(--border);vertical-align:top">
