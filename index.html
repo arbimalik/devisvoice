@@ -383,8 +383,7 @@ select option{background:var(--card);color:var(--text);}
     </div>
   </div>
 
-  <button class="btn-primary" id="btn-gen" onclick="genererDevis()">⚡ Générer le Devis</button>
-  <button class="btn-primary" id="btn-maj" onclick="mettreAJourDevis()" style="display:none;background:var(--bg3);color:var(--accent);border:1.5px solid var(--accent);margin-top:8px;">🔄 Mettre à jour le devis</button>
+  <button class="btn-primary" id="btn-gen" onclick="actionDevis()">⚡ Générer le Devis</button>
   <div class="sbar" id="sbar"></div>
 
   <div id="result-box">
@@ -780,33 +779,49 @@ async function mettreAJourDevis(){
   if(!instruction){ alert('Dictez votre modification.'); return; }
   if(!devisData){ return; }
 
-  const btn = document.getElementById('btn-maj');
+  const btn = document.getElementById('btn-gen');
   btn.disabled = true;
-  btn.textContent = '⏳ Modification en cours…';
+  btn.innerHTML = '⏳ Modification en cours…';
 
   try {
     const r = await fetch(BACKEND+'/api/claude', {
       method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ payload: {
         model: 'claude-sonnet-4-5',
-        max_tokens: 4000,
+        max_tokens: 8000,
         system: `Tu es un assistant expert en modification de devis BTP.
 L'artisan te donne un devis JSON existant et une instruction de modification vocale.
-Tu dois appliquer la modification demandée et retourner UNIQUEMENT le JSON complet du devis modifié.
+Applique la modification et retourne UNIQUEMENT le JSON complet du devis modifié.
 Ne modifie que ce qui est demandé. Conserve le même numéro, les mêmes infos client et entreprise.
 Recalcule les totaux HT, TVA et TTC si des prix ou quantités changent.
-Réponds UNIQUEMENT avec le JSON brut, sans markdown, sans explication.`,
+Réponds UNIQUEMENT avec le JSON brut, sans markdown, sans explication, sans texte avant ou après.`,
         messages: [{
           role: 'user',
-          content: `Devis actuel :\n${JSON.stringify(devisData)}\n\nInstruction de modification :\n"${instruction}"`
+          content: `Devis actuel :\n${JSON.stringify({
+            numero: devisData.numero,
+            client: devisData.client,
+            chantier: devisData.chantier,
+            entreprise: devisData.entreprise,
+            sections: devisData.sections,
+            total_ht: devisData.total_ht,
+            tva_pct: devisData.tva_pct,
+            tva_montant: devisData.tva_montant,
+            total_ttc: devisData.total_ttc,
+            validite: devisData.validite,
+            acompte_pct: devisData.acompte_pct,
+            mentions: devisData.mentions,
+            observations: devisData.observations
+          })}\n\nInstruction :\n"${instruction}"`
         }]
       }})
     });
     const data = await r.json();
     const txt = data.content?.[0]?.text || '';
     const jsonMatch = txt.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('Réponse invalide');
-    const updated = JSON.parse(jsonMatch[0]);
+    if (!jsonMatch) { await genererDevis(); return; }
+    let updated;
+    try { updated = JSON.parse(jsonMatch[0]); }
+    catch(parseErr) { await genererDevis(); return; }
     devisData = updated;
     renderDevis(devisData);
     document.getElementById('dictee-text').innerText = '';
@@ -825,7 +840,7 @@ Réponds UNIQUEMENT avec le JSON brut, sans markdown, sans explication.`,
     alert('Erreur lors de la modification : ' + e.message);
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '🔄 Mettre à jour le devis';
+    btn.innerHTML = '🔄 Modifier le Devis';
   }
 }
 
@@ -948,7 +963,13 @@ function stopMic(){
   stopAudioViz();
   document.getElementById('mic-btn').classList.remove('rec');
   document.getElementById('mic-wrap').classList.remove('recording');
-  setLbl('✅ Dictée terminée — vérifiez le texte',false);
+  const dictee = document.getElementById('dictee-text').innerText.trim();
+  if(dictee){
+    setLbl('⚡ Génération automatique…', true);
+    setTimeout(()=>actionDevis(), 600);
+  } else {
+    setLbl('Appuyez pour dicter', false);
+  }
 }
 
 function startAudioViz(){
@@ -1123,7 +1144,14 @@ function fusionnerSections(sections) {
   return ordre.map(k => map[k]);
 }
 
+function actionDevis(){
+  if(isRec) stopMic();
+  if(devisData) mettreAJourDevis();
+  else genererDevis();
+}
+
 async function genererDevis(){
+  if(isRec) stopMic();
   const dictee=document.getElementById('dictee-text').innerText.trim();
   if(!dictee){alert('Dictez ou saisissez vos postes de travaux.');return;}
   const entNom=ls('ent-nom')||'Votre Entreprise',entSiret=ls('ent-siret')||'',entTel=ls('ent-tel')||'',entAdr=ls('ent-adr')||'',entEmail=ls('ent-email')||'',tva=ls('t-tva')||'10';
@@ -1537,7 +1565,7 @@ RÈGLES ABSOLUES: Ne jamais inventer un prix. Utiliser uniquement les prix dict�
 
         devisData=parsed;
         dicteeOriginale = document.getElementById('dictee-text').innerText.trim();
-        document.getElementById('btn-maj').style.display = 'none';
+        document.getElementById('btn-gen').innerHTML='🔄 Modifier le Devis';
         renderDevis(parsed);
         document.getElementById('result-box').style.display='block';
         showS('success','✅ Devis généré avec succès !');
@@ -1796,7 +1824,9 @@ function nouveauDevis(){
   document.getElementById('dictee-text').innerText='';
   document.getElementById('result-box').style.display='none';
   document.getElementById('sbar').className='sbar';
-  devisData=null;setLbl('Appuyez pour dicter',false);
+  devisData=null;
+  document.getElementById('btn-gen').innerHTML='⚡ Générer le Devis';
+  setLbl('Appuyez pour dicter',false);
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
