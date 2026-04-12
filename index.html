@@ -339,20 +339,21 @@ select option{background:var(--card);color:var(--text);}
     </div>
     <div id="metiers-body" class="card-body">
       <div class="metiers-grid" id="metiers-grid">
-        <div class="mc" onclick="selMetier(this,'carrelage')" data-m="Carrelage / Sols">🪨 Carrelage</div>
-        <div class="mc" onclick="selMetier(this,'plomberie')" data-m="Plomberie / Sanitaire">🚿 Plomberie</div>
-        <div class="mc" onclick="selMetier(this,'electricite')" data-m="Électricité">⚡ Électricité</div>
-        <div class="mc" onclick="selMetier(this,'peinture')" data-m="Peinture / Revêtements">🎨 Peinture</div>
-        <div class="mc" onclick="selMetier(this,'maconnerie')" data-m="Maçonnerie / Gros œuvre">🧱 Maçonnerie</div>
-        <div class="mc" onclick="selMetier(this,'menuiserie')" data-m="Menuiserie intérieure / extérieure">🪵 Menuiserie</div>
+        <div class="mc" onclick="selMetier(this,'carrelage')" data-m="Carrelage / Sols">🪨 Carreleur</div>
+        <div class="mc" onclick="selMetier(this,'plomberie')" data-m="Plomberie / Sanitaire">🚿 Plombier</div>
+        <div class="mc" onclick="selMetier(this,'electricite')" data-m="Électricité">⚡ Électricien</div>
+        <div class="mc" onclick="selMetier(this,'peinture')" data-m="Peinture / Revêtements">🎨 Peintre</div>
+        <div class="mc" onclick="selMetier(this,'maconnerie')" data-m="Maçonnerie / Gros œuvre">🧱 Maçon</div>
+        <div class="mc" onclick="selMetier(this,'menuiserie')" data-m="Menuiserie intérieure / extérieure">🪵 Menuisier</div>
         <div class="mc" onclick="selMetier(this,'plaquiste')" data-m="Plâtrerie / Cloisons / Faux-plafonds">🏗️ Plaquiste</div>
         <div class="mc" onclick="selMetier(this,'charpentier')" data-m="Charpente / Ossature bois">🪚 Charpentier</div>
-        <div class="mc" onclick="selMetier(this,'isolation')" data-m="Isolation / ITE / Doublage">🏠 Isolation</div>
-        <div class="mc" onclick="selMetier(this,'chauffage')" data-m="Chauffage / Climatisation / CVC">🔥 Chauffage</div>
-        <div class="mc" onclick="selMetier(this,'couverture')" data-m="Couverture / Zinguerie / Étanchéité">☔ Couverture</div>
-        <div class="mc" onclick="selMetier(this,'serrurerie')" data-m="Serrurerie / Métallerie">🔒 Serrurerie</div>
-        <div class="mc" onclick="selMetier(this,'terrassement')" data-m="Terrassement / VRD / Gros œuvre">🚜 Terrassement</div>
-        <div class="mc" onclick="selMetier(this,'tous')" data-m="Multi-corps d'état / Rénovation globale">🏠 Tous corps</div>
+        <div class="mc" onclick="selMetier(this,'facadier')" data-m="Façade / Ravalement / ITE">🏚️ Façadier</div>
+        <div class="mc" onclick="selMetier(this,'chauffage')" data-m="Plomberie / Chauffage / CVC">🔥 Plombier/Chauffagiste</div>
+        <div class="mc" onclick="selMetier(this,'couverture')" data-m="Couverture / Zinguerie / Étanchéité">☔ Couvreur/Zingeur</div>
+        <div class="mc" onclick="selMetier(this,'serrurerie')" data-m="Serrurerie / Métallerie">🔒 Serrurier</div>
+        <div class="mc" onclick="selMetier(this,'terrassement')" data-m="Terrassement / VRD / Gros œuvre">🚜 Terrassier</div>
+        <div class="mc" onclick="selMetier(this,'cuisiniste')" data-m="Cuisine / Agencement">📐 Cuisiniste</div>
+        <div class="mc" onclick="selMetier(this,'tous')" data-m="Multi-corps d'état / Rénovation globale">🏠 Tous corps d'état</div>
       </div>
       <div id="prestations-zone" style="display:none;margin-top:14px;"></div>
     </div>
@@ -681,26 +682,53 @@ const PRESTATIONS = {
   peinture: ['Protection chantier (bâches / scotch)','Lessivage murs','Ponçage supports','Rebouchage fissures','Enduit de lissage','Sous-couche','Peinture murs (bon état)','Peinture murs (état moyen)','Peinture murs (mauvais état)','Peinture plafond','Peinture boiseries','Dépose papier peint','Pose papier peint','Pose toile de verre','Peinture porte','Peinture radiateur','Lasure / vernis bois','Ravalement façade','Peinture façade','Traitement fissures façade'],
   maconnerie: ['Fondations béton','Dalle béton','Chape traditionnelle','Chape fluide autonivelante','Élévation murs parpaing','Élévation murs brique','Ouverture mur porteur','Pose linteau','Poteaux béton armé','Terrasse béton','Mur de clôture','Escalier maçonné','Reprise fissures','Ragréage','Démolition cloison','Coffrage','Ferraillage','Étanchéité fondations'],
   menuiserie: ['Dépose anciens éléments','Pose porte intérieure','Pose porte extérieure','Pose fenêtre PVC','Pose fenêtre aluminium','Pose fenêtre bois','Pose volet battant','Pose volet roulant','Pose placard / dressing sur mesure','Pose cuisine','Bibliothèque sur mesure','Mobilier sur mesure','Pose parquet flottant','Pose parquet massif collé','Dépose parquet','Pose escalier bois','Réglages et calages','Étanchéité / mastic joints'],
-  plaquiste: ['Dépose cloison existante','Cloison simple BA13','Cloison double BA13','Cloison hydrofuge salle de bain','Cloison acoustique','Cloison alvéolaire','Cloison avec isolation thermique','Faux-plafond suspendu BA13','Faux-plafond acoustique','Doublage mur extérieur','Isolation murs laine de verre','Isolation plafond','Bandes à joints','Enduit de finition / ratissage','Protection angles'],
+  plaquiste: ['Dépose cloison existante','Cloison simple BA13','Cloison double BA13','Cloison hydrofuge salle de bain','Cloison acoustique','Cloison alvéolaire','Cloison avec isolation thermique','Faux-plafond suspendu BA13','Faux-plafond acoustique','Doublage mur intérieur','Isolation murs par l\'intérieur (ITI)','Isolation murs laine de verre','Isolation murs laine de roche','Isolation plafond','Isolation phonique murs','Isolation phonique plafond','Isolation plancher bas','Pose pare-vapeur','Pose frein-vapeur','Traitement ponts thermiques','Bandes à joints','Enduit de finition / ratissage','Protection angles'],
   charpentier: ['Fabrication charpente traditionnelle','Pose charpente traditionnelle','Charpente industrielle fermettes','Charpente métallique','Pose liteaux / chevrons','Rénovation charpente partielle','Traitement bois (insectes/champignons)','Renforcement structure existante','Ossature bois','Sarking (isolation toiture extérieur)','Aménagement combles perdus','Pose OSB / voligeage','Surélévation','Pergola / auvent bois'],
+  facadier: ['Ravalement de façade','Dépose ancienne façade / enduit','Nettoyage / hydrofuge façade','Traitement fissures façade','Enduit de finition grain fin','Enduit de finition taloché','Enduit projeté','Peinture façade','ITE (isolation thermique par l\'extérieur)','Pose rails et fixations ITE','Pose panneaux isolants EPS','Pose panneaux isolants laine de roche','Enduit de base sous-enduit armé','Traitement ponts thermiques','Habillage bardage bois','Habillage bardage composite','Appuis de fenêtre / seuils','Calfeutrement menuiseries','Isolation combles perdus (soufflage)','Isolation rampants toiture'],
   isolation: ['Isolation combles perdus (soufflage)','Isolation rampants toiture','Isolation murs par l\'intérieur','ITE (isolation thermique extérieure)','Isolation plancher bas','Doublage thermique','Isolation phonique murs','Isolation phonique plafond','Pose pare-vapeur','Pose frein-vapeur','Traitement ponts thermiques'],
   chauffage: ['Pose chaudière gaz à condensation','Pose chaudière fioul','Pose pompe à chaleur air/eau','Pose pompe à chaleur air/air','Pose plancher chauffant hydraulique','Pose plancher chauffant électrique','Pose radiateurs hydrauliques','Dépose ancienne installation','Raccordement réseau chauffage','Pose thermostat / régulation','Maintenance / entretien chaudière','Pose climatisation split','Pose VMC double flux','Remplacement ballon tampon'],
   couverture: ['Dépose toiture existante','Pose tuiles terre cuite','Pose tuiles béton','Pose ardoises naturelles','Pose ardoises fibrociment','Pose bac acier / bac alu','Pose EPDM (toiture plate)','Pose membrane bitumineuse','Zinguerie (gouttières, chéneaux)','Faîtage et noues','Remplacement voligeage','Traitement / nettoyage toiture','Pose fenêtre de toit (Velux)','Isolation toiture par extérieur'],
   serrurerie: ['Pose porte blindée','Pose serrure multipoints','Remplacement cylindre','Pose portail coulissant','Pose portail battant','Automatisme portail / porte garage','Garde-corps acier / alu','Escalier métallique','Grilles de défense','Pose clôture métal','Soudure / réparation métallerie','Pose boîte aux lettres sécurisée'],
   terrassement: ['Terrassement général','Décaissement','Remblaiement','Nivellement terrain','Fondations','Tranchées réseaux','Voirie (béton / enrobé)','Pose dallage extérieur','Pose gravier décoratif','Drainage','Assainissement individuel (fosse)','Clôture et portail','Mur de soutènement','Création accès véhicule'],
+  cuisiniste: ['Visite à domicile / métrés','Plan 3D de conception cuisine','Dépose ancienne cuisine','Évacuation ancienne cuisine en déchetterie','Fourniture et pose meubles bas','Fourniture et pose meubles hauts','Fourniture et pose colonne four / réfrigérateur','Fourniture et pose îlot central','Pose plan de travail stratifié','Pose plan de travail quartz','Pose plan de travail granit','Découpe plan de travail évier / plaque','Fourniture et pose évier inox simple bac','Fourniture et pose évier inox double bac','Fourniture et pose robinetterie','Raccordement plomberie évier','Fourniture et pose crédence carrelage','Fourniture et pose crédence verre','Fourniture et pose crédence inox','Pose plaque de cuisson','Raccordement électrique plaque','Pose four encastrable','Pose hotte aspirante','Pose lave-vaisselle encastrable','Pose réfrigérateur encastrable','Pose micro-ondes encastrable','Fourniture et pose éclairage LED sous meubles','Fourniture et pose spots encastrés','Remplacement façades / relooking cuisine','Remplacement poignées','Ajout rangements intérieurs tiroirs et plateaux','Joint silicone plan de travail / mur','Nettoyage fin de chantier'],
   tous: ['Protection et installation chantier','Dépose générale','Démolition cloisons','Gros œuvre / maçonnerie','Plomberie / sanitaire','Électricité courants forts','Isolation','Plâtrerie / cloisons','Carrelage / sols','Peinture / finitions','Menuiserie intérieure','Menuiserie extérieure','Chauffage / VMC','Nettoyage fin de chantier','Levée des réserves']
 };
 
 let prestationsActives = {};
+
+const UNITES_PAR_DEFAUT = {
+  cuisiniste: {
+    'Visite à domicile / métrés':'forfait','Plan 3D de conception cuisine':'forfait',
+    'Dépose ancienne cuisine':'forfait','Évacuation ancienne cuisine en déchetterie':'forfait',
+    'Fourniture et pose meubles bas':'ml','Fourniture et pose meubles hauts':'ml',
+    'Fourniture et pose colonne four / réfrigérateur':'u','Fourniture et pose îlot central':'u',
+    'Pose plan de travail stratifié':'ml','Pose plan de travail quartz':'ml','Pose plan de travail granit':'ml',
+    'Découpe plan de travail évier / plaque':'u',
+    'Fourniture et pose évier inox simple bac':'u','Fourniture et pose évier inox double bac':'u',
+    'Fourniture et pose robinetterie':'u','Raccordement plomberie évier':'u',
+    'Fourniture et pose crédence carrelage':'m²','Fourniture et pose crédence verre':'m²','Fourniture et pose crédence inox':'m²',
+    'Pose plaque de cuisson':'u','Raccordement électrique plaque':'u','Pose four encastrable':'u',
+    'Pose hotte aspirante':'u','Pose lave-vaisselle encastrable':'u','Pose réfrigérateur encastrable':'u',
+    'Pose micro-ondes encastrable':'u',
+    'Fourniture et pose éclairage LED sous meubles':'ml','Fourniture et pose spots encastrés':'u',
+    'Remplacement façades / relooking cuisine':'ml','Remplacement poignées':'u',
+    'Ajout rangements intérieurs tiroirs et plateaux':'u',
+    'Joint silicone plan de travail / mur':'ml','Nettoyage fin de chantier':'forfait'
+  }
+};
+
+function getDefaultUnite(key, nom) {
+  return (UNITES_PAR_DEFAUT[key] && UNITES_PAR_DEFAUT[key][nom]) || '';
+}
 
 function afficherPrestations(key) {
   const zone = document.getElementById('prestations-zone');
   const list = PRESTATIONS[key] || [];
   if(!prestationsActives[key]) {
     const saved = localStorage.getItem('prest_'+key);
-    prestationsActives[key] = saved ? JSON.parse(saved) : list.map(p=>({nom:p,actif:true,prix:'',unite:''}));
+    prestationsActives[key] = saved ? JSON.parse(saved) : list.map(p=>({nom:p,actif:true,prix:'',unite:getDefaultUnite(key,p)}));
     list.forEach(p => {
-      if(!prestationsActives[key].find(x=>x.nom===p)) prestationsActives[key].push({nom:p,actif:true,prix:'',unite:''});
+      if(!prestationsActives[key].find(x=>x.nom===p)) prestationsActives[key].push({nom:p,actif:true,prix:'',unite:getDefaultUnite(key,p)});
     });
   }
 
@@ -1484,9 +1512,9 @@ REGROUPEMENT OBLIGATOIRE:
 - Démolition cloison, ragréage mural → section "Maçonnerie"
 
 SECTIONS AUTORISÉES:
-"Carrelage / Sols" | "Peinture" | "Plaquiste" | "Plomberie" | "Chauffage" | "Électricité" | "Maçonnerie" | "Menuiserie" | "Serrurerie" | "Charpentier" | "Couverture" | "Isolation" | "Terrassement / VRD"
+"Carrelage / Sols" | "Peinture" | "Plaquiste" | "Plomberie" | "Chauffage" | "Électricité" | "Maçonnerie" | "Menuiserie" | "Serrurerie" | "Charpentier" | "Couverture" | "Façadier" | "Terrassement / VRD" | "Cuisiniste"
 
-Ordre logique: Maçonnerie → Plomberie → Chauffage → Électricité → Isolation → Plaquiste → Carrelage / Sols → Peinture → Menuiserie → Serrurerie → Charpentier → Couverture → Terrassement / VRD
+Ordre logique: Maçonnerie → Terrassement / VRD → Plomberie → Chauffage → Électricité → Façadier → Plaquiste → Carrelage / Sols → Peinture → Menuiserie → Serrurerie → Charpentier → Couverture → Cuisiniste
 Numérote les postes en continu sur tout le devis.
 
 RÈGLE ANTI-DOUBLON ABSOLUE: Chaque nom de section ne peut apparaître qu'UNE SEULE FOIS.
