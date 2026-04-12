@@ -84,34 +84,25 @@ select option{background:var(--card);color:var(--text);}
 .mc{background:var(--bg3);border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:11px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .mc:hover,.mc.sel{border-color:var(--accent);color:var(--accent);background:var(--accent-bg);}
 
-/* ========= MICRO SHAZAM ========= */
+/* ========= VOICE ORB ========= */
 .mic-zone{display:flex;flex-direction:column;align-items:center;padding:32px 0 20px;}
 .mic-wrap{position:relative;width:140px;height:140px;margin-bottom:20px;display:flex;align-items:center;justify-content:center;}
 
-.rpl{position:absolute;border-radius:50%;opacity:0;pointer-events:none;border:2px solid rgba(255,69,0,.5);}
-.rpl-1{width:140px;height:140px;}
-.rpl-2{width:140px;height:140px;border-color:rgba(255,69,0,.35);}
-.rpl-3{width:140px;height:140px;border-color:rgba(255,69,0,.2);}
+.orb-canvas{position:absolute;top:0;left:0;width:140px;height:140px;border-radius:50%;pointer-events:none;}
 
 .mic-main{
   position:relative;z-index:2;
-  width:90px;height:90px;border-radius:50%;border:none;cursor:pointer;
+  width:80px;height:80px;border-radius:50%;border:none;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  background:radial-gradient(circle at 38% 35%, var(--accent2), var(--accent) 60%, #b82400);
-  box-shadow:
-    0 0 0 10px var(--accent-bg),
-    0 0 0 22px rgba(255,69,0,.04),
-    0 8px 32px rgba(255,69,0,.35),
-    0 2px 10px rgba(0,0,0,.2);
-  transition:transform .2s, box-shadow .2s;
+  background:transparent;
+  box-shadow:none;
+  transition:transform .15s;
+  user-select:none;-webkit-user-select:none;
 }
-.mic-main:hover{transform:scale(1.06);}
-.mic-main svg{width:36px;height:36px;fill:#fff;}
+.mic-main:active{transform:scale(.94);}
+.mic-main svg{width:32px;height:32px;fill:var(--accent);}
 .mic-main svg.ico-stop{display:none;}
-.mic-main.rec{
-  background:radial-gradient(circle at 38% 35%, #ff3333, #cc0000 60%, #900);
-  animation:mbeat .9s ease-in-out infinite alternate;
-}
+.mic-main.rec svg{fill:#cc0000;}
 .mic-main.rec svg.ico-mic{display:none;}
 .mic-main.rec svg.ico-stop{display:block;}
 @keyframes mbeat{
@@ -376,9 +367,7 @@ select option{background:var(--card);color:var(--text);}
       </div>
       <div class="mic-zone">
         <div class="mic-wrap" id="mic-wrap">
-          <div class="rpl rpl-1"></div>
-          <div class="rpl rpl-2"></div>
-          <div class="rpl rpl-3"></div>
+          <canvas class="orb-canvas" id="orb-canvas" width="140" height="140"></canvas>
           <button class="mic-main" id="mic-btn" onclick="toggleMic()">
             <svg class="ico-mic" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v6a2 2 0 0 0 4 0V5a2 2 0 0 0-2-2zm-7 8a1 1 0 0 1 1 1 6 6 0 0 0 12 0 1 1 0 0 1 2 0 8 8 0 0 1-7 7.93V22h3a1 1 0 0 1 0 2H8a1 1 0 0 1 0-2h3v-2.07A8 8 0 0 1 4 12a1 1 0 0 1 1-1z"/>
@@ -567,7 +556,9 @@ select option{background:var(--card);color:var(--text);}
 </div>
 
 <script>
-const BACKEND='https://devisvoice-backend-production-9ed2.up.railway.app';
+const BACKEND= window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1'
+  ? 'http://localhost:8080'
+  : 'https://devisvoice-backend-production-9ed2.up.railway.app';
 let devisData=null;
 let gDecCompagnie='',gDecNumero='',gIban='',gBic='',gBanque='',gTitulaire='',gMentions='';
 
@@ -785,12 +776,57 @@ function onDicteeChange(){
 }
 
 async function mettreAJourDevis(){
-  const dictee = document.getElementById('dictee-text').innerText.trim();
-  if(!dictee){ alert('La zone de dictée est vide.'); return; }
+  const instruction = document.getElementById('dictee-text').innerText.trim();
+  if(!instruction){ alert('Dictez votre modification.'); return; }
   if(!devisData){ return; }
-  dicteeOriginale = dictee;
-  document.getElementById('btn-maj').style.display = 'none';
-  await genererDevis();
+
+  const btn = document.getElementById('btn-maj');
+  btn.disabled = true;
+  btn.textContent = '⏳ Modification en cours…';
+
+  try {
+    const r = await fetch(BACKEND+'/api/claude', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ payload: {
+        model: 'claude-sonnet-4-5',
+        max_tokens: 4000,
+        system: `Tu es un assistant expert en modification de devis BTP.
+L'artisan te donne un devis JSON existant et une instruction de modification vocale.
+Tu dois appliquer la modification demandée et retourner UNIQUEMENT le JSON complet du devis modifié.
+Ne modifie que ce qui est demandé. Conserve le même numéro, les mêmes infos client et entreprise.
+Recalcule les totaux HT, TVA et TTC si des prix ou quantités changent.
+Réponds UNIQUEMENT avec le JSON brut, sans markdown, sans explication.`,
+        messages: [{
+          role: 'user',
+          content: `Devis actuel :\n${JSON.stringify(devisData)}\n\nInstruction de modification :\n"${instruction}"`
+        }]
+      }})
+    });
+    const data = await r.json();
+    const txt = data.content?.[0]?.text || '';
+    const jsonMatch = txt.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('Réponse invalide');
+    const updated = JSON.parse(jsonMatch[0]);
+    devisData = updated;
+    renderDevis(devisData);
+    document.getElementById('dictee-text').innerText = '';
+    // Sauvegarde auto en BDD
+    fetch(BACKEND+'/api/devis/save', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        id: devisData.numero, data: devisData,
+        artisanEmail: ls('ent-email')||'',
+        artisanNom: ls('ent-nom')||'',
+        clientEmail: devisData.client?.email||''
+      })
+    }).catch(()=>{});
+    setLbl('✅ Devis mis à jour', false);
+  } catch(e) {
+    alert('Erreur lors de la modification : ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🔄 Mettre à jour le devis';
+  }
 }
 
 function majPrixPoste(sIdx, pIdx, val){
@@ -921,50 +957,111 @@ function startAudioViz(){
     audioCtx=new(window.AudioContext||window.webkitAudioContext)();
     const src=audioCtx.createMediaStreamSource(stream);
     analyser=audioCtx.createAnalyser();
-    analyser.fftSize=64;
+    analyser.fftSize=128;
     src.connect(analyser);
-    drawRings();
+    drawOrb();
   }).catch(()=>{
-    document.getElementById('mic-wrap').classList.add('recording');
+    drawOrb(); // anime quand même sans audio
   });
 }
 
-function drawRings(){
-  const rpl1=document.querySelector('.rpl-1');
-  const rpl2=document.querySelector('.rpl-2');
-  const rpl3=document.querySelector('.rpl-3');
-  const data=new Uint8Array(analyser.frequencyBinCount);
-  const SEUIL=10;
-  let volLisse=0;
-  function loop(){
-    if(!isRec){
-      rpl1.style.opacity='0';rpl2.style.opacity='0';rpl3.style.opacity='0';
-      rpl1.style.transform='scale(1)';rpl2.style.transform='scale(1)';rpl3.style.transform='scale(1)';
-      return;
-    }
-    animFrame=requestAnimationFrame(loop);
-    analyser.getByteFrequencyData(data);
-    const volBrut=Array.from(data).reduce((a,b)=>a+b,0)/data.length;
-    volLisse=volLisse*0.75+volBrut*0.25;
-    if(volLisse < SEUIL){
-      rpl1.style.opacity='0';rpl2.style.opacity='0';rpl3.style.opacity='0';
-      document.getElementById('mic-btn').style.transform='scale(1)';
-    } else {
-      const force=Math.min(volLisse/80, 1);
-      rpl1.style.transform=`scale(${1+force*0.25})`;rpl1.style.opacity=String(Math.min(0.6,force*0.8));
-      rpl2.style.transform=`scale(${1+force*0.45})`;rpl2.style.opacity=String(Math.min(0.4,force*0.55));
-      rpl3.style.transform=`scale(${1+force*0.65})`;rpl3.style.opacity=String(Math.min(0.2,force*0.3));
-      document.getElementById('mic-btn').style.transform=`scale(${1+force*0.05})`;
-    }
+function drawOrb(){
+  const canvas=document.getElementById('orb-canvas');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const W=140, H=140, CX=W/2, CY=H/2, R=54;
+  const data=analyser ? new Uint8Array(analyser.frequencyBinCount) : null;
+  const POINTS=180;
+  let volLisse=0, phase=0;
+
+  // Couleur selon thème
+  function getAccent(){
+    const t=document.documentElement.getAttribute('data-theme')||'light-orange';
+    return {
+      'light-orange':'#FF4500','dark-orange':'#FF4500',
+      'light-blue':'#1d6fd8','light-green':'#c9a96e'
+    }[t]||'#FF4500';
   }
-  loop();
+
+  function hexToRgb(hex){
+    const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+    return {r,g,b};
+  }
+
+  function buildBlob(radius, distortFn){
+    const pts=[];
+    for(let i=0;i<=POINTS;i++){
+      const angle=(i/POINTS)*Math.PI*2;
+      const rad=radius+distortFn(angle,i);
+      pts.push([CX+Math.cos(angle)*rad, CY+Math.sin(angle)*rad]);
+    }
+    return pts;
+  }
+
+  function drawBlobStroke(pts, accent, lineW, alpha, blur){
+    const {r,g,b}=hexToRgb(accent);
+    ctx.beginPath();
+    pts.forEach(([x,y],i)=>i===0?ctx.moveTo(x,y):ctx.lineTo(x,y));
+    ctx.closePath();
+    ctx.strokeStyle=`rgba(${r},${g},${b},${alpha})`;
+    ctx.lineWidth=lineW;
+    ctx.shadowColor=`rgba(${r},${g},${b},0.7)`;
+    ctx.shadowBlur=blur;
+    ctx.stroke();
+    ctx.shadowBlur=0;
+  }
+
+  // Boucle active (micro ON)
+  function loop(){
+    if(!isRec){ stopAudioViz(); return; }
+    animFrame=requestAnimationFrame(loop);
+    phase+=0.05;
+    if(data && analyser){
+      analyser.getByteFrequencyData(data);
+      const vol=Array.from(data).reduce((a,b)=>a+b,0)/data.length;
+      volLisse=volLisse*0.75+vol*0.25;
+    }
+    const force=Math.min(volLisse/60,1);
+    const accent=getAccent();
+    ctx.clearRect(0,0,W,H);
+
+    // Contour extérieur (halo)
+    const outer=buildBlob(R+8+force*16, (angle,i)=>{
+      const freq=data?data[Math.floor(i/POINTS*data.length/2)]:0;
+      return Math.sin(angle*4+phase)*5+Math.sin(angle*6-phase*1.2)*3+(freq/255)*12;
+    });
+    drawBlobStroke(outer, accent, 3+force*5, 0.35+force*0.3, 18+force*22);
+
+    // Contour intérieur (plus fin)
+    const inner=buildBlob(R+force*8, (angle)=>
+      Math.sin(angle*5+phase*1.4)*3+Math.sin(angle*3-phase)*2
+    );
+    drawBlobStroke(inner, accent, 1.5, 0.6+force*0.3, 8);
+  }
+
+  // Boucle idle (micro OFF — pulse doux)
+  function loopIdle(){
+    animFrame=requestAnimationFrame(loopIdle);
+    phase+=0.018;
+    const accent=getAccent();
+    ctx.clearRect(0,0,W,H);
+    const pts=buildBlob(R, (angle)=>
+      Math.sin(angle*3+phase)*2.5+Math.sin(angle*5-phase*0.8)*1.5
+    );
+    drawBlobStroke(pts, accent, 2, 0.25, 6);
+  }
+
+  if(isRec) loop(); else loopIdle();
 }
 
 function stopAudioViz(){
-  if(animFrame)cancelAnimationFrame(animFrame);
+  if(animFrame)cancelAnimationFrame(animFrame);animFrame=null;
   if(micStream)micStream.getTracks().forEach(t=>t.stop());
-  if(audioCtx)audioCtx.close();
-  document.querySelectorAll('.rpl').forEach(r=>{r.style.opacity='0';r.style.transform='scale(1)';});
+  if(audioCtx){audioCtx.close();audioCtx=null;}
+  analyser=null;micStream=null;
+  // Relance l'animation idle
+  const canvas=document.getElementById('orb-canvas');
+  if(canvas){ isRec=false; drawOrb(); }
   document.getElementById('mic-btn').style.transform='scale(1)';
 }
 
@@ -1897,9 +1994,14 @@ async function rechercherSiret(){
     const r = await fetch(BACKEND+'/api/siret/'+siret);
     const data = await r.json();
     if(!r.ok) throw new Error(data.error||'Introuvable');
+    if(data.nom === '[NON-DIFFUSIBLE]' || !data.nom){
+      msg.style.color='#e08000';
+      msg.textContent='⚠️ Cette entreprise a choisi de ne pas apparaître dans les bases publiques. Renseignez le nom manuellement.';
+      return;
+    }
     document.getElementById('client-prenom').value = '';
     document.getElementById('client-nom').value = data.nom;
-    if(data.adresse && !document.getElementById('chantier-adresse').value){
+    if(data.adresse){
       document.getElementById('chantier-adresse').value = data.adresse;
     }
     majDevisTempsReel();
@@ -2111,7 +2213,7 @@ async function envoyerFacture(){
   try{
     const r = await fetch(BACKEND+'/api/send-devis',{
       method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({artisanNom, artisanEmail, clientEmail, subject:`Facture — ${d.chantier?.nature||'Travaux'} — ${artisanNom}`, html:`<div style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto;padding:20px;">${htmlFacture}</div>`})
+      body:JSON.stringify({artisanNom, artisanEmail, clientEmail, subject:`Facture — ${d.chantier?.nature||'Travaux'} — ${artisanNom}`, html:`<div style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto;padding:20px;">${htmlFacture}<div style="margin-top:24px;padding-top:16px;border-top:1px solid #eee;text-align:center;"><a href="https://arbimalik.github.io/devisvoice/devis-pdf.html?id=${encodeURIComponent(d.numero)}&type=facture" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-family:Arial,sans-serif;font-weight:700;font-size:13px;">📄 Télécharger la facture en PDF</a></div></div>`})
     });
     const res = await r.json();
     if(!r.ok) throw new Error(res.error||'Erreur');
@@ -2249,6 +2351,9 @@ function showS(t,m){const s=document.getElementById('sbar');s.className='sbar '+
 function showES(t,m){const s=document.getElementById('email-sbar');s.className='sbar '+t;s.style.display='flex';s.innerHTML=t==='loading'?`<div class="spin"></div><span>${m}</span>`:m;}
 
 loadAll();
+// Lance l'orbe idle au démarrage
+setTimeout(()=>{ if(!isRec) drawOrb(); }, 300);
+
 // ===== DONNÉES DE TEST PAR DÉFAUT =====
 (function(){
   const defaults={'ent-nom':'Arbi Construction','ent-email':'arbi.malik@gmail.com'};

@@ -222,7 +222,8 @@ async function telecharger(){
   const{jsPDF}=window.jspdf;
   const el=document.getElementById('devis-container');
   el.style.display='block';
-  renderHtml(devisData);
+  if(devisData._type==='facture') renderFactureHtml(devisData);
+  else renderHtml(devisData);
   await new Promise(r=>setTimeout(r,600));
   const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   const pageW=pdf.internal.pageSize.getWidth();
@@ -253,23 +254,85 @@ async function telecharger(){
     pdf.addImage(imgData,'JPEG',margin,margin,contentW,sliceHeightMm);
     pageStart=pageEnd;pageNum++;
   }
-  pdf.save('Devis-'+devisData.numero+'.pdf');
+  const prefix = devisData._type==='facture' ? 'Facture' : 'Devis';
+  pdf.save(prefix+'-'+devisData.numero+'.pdf');
   document.getElementById('loading').style.display='none';
   document.getElementById('success').style.display='block';
 }
 
+function renderFactureHtml(d){
+  const accent = getAccentColor();
+  const ent = d.entreprise||{};
+  const today = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const factureNum = 'F-'+d.numero+'-'+new Date().getFullYear();
+  let rowsHtml='';
+  if(d.sections?.length){
+    d.sections.forEach(s=>{
+      rowsHtml+=`<tr><td colspan="5" style="padding:6px 8px;background:#f5f5f5;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${accent}">${s.emoji||''} ${s.metier}</td></tr>`;
+      s.postes.forEach(p=>{
+        rowsHtml+=`<tr><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0;font-size:12px;"><strong>${p.id}. ${p.titre}</strong><br><span style="font-size:10px;color:#888">${p.description||''}</span></td><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:12px;">${p.qte}</td><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:12px;">${p.unite}</td><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0;text-align:right;font-size:12px;">${Number(p.pu_ht).toFixed(2)} €</td><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0;text-align:right;font-size:12px;font-weight:600;">${Number(p.total_ht).toFixed(2)} €</td></tr>`;
+      });
+    });
+  }
+  const el = document.getElementById('devis-container');
+  el.innerHTML=`<div style="font-family:Arial,sans-serif;font-size:12px;color:#222;line-height:1.6;padding:24px;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:3px solid ${accent};">
+      <div>${d.logo?`<img src="${d.logo}" style="max-height:55px;max-width:170px;object-fit:contain;display:block;margin-bottom:8px;">`:''}
+        <div style="font-weight:800;font-size:14px;margin-bottom:3px;">${ent.nom||''}</div>
+        ${ent.adresse?`<div style="color:#666;font-size:11px;">${ent.adresse}</div>`:''}
+        ${ent.tel?`<div style="color:#666;font-size:11px;">📞 ${ent.tel}</div>`:''}
+        ${ent.email?`<div style="color:#666;font-size:11px;">✉️ ${ent.email}</div>`:''}
+        ${ent.siret?`<div style="color:#666;font-size:11px;">SIRET : ${ent.siret}</div>`:''}
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:22px;font-weight:900;color:${accent};letter-spacing:1px;">FACTURE</div>
+        <div style="font-size:14px;font-weight:700;margin-top:2px;">N° ${factureNum}</div>
+        <div style="font-size:11px;color:#888;margin-top:4px;">Date : ${today}</div>
+        <div style="margin-top:12px;background:#f8f8f8;border-radius:8px;padding:10px;text-align:left;border:1px solid #eee;">
+          <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#999;margin-bottom:4px;">CLIENT</div>
+          <div style="font-weight:700;font-size:13px;">${d.client?.nom||'—'}</div>
+          ${d.client?.email?`<div style="font-size:11px;color:#666;">${d.client.email}</div>`:''}
+          ${d.client?.tel?`<div style="font-size:11px;color:#666;">📞 ${d.client.tel}</div>`:''}
+          ${d.chantier?.adresse?`<div style="font-size:11px;color:#666;">📍 ${d.chantier.adresse}</div>`:''}
+        </div>
+      </div>
+    </div>
+    <div style="background:#fff8f5;border-left:3px solid ${accent};padding:8px 12px;margin-bottom:16px;border-radius:0 6px 6px 0;font-size:11px;color:#666;">Réf. devis : <strong>${d.numero}</strong> — ${d.chantier?.nature||''}</div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:18px;">
+      <thead><tr style="background:${accent};">
+        <th style="padding:8px;text-align:left;color:#fff;font-size:11px;">Désignation</th>
+        <th style="padding:8px;text-align:center;color:#fff;font-size:11px;">Qté</th>
+        <th style="padding:8px;text-align:center;color:#fff;font-size:11px;">Unité</th>
+        <th style="padding:8px;text-align:right;color:#fff;font-size:11px;">PU HT</th>
+        <th style="padding:8px;text-align:right;color:#fff;font-size:11px;">Total HT</th>
+      </tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:18px;">
+      <div style="width:240px;background:#f8f8f8;border-radius:8px;padding:12px 14px;border:1px solid #eee;">
+        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid #eee;"><span>Total HT</span><span style="font-weight:600;">${Number(d.total_ht).toFixed(2)} €</span></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid #eee;"><span>TVA ${d.tva_pct||10}%</span><span style="font-weight:600;">${Number(d.tva_montant).toFixed(2)} €</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0 4px;font-size:15px;font-weight:800;color:${accent};"><span>TOTAL TTC</span><span>${Number(d.total_ttc).toFixed(2)} €</span></div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:#aaa;border-top:1px solid #eee;padding-top:10px;">Paiement à réception de facture — ${d.mentions||''}</div>
+  </div>`;
+}
+
 async function init(){
-  const id=new URLSearchParams(window.location.search).get('id');
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  const type = params.get('type') || 'devis';
   if(!id){document.getElementById('loading').style.display='none';document.getElementById('error').style.display='block';return;}
   try{
     const r=await fetch(BACKEND+'/api/devis/'+encodeURIComponent(id));
     if(!r.ok)throw new Error();
     const row=await r.json();
     devisData=typeof row.data==='string'?JSON.parse(row.data):row.data;
-    // Récupérer signature et infos acceptation depuis la row
     devisData.signature   = row.signature   || null;
     devisData.accepted_by = row.accepted_by || '';
     devisData.accepted_at = row.accepted_at || null;
+    devisData._type = type; // passer le type pour le nom du fichier
     await telecharger();
   }catch(e){
     document.getElementById('loading').style.display='none';
