@@ -319,14 +319,17 @@ select option{background:var(--card);color:var(--text);}
         </div>
         <div>
           <label>Acompte à la commande</label>
-          <select id="acompte-pct" onchange="majDevisTempsReel()">
+          <select id="acompte-pct" onchange="onAcompteChange()">
             <option value="0">Aucun acompte</option>
+            <option value="10">10%</option>
             <option value="20">20%</option>
             <option value="30" selected>30%</option>
             <option value="40">40%</option>
             <option value="50">50%</option>
             <option value="60">60%</option>
+            <option value="custom">Montant personnalisé…</option>
           </select>
+          <input type="number" id="acompte-custom" min="1" max="99" placeholder="Ex: 15" style="display:none;margin-top:6px;width:100%;box-sizing:border-box" oninput="majDevisTempsReel()">
         </div>
       </div>
     </div>
@@ -648,7 +651,7 @@ function majDevisTempsReel() {
 
   const dateDebut  = document.getElementById('date-debut').value;
   const validite   = document.getElementById('validite-devis').value.trim() || '3 mois';
-  const acomptePct = parseInt(document.getElementById('acompte-pct').value) || 0;
+  const acomptePct = getAcomptePct();
 
   devisData.date_debut = dateDebut ? formaterDate(dateDebut) : '';
   devisData.validite   = validite;
@@ -667,6 +670,29 @@ function formaterDate(iso) {
   if(!iso) return '';
   const [y, m, d] = iso.split('-');
   return `${d}/${m}/${y}`;
+}
+
+function getAcomptePct() {
+  const sel = document.getElementById('acompte-pct').value;
+  if(sel === 'custom') return parseInt(document.getElementById('acompte-custom').value) || 0;
+  return parseInt(sel) || 0;
+}
+
+function onAcompteChange() {
+  const sel = document.getElementById('acompte-pct').value;
+  const customInput = document.getElementById('acompte-custom');
+  customInput.style.display = sel === 'custom' ? 'block' : 'none';
+  if(sel !== 'custom') majDevisTempsReel();
+}
+
+function getMentionTVA(tvaPct) {
+  const map = {
+    '10':  'TVA à taux réduit 10% applicable — Art. 279 du CGI',
+    '20':  'TVA à taux normal 20% applicable',
+    '5.5': 'TVA à taux réduit 5,5% applicable — Art. 278-0 bis du CGI',
+    '0':   'TVA non applicable — Art. 293 B du CGI'
+  };
+  return map[String(tvaPct)] || `TVA ${tvaPct}% applicable`;
 }
 
 function buildConditions(acomptePct) {
@@ -908,6 +934,8 @@ function majTvaDevis(val){
   localStorage.setItem('t-tva', val);
   if(!devisData) return;
   devisData.tva_pct = Number(val);
+  devisData.mentions = getMentionTVA(val);
+  gMentions = devisData.mentions;
   recalculerTotaux();
   renderDevis(devisData);
 }
@@ -1214,7 +1242,7 @@ async function genererDevis(){
   const dateDebutISO  = document.getElementById('date-debut').value;
   const dateDebutFmt  = dateDebutISO ? formaterDate(dateDebutISO) : '';
   const validiteDevis = document.getElementById('validite-devis').value.trim() || '3 mois';
-  const acomptePct    = parseInt(document.getElementById('acompte-pct').value) || 0;
+  const acomptePct    = getAcomptePct();
 
   document.getElementById('btn-gen').disabled=true;
   document.getElementById('result-box').style.display='none';
@@ -1750,7 +1778,7 @@ function renderDevis(d){
       ${acompteHtml}
     </div>
   </div>
-  <div class="cond-box"><strong>Conditions :</strong> ${d.conditions}<br>${gMentions}${gDecCompagnie ? "<br>🛡️ Assurance décennale : "+gDecCompagnie+(gDecNumero?" — Police n° "+gDecNumero:"") : ""}</div>
+  <div class="cond-box"><strong>Conditions :</strong> ${d.conditions}<br>${getMentionTVA(d.tva_pct)}${gDecCompagnie ? "<br>🛡️ Assurance décennale : "+gDecCompagnie+(gDecNumero?" — Police n° "+gDecNumero:"") : ""}</div>
   ${gIban ? '<div class="cond-box" style="margin-top:8px">🏦 <strong>Coordonnées bancaires</strong><br>'+(gBanque?gBanque+"<br>":"")+"IBAN : "+gIban+(gBic?" — BIC : "+gBic:"")+(gTitulaire?"<br>Titulaire : "+gTitulaire:"")+"</div>" : ""}
   <div class="validite-txt">Bon pour accord : _________________ &nbsp; Date : _________________</div>`;
 }
