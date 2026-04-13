@@ -367,6 +367,7 @@ select option{background:var(--card);color:var(--text);}
         <div class="mc" onclick="selMetier(this,'serrurerie')" data-m="Serrurerie / Métallerie">🔒 Serrurier</div>
         <div class="mc" onclick="selMetier(this,'terrassement')" data-m="Terrassement / VRD / Gros œuvre">🚜 Terrassier</div>
         <div class="mc" onclick="selMetier(this,'cuisiniste')" data-m="Cuisine / Agencement">📐 Cuisiniste</div>
+        <div class="mc" onclick="selMetier(this,'etancheur')" data-m="Étanchéité / Toiture terrasse">🛡️ Étancheur</div>
         <div class="mc" onclick="selMetier(this,'paysagiste')" data-m="Paysagisme / Espaces verts">🌿 Paysagiste</div>
         <div class="mc" onclick="selMetier(this,'tous')" data-m="Multi-corps d'état / Rénovation globale">🏠 Tous corps d'état</div>
       </div>
@@ -881,6 +882,7 @@ const PRESTATIONS = {
   serrurerie: ['Pose porte blindée','Pose serrure multipoints','Remplacement cylindre','Pose portail coulissant','Pose portail battant','Automatisme portail / porte garage','Garde-corps acier / alu','Escalier métallique','Grilles de défense','Pose clôture métal','Soudure / réparation métallerie','Pose boîte aux lettres sécurisée'],
   terrassement: ['Étude géotechnique du sol','Piquetage et bornage terrain','Débroussaillage avant travaux','Démolition existant','Décapage terre végétale','Déblai terrain','Remblai terrain','Nivellement terrain','Compactage sol','Fouille en pleine masse','Fouilles en rigole fondations','Fouille pour piscine','Fouille pour sous-sol','Fouille pour cave','Tranchée réseaux eau','Tranchée réseaux électrique','Tranchée réseaux assainissement','Tranchée réseaux gaz','Pose canalisation eau','Pose canalisation assainissement','Pose regard béton','Terrassement accès véhicule','Terrassement terrasse','Terrassement parking','Création chemin accès','Pose géotextile','Apport grave concassée','Apport sable','Apport tout-venant','Évacuation terres excédentaires','Transport déblais en décharge','Drainage terrain','Pose drain agricole','Création noue drainage','Consolidation talus','Pose enrochements','Gabions soutènement','Mur de soutènement béton','Terrassement piscine','Terrassement jardin en pente','Création plateforme stockage','Décaissement garage','Apport remblai sélectionné','Implantation ouvrage'],
   cuisiniste: ['Visite à domicile / métrés','Plan 3D de conception cuisine','Dépose ancienne cuisine','Évacuation ancienne cuisine en déchetterie','Fourniture et pose meubles bas','Fourniture et pose meubles hauts','Fourniture et pose colonne four / réfrigérateur','Fourniture et pose îlot central','Pose plan de travail stratifié','Pose plan de travail quartz','Pose plan de travail granit','Découpe plan de travail évier / plaque','Fourniture et pose évier inox simple bac','Fourniture et pose évier inox double bac','Fourniture et pose robinetterie','Raccordement plomberie évier','Fourniture et pose crédence carrelage','Fourniture et pose crédence verre','Fourniture et pose crédence inox','Pose plaque de cuisson','Raccordement électrique plaque','Pose four encastrable','Pose hotte aspirante','Pose lave-vaisselle encastrable','Pose réfrigérateur encastrable','Pose micro-ondes encastrable','Fourniture et pose éclairage LED sous meubles','Fourniture et pose spots encastrés','Remplacement façades / relooking cuisine','Remplacement poignées','Ajout rangements intérieurs tiroirs et plateaux','Joint silicone plan de travail / mur','Nettoyage fin de chantier'],
+  etancheur: ['Diagnostic étanchéité / recherche de fuite','Dépose ancien complexe étanchéité','Nettoyage et préparation support','Ragréage support avant étanchéité','Pose pare-vapeur','Pose isolant thermique toiture chaude','Pose isolant thermique toiture froide inversée','Étanchéité bicouche bitume soudé','Étanchéité monocouche bitume','Étanchéité membrane EPDM','Étanchéité membrane PVC','Système étanchéité liquide SEL résine','Étanchéité asphalte coulé','Relevés d\'étanchéité sur acrotères','Relevés d\'étanchéité sur cheminée','Relevés d\'étanchéité sur ventilation','Traitement angles et points singuliers','Pose costières et sorties de toit','Pose évacuation eaux pluviales','Pose trop-plein sécurité','Protection lourde gravier','Protection dalles sur plots','Protection béton désactivé','Toiture terrasse végétalisée extensive','Toiture terrasse végétalisée intensive','Étanchéité balcon sous carrelage','Étanchéité terrasse sous carrelage','Étanchéité terrasse bois sur membrane','Étanchéité façade enduit hydrofuge','Étanchéité murs enterrés cuvelage','Étanchéité cave et sous-sol','Étanchéité parking enterré','Étanchéité piscine béton cuvelage','Étanchéité bassin ornement','Injection résine anti-infiltration','Traitement fissures actives','Traitement fissures passives','Réparation ponctuelle membrane','Entretien préventif toiture terrasse','Mise en conformité DTU 43.1'],
   tous: ['Protection et installation chantier','Dépose générale','Démolition cloisons','Gros œuvre / maçonnerie','Plomberie / sanitaire','Électricité courants forts','Isolation','Plâtrerie / cloisons','Carrelage / sols','Peinture / finitions','Menuiserie intérieure','Menuiserie extérieure','Chauffage / VMC','Nettoyage fin de chantier','Levée des réserves'],
   paysagiste: ['Visite et étude du terrain','Plan d\'aménagement paysager','Terrassement jardin','Nivellement terrain','Préparation sol / amendement','Création pelouse par engazonnement','Création pelouse par placage gazon','Tonte pelouse','Scarification pelouse','Aération pelouse','Traitement pelouse engrais et désherbant','Plantation arbres','Plantation arbustes','Plantation haie','Plantation massif fleuri','Plantation vivaces','Taille haie','Taille arbustes','Élagage arbre','Abattage arbre','Dessouchage','Débroussaillage','Désherbage manuel','Désherbage chimique','Pose paillage minéral','Pose paillage végétal','Pose bordures jardin','Création allée gravillons','Création allée béton','Création allée pavés','Création allée dalles','Pose terrasse bois','Pose terrasse composite','Pose dallage pierre naturelle','Pose muret pierre sèche','Pose muret béton','Création massif enrochement','Création bassin ornement','Pose clôture bois','Pose clôture grillage','Pose clôture aluminium','Pose portail','Pose portillon','Installation arrosage automatique','Installation goutte-à-goutte','Installation éclairage extérieur','Pose pergola bois','Pose pergola aluminium','Pose abri de jardin','Évacuation déchets verts','Entretien annuel jardin contrat']
 };
@@ -888,6 +890,31 @@ const PRESTATIONS = {
 let prestationsActives = {};
 
 const UNITES_PAR_DEFAUT = {
+  etancheur: {
+    'Diagnostic étanchéité / recherche de fuite':'forfait','Dépose ancien complexe étanchéité':'m²',
+    'Nettoyage et préparation support':'m²','Ragréage support avant étanchéité':'m²',
+    'Pose pare-vapeur':'m²','Pose isolant thermique toiture chaude':'m²',
+    'Pose isolant thermique toiture froide inversée':'m²',
+    'Étanchéité bicouche bitume soudé':'m²','Étanchéité monocouche bitume':'m²',
+    'Étanchéité membrane EPDM':'m²','Étanchéité membrane PVC':'m²',
+    'Système étanchéité liquide SEL résine':'m²','Étanchéité asphalte coulé':'m²',
+    'Relevés d\'étanchéité sur acrotères':'ml','Relevés d\'étanchéité sur cheminée':'ml',
+    'Relevés d\'étanchéité sur ventilation':'ml',
+    'Traitement angles et points singuliers':'forfait',
+    'Pose costières et sorties de toit':'u','Pose évacuation eaux pluviales':'u',
+    'Pose trop-plein sécurité':'u',
+    'Protection lourde gravier':'m²','Protection dalles sur plots':'m²',
+    'Protection béton désactivé':'m²',
+    'Toiture terrasse végétalisée extensive':'m²','Toiture terrasse végétalisée intensive':'m²',
+    'Étanchéité balcon sous carrelage':'m²','Étanchéité terrasse sous carrelage':'m²',
+    'Étanchéité terrasse bois sur membrane':'m²','Étanchéité façade enduit hydrofuge':'m²',
+    'Étanchéité murs enterrés cuvelage':'m²','Étanchéité cave et sous-sol':'m²',
+    'Étanchéité parking enterré':'m²','Étanchéité piscine béton cuvelage':'m²',
+    'Étanchéité bassin ornement':'m²',
+    'Injection résine anti-infiltration':'forfait','Traitement fissures actives':'ml',
+    'Traitement fissures passives':'ml','Réparation ponctuelle membrane':'forfait',
+    'Entretien préventif toiture terrasse':'forfait','Mise en conformité DTU 43.1':'forfait'
+  },
   terrassement: {
     'Étude géotechnique du sol':'forfait','Piquetage et bornage terrain':'forfait',
     'Débroussaillage avant travaux':'m²','Démolition existant':'forfait',
