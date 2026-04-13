@@ -879,7 +879,7 @@ const PRESTATIONS = {
   chauffage: ['Pose chaudière gaz à condensation','Pose chaudière fioul','Pose pompe à chaleur air/eau','Pose pompe à chaleur air/air','Pose plancher chauffant hydraulique','Pose plancher chauffant électrique','Pose radiateurs hydrauliques','Dépose ancienne installation','Raccordement réseau chauffage','Pose thermostat / régulation','Maintenance / entretien chaudière','Pose climatisation split','Pose VMC double flux','Remplacement ballon tampon'],
   couverture: ['Dépose toiture existante','Pose tuiles terre cuite','Pose tuiles béton','Pose ardoises naturelles','Pose ardoises fibrociment','Pose bac acier / bac alu','Pose EPDM (toiture plate)','Pose membrane bitumineuse','Zinguerie (gouttières, chéneaux)','Faîtage et noues','Remplacement voligeage','Traitement / nettoyage toiture','Pose fenêtre de toit (Velux)','Isolation toiture par extérieur'],
   serrurerie: ['Pose porte blindée','Pose serrure multipoints','Remplacement cylindre','Pose portail coulissant','Pose portail battant','Automatisme portail / porte garage','Garde-corps acier / alu','Escalier métallique','Grilles de défense','Pose clôture métal','Soudure / réparation métallerie','Pose boîte aux lettres sécurisée'],
-  terrassement: ['Terrassement général','Décaissement','Remblaiement','Nivellement terrain','Fondations','Tranchées réseaux','Voirie (béton / enrobé)','Pose dallage extérieur','Pose gravier décoratif','Drainage','Assainissement individuel (fosse)','Clôture et portail','Mur de soutènement','Création accès véhicule'],
+  terrassement: ['Étude géotechnique du sol','Piquetage et bornage terrain','Débroussaillage avant travaux','Démolition existant','Décapage terre végétale','Déblai terrain','Remblai terrain','Nivellement terrain','Compactage sol','Fouille en pleine masse','Fouilles en rigole fondations','Fouille pour piscine','Fouille pour sous-sol','Fouille pour cave','Tranchée réseaux eau','Tranchée réseaux électrique','Tranchée réseaux assainissement','Tranchée réseaux gaz','Pose canalisation eau','Pose canalisation assainissement','Pose regard béton','Terrassement accès véhicule','Terrassement terrasse','Terrassement parking','Création chemin accès','Pose géotextile','Apport grave concassée','Apport sable','Apport tout-venant','Évacuation terres excédentaires','Transport déblais en décharge','Drainage terrain','Pose drain agricole','Création noue drainage','Consolidation talus','Pose enrochements','Gabions soutènement','Mur de soutènement béton','Terrassement piscine','Terrassement jardin en pente','Création plateforme stockage','Décaissement garage','Apport remblai sélectionné','Implantation ouvrage'],
   cuisiniste: ['Visite à domicile / métrés','Plan 3D de conception cuisine','Dépose ancienne cuisine','Évacuation ancienne cuisine en déchetterie','Fourniture et pose meubles bas','Fourniture et pose meubles hauts','Fourniture et pose colonne four / réfrigérateur','Fourniture et pose îlot central','Pose plan de travail stratifié','Pose plan de travail quartz','Pose plan de travail granit','Découpe plan de travail évier / plaque','Fourniture et pose évier inox simple bac','Fourniture et pose évier inox double bac','Fourniture et pose robinetterie','Raccordement plomberie évier','Fourniture et pose crédence carrelage','Fourniture et pose crédence verre','Fourniture et pose crédence inox','Pose plaque de cuisson','Raccordement électrique plaque','Pose four encastrable','Pose hotte aspirante','Pose lave-vaisselle encastrable','Pose réfrigérateur encastrable','Pose micro-ondes encastrable','Fourniture et pose éclairage LED sous meubles','Fourniture et pose spots encastrés','Remplacement façades / relooking cuisine','Remplacement poignées','Ajout rangements intérieurs tiroirs et plateaux','Joint silicone plan de travail / mur','Nettoyage fin de chantier'],
   tous: ['Protection et installation chantier','Dépose générale','Démolition cloisons','Gros œuvre / maçonnerie','Plomberie / sanitaire','Électricité courants forts','Isolation','Plâtrerie / cloisons','Carrelage / sols','Peinture / finitions','Menuiserie intérieure','Menuiserie extérieure','Chauffage / VMC','Nettoyage fin de chantier','Levée des réserves'],
   paysagiste: ['Visite et étude du terrain','Plan d\'aménagement paysager','Terrassement jardin','Nivellement terrain','Préparation sol / amendement','Création pelouse par engazonnement','Création pelouse par placage gazon','Tonte pelouse','Scarification pelouse','Aération pelouse','Traitement pelouse engrais et désherbant','Plantation arbres','Plantation arbustes','Plantation haie','Plantation massif fleuri','Plantation vivaces','Taille haie','Taille arbustes','Élagage arbre','Abattage arbre','Dessouchage','Débroussaillage','Désherbage manuel','Désherbage chimique','Pose paillage minéral','Pose paillage végétal','Pose bordures jardin','Création allée gravillons','Création allée béton','Création allée pavés','Création allée dalles','Pose terrasse bois','Pose terrasse composite','Pose dallage pierre naturelle','Pose muret pierre sèche','Pose muret béton','Création massif enrochement','Création bassin ornement','Pose clôture bois','Pose clôture grillage','Pose clôture aluminium','Pose portail','Pose portillon','Installation arrosage automatique','Installation goutte-à-goutte','Installation éclairage extérieur','Pose pergola bois','Pose pergola aluminium','Pose abri de jardin','Évacuation déchets verts','Entretien annuel jardin contrat']
@@ -888,6 +888,30 @@ const PRESTATIONS = {
 let prestationsActives = {};
 
 const UNITES_PAR_DEFAUT = {
+  terrassement: {
+    'Étude géotechnique du sol':'forfait','Piquetage et bornage terrain':'forfait',
+    'Débroussaillage avant travaux':'m²','Démolition existant':'forfait',
+    'Décapage terre végétale':'m²','Déblai terrain':'m³','Remblai terrain':'m³',
+    'Nivellement terrain':'m²','Compactage sol':'m²',
+    'Fouille en pleine masse':'m³','Fouilles en rigole fondations':'m³',
+    'Fouille pour piscine':'m³','Fouille pour sous-sol':'m³','Fouille pour cave':'m³',
+    'Tranchée réseaux eau':'ml','Tranchée réseaux électrique':'ml',
+    'Tranchée réseaux assainissement':'ml','Tranchée réseaux gaz':'ml',
+    'Pose canalisation eau':'ml','Pose canalisation assainissement':'ml',
+    'Pose regard béton':'u',
+    'Terrassement accès véhicule':'m²','Terrassement terrasse':'m²',
+    'Terrassement parking':'m²','Création chemin accès':'m²',
+    'Pose géotextile':'m²','Apport grave concassée':'m³',
+    'Apport sable':'m³','Apport tout-venant':'m³',
+    'Évacuation terres excédentaires':'m³','Transport déblais en décharge':'m³',
+    'Drainage terrain':'forfait','Pose drain agricole':'ml',
+    'Création noue drainage':'ml','Consolidation talus':'m²',
+    'Pose enrochements':'m²','Gabions soutènement':'m²',
+    'Mur de soutènement béton':'ml','Terrassement piscine':'m³',
+    'Terrassement jardin en pente':'m²','Création plateforme stockage':'m²',
+    'Décaissement garage':'m³','Apport remblai sélectionné':'m³',
+    'Implantation ouvrage':'forfait'
+  },
   paysagiste: {
     'Visite et étude du terrain':'forfait','Plan d\'aménagement paysager':'forfait',
     'Terrassement jardin':'m²','Nivellement terrain':'m²','Préparation sol / amendement':'m²',
