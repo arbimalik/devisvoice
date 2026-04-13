@@ -2269,6 +2269,7 @@ async function rechercherSiret(){
 let factureEnCours = null;
 
 // ===== FUSION DE DEVIS =====
+let _facturesCourantes = [];
 let _modeFusion = false;
 let _devisSelectionnes = {};
 let _devisCourants = [];
@@ -2447,6 +2448,9 @@ async function sauvegarderLibelle(devisId, valeur){
 async function sauvegarderLibelleFacture(factureId, valeur){
   const email = ls('ent-email');
   if(!email) return;
+  // Mettre à jour en mémoire pour que le re-render conserve la valeur
+  const f = _facturesCourantes.find(f => f.id === factureId);
+  if(f) f.libelle = valeur;
   try{
     await fetch(BACKEND+'/api/factures/save', {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -2467,6 +2471,7 @@ async function loadFacturesList(){
       container.innerHTML='<div style="text-align:center;padding:30px;color:var(--text2);font-size:13px;">Aucune facture.<br><span style="font-size:11px;">Vos factures générées apparaîtront ici.</span></div>';
       return;
     }
+    _facturesCourantes = factures;
     container.innerHTML = factures.map(f=>{
       const badge = f.statut==='payee'
         ? 'background:rgba(0,180,80,.12);color:#00b450'
