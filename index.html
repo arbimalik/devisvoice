@@ -1683,7 +1683,8 @@ RÈGLES ABSOLUES: Ne jamais inventer un prix. Utiliser uniquement les prix dict�
         if(toutesLesSections.length>0){
           parsed.sections=fusionnerSections([...toutesLesSections,...(parsed.sections||[])]);
           const totalHT=parsed.sections.reduce((a,s)=>a+(s.postes||[]).reduce((b,p)=>b+Number(p.total_ht),0),0);
-          const tvaMontant=totalHT*(Number(parsed.tva_pct||tva)/100);
+          parsed.tva_pct=Number(tva); // toujours utiliser le taux configuré par l'artisan
+          const tvaMontant=totalHT*(Number(tva)/100);
           parsed.total_ht=Math.round(totalHT*100)/100;
           parsed.tva_montant=Math.round(tvaMontant*100)/100;
           parsed.total_ttc=Math.round((totalHT+tvaMontant)*100)/100;
@@ -2435,9 +2436,18 @@ async function sauvegarderLibelle(devisId, valeur){
   try{
     await fetch(BACKEND+'/api/devis/save', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ id: devisId, libelle: valeur, artisanEmail: email,
-        // on envoie un data minimal pour ne pas écraser les données existantes
-        data: null, _libelleOnly: true })
+      body: JSON.stringify({ id: devisId, libelle: valeur, artisanEmail: email, data: null, _libelleOnly: true })
+    });
+  }catch(e){ /* silencieux */ }
+}
+
+async function sauvegarderLibelleFacture(factureId, valeur){
+  const email = ls('ent-email');
+  if(!email) return;
+  try{
+    await fetch(BACKEND+'/api/factures/save', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ id: factureId, artisanEmail: email, libelle: valeur, _libelleOnly: true })
     });
   }catch(e){ /* silencieux */ }
 }
@@ -2464,15 +2474,23 @@ async function loadFacturesList(){
             : 'background:var(--bg3);color:var(--text2)';
       const label = f.statut==='payee' ? '✅ Payée' : f.statut==='en_attente' ? '⏳ En attente' : f.statut==='envoyee' ? '📨 Envoyée' : '📋 Non envoyée';
       const date = new Date(f.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);gap:10px;">
-        <div style="min-width:0;">
-          <div style="font-weight:600;font-size:13px;color:var(--text)">${f.numero||f.id}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:2px;">${f.client_nom||'—'}</div>
-          <div style="font-size:10px;color:var(--text2);margin-top:1px;">${date}</div>
+      const libelle = f.libelle||'';
+      return `<div style="padding:12px 0;border-bottom:1px solid var(--border);">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+          <div style="min-width:0;">
+            <div style="font-weight:600;font-size:13px;color:var(--text)">${f.numero||f.id}</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:2px;">${f.client_nom||'—'}</div>
+            <div style="font-size:10px;color:var(--text2);margin-top:1px;">${date}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+            <div style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;${badge}">${label}</div>
+            <button onclick="ouvrirFacture('${f.devis_id}')" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">📄 Ouvrir</button>
+          </div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-          <div style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;${badge}">${label}</div>
-          <button onclick="ouvrirFacture('${f.devis_id}')" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">📄 Ouvrir</button>
+        <div style="margin-top:8px;">
+          <input type="text" value="${libelle.replace(/"/g,'&quot;')}" placeholder="📝 Libellé (pense-bête, visible uniquement par vous)…"
+            onchange="sauvegarderLibelleFacture('${f.id}', this.value)"
+            style="width:100%;box-sizing:border-box;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--text2);font-family:'Inter',sans-serif;outline:none;">
         </div>
       </div>`;
     }).join('');
@@ -2741,7 +2759,9 @@ async function marquerPayee(){
 
 function loadAll(){
   const map={'ent-nom':'ent-nom','ent-siret':'ent-siret','ent-tel':'ent-tel','ent-adr':'ent-adr','ent-email':'ent-email','mentions':'mentions','ent-decennale-compagnie':'ent-decennale-compagnie','ent-decennale-numero':'ent-decennale-numero','ent-banque':'ent-banque','ent-iban':'ent-iban','ent-bic':'ent-bic','ent-titulaire':'ent-titulaire','t-mo':'t-mo','t-tva':'t-tva'};
-  Object.keys(map).forEach(k=>{const v=localStorage.getItem(k);const el=document.getElementById(map[k]);if(v&&el)el.value=v;});
+  Object.keys(map).forEach(k=>{const v=localStorage.getItem(k);const el=document.getElementById(map[k]);if(v&&el){el.value=v;}});
+  const tvaSaved=localStorage.getItem('t-tva');
+  if(tvaSaved) majTvaDevis(tvaSaved);
   const logoSaved = localStorage.getItem('ent-logo');
   if(logoSaved) afficherLogoPreview(logoSaved);
   const cles=Object.keys(localStorage).filter(k=>k.startsWith('prest_'));
