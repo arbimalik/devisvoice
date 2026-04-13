@@ -367,6 +367,7 @@ select option{background:var(--card);color:var(--text);}
         <div class="mc" onclick="selMetier(this,'serrurerie')" data-m="Serrurerie / Métallerie">🔒 Serrurier</div>
         <div class="mc" onclick="selMetier(this,'terrassement')" data-m="Terrassement / VRD / Gros œuvre">🚜 Terrassier</div>
         <div class="mc" onclick="selMetier(this,'cuisiniste')" data-m="Cuisine / Agencement">📐 Cuisiniste</div>
+        <div class="mc" onclick="selMetier(this,'paysagiste')" data-m="Paysagisme / Espaces verts">🌿 Paysagiste</div>
         <div class="mc" onclick="selMetier(this,'tous')" data-m="Multi-corps d'état / Rénovation globale">🏠 Tous corps d'état</div>
       </div>
       <div id="prestations-zone" style="display:none;margin-top:14px;"></div>
@@ -880,12 +881,39 @@ const PRESTATIONS = {
   serrurerie: ['Pose porte blindée','Pose serrure multipoints','Remplacement cylindre','Pose portail coulissant','Pose portail battant','Automatisme portail / porte garage','Garde-corps acier / alu','Escalier métallique','Grilles de défense','Pose clôture métal','Soudure / réparation métallerie','Pose boîte aux lettres sécurisée'],
   terrassement: ['Terrassement général','Décaissement','Remblaiement','Nivellement terrain','Fondations','Tranchées réseaux','Voirie (béton / enrobé)','Pose dallage extérieur','Pose gravier décoratif','Drainage','Assainissement individuel (fosse)','Clôture et portail','Mur de soutènement','Création accès véhicule'],
   cuisiniste: ['Visite à domicile / métrés','Plan 3D de conception cuisine','Dépose ancienne cuisine','Évacuation ancienne cuisine en déchetterie','Fourniture et pose meubles bas','Fourniture et pose meubles hauts','Fourniture et pose colonne four / réfrigérateur','Fourniture et pose îlot central','Pose plan de travail stratifié','Pose plan de travail quartz','Pose plan de travail granit','Découpe plan de travail évier / plaque','Fourniture et pose évier inox simple bac','Fourniture et pose évier inox double bac','Fourniture et pose robinetterie','Raccordement plomberie évier','Fourniture et pose crédence carrelage','Fourniture et pose crédence verre','Fourniture et pose crédence inox','Pose plaque de cuisson','Raccordement électrique plaque','Pose four encastrable','Pose hotte aspirante','Pose lave-vaisselle encastrable','Pose réfrigérateur encastrable','Pose micro-ondes encastrable','Fourniture et pose éclairage LED sous meubles','Fourniture et pose spots encastrés','Remplacement façades / relooking cuisine','Remplacement poignées','Ajout rangements intérieurs tiroirs et plateaux','Joint silicone plan de travail / mur','Nettoyage fin de chantier'],
-  tous: ['Protection et installation chantier','Dépose générale','Démolition cloisons','Gros œuvre / maçonnerie','Plomberie / sanitaire','Électricité courants forts','Isolation','Plâtrerie / cloisons','Carrelage / sols','Peinture / finitions','Menuiserie intérieure','Menuiserie extérieure','Chauffage / VMC','Nettoyage fin de chantier','Levée des réserves']
+  tous: ['Protection et installation chantier','Dépose générale','Démolition cloisons','Gros œuvre / maçonnerie','Plomberie / sanitaire','Électricité courants forts','Isolation','Plâtrerie / cloisons','Carrelage / sols','Peinture / finitions','Menuiserie intérieure','Menuiserie extérieure','Chauffage / VMC','Nettoyage fin de chantier','Levée des réserves'],
+  paysagiste: ['Visite et étude du terrain','Plan d\'aménagement paysager','Terrassement jardin','Nivellement terrain','Préparation sol / amendement','Création pelouse par engazonnement','Création pelouse par placage gazon','Tonte pelouse','Scarification pelouse','Aération pelouse','Traitement pelouse engrais et désherbant','Plantation arbres','Plantation arbustes','Plantation haie','Plantation massif fleuri','Plantation vivaces','Taille haie','Taille arbustes','Élagage arbre','Abattage arbre','Dessouchage','Débroussaillage','Désherbage manuel','Désherbage chimique','Pose paillage minéral','Pose paillage végétal','Pose bordures jardin','Création allée gravillons','Création allée béton','Création allée pavés','Création allée dalles','Pose terrasse bois','Pose terrasse composite','Pose dallage pierre naturelle','Pose muret pierre sèche','Pose muret béton','Création massif enrochement','Création bassin ornement','Pose clôture bois','Pose clôture grillage','Pose clôture aluminium','Pose portail','Pose portillon','Installation arrosage automatique','Installation goutte-à-goutte','Installation éclairage extérieur','Pose pergola bois','Pose pergola aluminium','Pose abri de jardin','Évacuation déchets verts','Entretien annuel jardin contrat']
 };
 
 let prestationsActives = {};
 
 const UNITES_PAR_DEFAUT = {
+  paysagiste: {
+    'Visite et étude du terrain':'forfait','Plan d\'aménagement paysager':'forfait',
+    'Terrassement jardin':'m²','Nivellement terrain':'m²','Préparation sol / amendement':'m²',
+    'Création pelouse par engazonnement':'m²','Création pelouse par placage gazon':'m²',
+    'Tonte pelouse':'m²','Scarification pelouse':'m²','Aération pelouse':'m²',
+    'Traitement pelouse engrais et désherbant':'m²',
+    'Plantation arbres':'u','Plantation arbustes':'u','Plantation haie':'ml',
+    'Plantation massif fleuri':'m²','Plantation vivaces':'m²',
+    'Taille haie':'ml','Taille arbustes':'u','Élagage arbre':'u',
+    'Abattage arbre':'u','Dessouchage':'u','Débroussaillage':'m²',
+    'Désherbage manuel':'m²','Désherbage chimique':'m²',
+    'Pose paillage minéral':'m²','Pose paillage végétal':'m²',
+    'Pose bordures jardin':'ml',
+    'Création allée gravillons':'m²','Création allée béton':'m²',
+    'Création allée pavés':'m²','Création allée dalles':'m²',
+    'Pose terrasse bois':'m²','Pose terrasse composite':'m²',
+    'Pose dallage pierre naturelle':'m²',
+    'Pose muret pierre sèche':'ml','Pose muret béton':'ml',
+    'Création massif enrochement':'m²','Création bassin ornement':'forfait',
+    'Pose clôture bois':'ml','Pose clôture grillage':'ml','Pose clôture aluminium':'ml',
+    'Pose portail':'u','Pose portillon':'u',
+    'Installation arrosage automatique':'forfait','Installation goutte-à-goutte':'forfait',
+    'Installation éclairage extérieur':'forfait',
+    'Pose pergola bois':'m²','Pose pergola aluminium':'m²','Pose abri de jardin':'u',
+    'Évacuation déchets verts':'forfait','Entretien annuel jardin contrat':'forfait'
+  },
   cuisiniste: {
     'Visite à domicile / métrés':'forfait','Plan 3D de conception cuisine':'forfait',
     'Dépose ancienne cuisine':'forfait','Évacuation ancienne cuisine en déchetterie':'forfait',
@@ -946,12 +974,7 @@ function afficherPrestations(key) {
         style="width:100%;padding:4px 6px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text);text-align:right">
       <select onchange="setUnite('${key}',${i},this.value)"
         style="width:100%;padding:4px 4px;border:1.5px solid var(--border);border-radius:5px;font-size:11px;background:var(--input-bg);color:var(--text)">
-        <option value="m²" ${(p.unite||'m²')==='m²'?'selected':''}>m²</option>
-        <option value="ml" ${p.unite==='ml'?'selected':''}>ml</option>
-        <option value="u" ${p.unite==='u'?'selected':''}>u</option>
-        <option value="h" ${p.unite==='h'?'selected':''}>h</option>
-        <option value="forfait" ${p.unite==='forfait'?'selected':''}>forfait</option>
-        <option value="m³" ${p.unite==='m³'?'selected':''}>m³</option>
+        ${['m²','ml','m³','u','h','j','forfait','kg','tonne','lot'].map(u=>`<option value="${u}" ${(p.unite||'')=== u?'selected':''}>${u}</option>`).join('')}
       </select>
       <button onclick="supprimerPrestation('${key}',${i})" title="Supprimer"
         style="background:rgba(220,50,50,.12);color:#e04040;border:1px solid rgba(220,50,50,.2);border-radius:5px;padding:4px 8px;font-size:13px;cursor:pointer">🗑</button>
