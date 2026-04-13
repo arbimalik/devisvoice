@@ -2433,6 +2433,9 @@ async function loadChantiers(){
 async function sauvegarderLibelle(devisId, valeur){
   const email = ls('ent-email');
   if(!email) return;
+  // Mettre à jour en mémoire pour que le re-render (mode fusion) conserve la valeur
+  const d = _devisCourants.find(d => d.id === devisId);
+  if(d) d.libelle = valeur;
   try{
     await fetch(BACKEND+'/api/devis/save', {
       method:'POST', headers:{'Content-Type':'application/json'},
