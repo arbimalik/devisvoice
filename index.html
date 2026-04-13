@@ -1390,6 +1390,28 @@ async function genererDevis(){
   const dictee=document.getElementById('dictee-text').innerText.trim();
   if(!dictee){alert('Dictez ou saisissez vos postes de travaux.');return;}
   const entNom=ls('ent-nom')||'Votre Entreprise',entSiret=ls('ent-siret')||'',entTel=ls('ent-tel')||'',entAdr=ls('ent-adr')||'',entEmail=ls('ent-email')||'',tva=ls('t-tva')||'10';
+
+  // Charger les préférences artisan pour adapter le style de l'IA
+  let _prefsBlock = '';
+  if(entEmail){
+    try{
+      const pr = await fetch(BACKEND+'/api/preferences?email='+encodeURIComponent(entEmail));
+      const prefs = pr.ok ? await pr.json() : {};
+      const lines = [];
+      if(prefs.observations_recentes?.length)
+        lines.push('Observations habituelles : '+prefs.observations_recentes.slice(0,3).map(o=>`"${o}"`).join(' | '));
+      if(prefs.formulations_types?.length)
+        lines.push('Formulations types : '+prefs.formulations_types.slice(0,6).join(', '));
+      if(prefs.acompte_habituel)
+        lines.push(`Acompte habituel : ${prefs.acompte_habituel}%`);
+      if(prefs.metiers_frequents && Object.keys(prefs.metiers_frequents).length){
+        const top = Object.entries(prefs.metiers_frequents).sort((a,b)=>b[1]-a[1]).slice(0,4).map(e=>e[0]);
+        lines.push('Métiers fréquents : '+top.join(', '));
+      }
+      if(lines.length)
+        _prefsBlock = `\nSTYLE ET HABITUDES DE CET ARTISAN (adapte tes formulations en conséquence) :\n${lines.map(l=>'- '+l).join('\n')}\n`;
+    }catch(e){ /* silencieux — continue sans préférences */ }
+  }
   gMentions=ls('mentions')||''; gDecCompagnie=ls('ent-decennale-compagnie')||''; gDecNumero=ls('ent-decennale-numero')||''; gIban=ls('ent-iban')||''; gBic=ls('ent-bic')||''; gBanque=ls('ent-banque')||''; gTitulaire=ls('ent-titulaire')||'';
   const clientNom=getClientNomComplet();
   const clientEmail=document.getElementById('client-email').value||'';
@@ -1741,7 +1763,7 @@ ENTREPRISE: ${entNom}|SIRET:${entSiret}|Tél:${entTel}|${entAdr}|${entEmail}
 CLIENT: ${clientNom}|${clientEmail}|Tél:${clientTel}
 CHANTIER: ${chantierAdr}|Nature:${nature}|Délai:${delai}
 TVA: ${tva}% | Numéro: ${num} | Date: ${today}
-${prixBlock}
+${prixBlock}${_prefsBlock}
 DICTÉE (partie ${i+1}/${passes.length}): ${passes[i]}
 NUMÉROTATION: commence les IDs à ${idCounter} (continue depuis la passe précédente)
 
@@ -1950,6 +1972,7 @@ async function envoyerDevis(){
   if(!ce){alert('Email client requis.');return;}
   if(!devisData){alert('Générez d\'abord un devis.');return;}
   sauvegarderClientAuto();
+  sauvegarderPreferencesAuto();
   const d=devisData;
 
   let rowsHtml='';
@@ -2314,6 +2337,26 @@ async function sauvegarderClientAuto(){
       telephone: document.getElementById('client-tel').value||'',
       siret: document.getElementById('client-siret').value.replace(/\s/g,'')||'',
       adresse: adresseFull
+    })
+  }).catch(()=>{});
+}
+
+// Sauvegarder automatiquement les préférences artisan pour adapter l'IA
+function sauvegarderPreferencesAuto(){
+  const email = ls('ent-email');
+  if(!email || !devisData) return;
+  const observations = document.getElementById('obs-textarea')?.value || '';
+  const descriptions = devisData.sections?.flatMap(s => s.postes?.map(p => p.description)||[]).filter(Boolean).slice(0, 10) || [];
+  const metiers = devisData.sections?.map(s => s.metier).filter(Boolean) || [];
+  fetch(BACKEND+'/api/preferences/update', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      artisanEmail: email,
+      observations,
+      descriptions,
+      acomptePct: devisData.acompte_pct || 0,
+      metiers,
+      conditions: devisData.conditions || ''
     })
   }).catch(()=>{});
 }
