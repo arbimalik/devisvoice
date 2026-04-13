@@ -612,6 +612,10 @@ select option{background:var(--card);color:var(--text);}
   <div class="card">
     <div class="card-header ch-dark">🏢 Votre Entreprise</div>
     <div class="card-body">
+      <div class="form-row">
+        <div><label>Votre Prénom</label><input type="text" id="ent-prenom" placeholder="Jean"></div>
+        <div><label>Votre Nom</label><input type="text" id="ent-nom-artisan" placeholder="Dupont"></div>
+      </div>
       <div class="form-group"><label>Nom de l'Entreprise</label><input type="text" id="ent-nom" placeholder="Dupont Rénovations"></div>
       <div class="form-row">
         <div><label>SIRET</label><input type="text" id="ent-siret" placeholder="123 456 789 00012"></div>
@@ -1967,6 +1971,15 @@ function renderDevis(d){
 
 function fmt(n){return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 
+function getSignatureArtisan(){
+  const prenom = ls('ent-prenom')||'';
+  const nomArt = ls('ent-nom-artisan')||'';
+  const nomEnt = ls('ent-nom')||'';
+  const tel    = ls('ent-tel')||'';
+  const nom    = [prenom, nomArt].filter(Boolean).join(' ');
+  return [nom||nomEnt, nomEnt&&nom?nomEnt:'', tel].filter(Boolean).join('<br>');
+}
+
 async function envoyerDevis(){
   const ce=document.getElementById('client-email').value.trim();
   if(!ce){alert('Email client requis.');return;}
@@ -2009,18 +2022,34 @@ async function envoyerDevis(){
   const pdfUrl=`${BASE_URL}/devis-pdf.html?id=${encodeURIComponent(d.numero)}`;
 
   const accentColor=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#FF4500';
-  const html=`<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#222"><div style="background:${accentColor};padding:18px 22px;border-radius:8px 8px 0 0"><h1 style="color:#fff;font-size:20px;margin:0">DEVIS N° ${d.numero}</h1><p style="color:rgba(255,255,255,.85);margin:3px 0 0;font-size:12px">Date : ${d.date} — Validité : ${d.validite}</p></div><div style="background:#fff;padding:22px;border:1px solid #eee;border-top:none"><table style="width:100%;font-size:12px;margin-bottom:18px"><tr><td style="width:50%;vertical-align:top;padding-right:10px"><strong style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#999">Entreprise</strong><br><br><strong>${d.entreprise.nom}</strong><br>${d.entreprise.siret?'SIRET : '+d.entreprise.siret+'<br>':''}${d.entreprise.tel?d.entreprise.tel+'<br>':''}</td><td style="width:50%;vertical-align:top;background:#f9f9f9;padding:10px;border-radius:6px"><strong style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#999">Maître d'Ouvrage</strong><br><br><strong>${d.client.nom}</strong><br>${d.client.email||''}${clientTelEmailHtml}<br>${d.chantier.adresse||''}</td></tr></table><p style="font-size:12px;margin-bottom:14px"><strong>Nature :</strong> ${d.chantier.nature} &nbsp;|&nbsp; <strong>Délai :</strong> ${d.chantier.delai}${dateDebutEmailHtml}</p><table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:18px"><thead><tr style="background:${accentColor};color:#fff"><th style="padding:8px;text-align:left">Désignation</th><th style="padding:8px;text-align:center">Qté</th><th style="padding:8px;text-align:center">Unité</th><th style="padding:8px;text-align:right">P.U. HT</th><th style="padding:8px;text-align:right">Total HT</th></tr></thead><tbody>${rowsHtml}</tbody></table>${d.observations?`<div style="background:#fffbf0;border-left:3px solid #f59e0b;padding:10px 12px;margin-bottom:14px;border-radius:0 6px 6px 0;font-size:12px;color:#444"><strong>📝 Observations :</strong><br>${d.observations}</div>`:''}<div style="text-align:right;margin-bottom:16px"><table style="margin-left:auto;font-size:12px;border-collapse:collapse"><tr><td style="padding:3px 14px 3px 0;color:#666">Total HT</td><td style="padding:3px 0;font-weight:600">${fmt(d.total_ht)} €</td></tr><tr><td style="padding:3px 14px 3px 0;color:#666">TVA ${d.tva_pct}%</td><td style="padding:3px 0;font-weight:600">${fmt(d.tva_montant)} €</td></tr><tr style="border-top:2px solid ${accentColor}"><td style="padding:7px 14px 3px 0;font-weight:700;font-size:14px">TOTAL TTC</td><td style="padding:7px 0 3px;font-weight:700;font-size:14px;color:${accentColor}">${fmt(d.total_ttc)} €</td></tr>${acompteEmailHtml}</table></div><p style="font-size:11px;color:#999;font-style:italic;margin-bottom:14px">Arrêté à : ${d.total_lettres}</p><div style="background:#f5f5f5;padding:10px 12px;border-radius:6px;font-size:11px;color:#777">${d.conditions}<br>${gMentions}</div>
-  <div style="text-align:center;margin-top:24px;padding:20px;background:#fff8f5;border-radius:8px;border:1px solid #ffd0b0">
-    <p style="font-size:13px;color:#555;margin-bottom:14px">Ce devis vous convient ? Acceptez-le en un clic :</p>
-    <a href="${acceptUrl}" style="display:inline-block;background:${accentColor};color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:700;font-size:15px;letter-spacing:.5px">✅ Accepter ce devis</a>
-    <br><br>
-    <a href="${pdfUrl}" style="display:inline-block;background:#fff;color:${accentColor};text-decoration:none;padding:10px 24px;border-radius:8px;font-weight:600;font-size:13px;border:2px solid ${accentColor}">📄 Télécharger en PDF</a>
+  const entTelArtisan = ls('ent-tel')||'';
+  const clientPrenom = document.getElementById('client-prenom').value.trim();
+  const clientNomSeul = document.getElementById('client-nom').value.trim();
+  const clientSalutation = [clientPrenom, clientNomSeul].filter(Boolean).join(' ') || d.client.nom;
+  const html=`<div style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;color:#222;">
+  <div style="background:${accentColor};padding:22px 28px;border-radius:10px 10px 0 0;">
+    <div style="color:#fff;font-size:19px;font-weight:800;">${artisanNom}</div>
+    <div style="color:rgba(255,255,255,.75);font-size:12px;margin-top:3px;">Devis N° ${d.numero} · ${d.date}</div>
   </div>
-  <p style="margin-top:18px;font-size:11px;color:#ccc;text-align:center">Généré avec DevisVoice</p></div></div>`;
+  <div style="background:#fff;padding:28px;border:1px solid #eee;border-top:none;border-radius:0 0 10px 10px;">
+    <p style="font-size:15px;margin:0 0 6px;">Bonjour ${clientSalutation},</p>
+    <p style="font-size:14px;color:#444;margin:0 0 20px;line-height:1.7;">Veuillez trouver ci-joint votre devis <strong>${d.numero}</strong> d'un montant de <strong style="color:${accentColor};">${montantTTC}</strong>, valable ${d.validite}.</p>
+    <p style="font-size:14px;color:#444;margin:0 0 24px;line-height:1.7;">Pour accepter ce devis, cliquez sur le bouton ci-dessous.</p>
+    <div style="text-align:center;margin-bottom:28px;">
+      <a href="${acceptUrl}" style="display:inline-block;background:${accentColor};color:#fff;text-decoration:none;padding:14px 36px;border-radius:8px;font-weight:700;font-size:15px;letter-spacing:.3px;">✅ Accepter ce devis</a>
+      <br><br>
+      <a href="${pdfUrl}" style="display:inline-block;background:#fff;color:${accentColor};text-decoration:none;padding:10px 24px;border-radius:8px;font-weight:600;font-size:13px;border:2px solid ${accentColor};">📄 Télécharger en PDF</a>
+    </div>
+    <div style="border-top:1px solid #f0f0f0;padding-top:20px;">
+      <p style="font-size:13px;color:#555;margin:0;line-height:1.9;">Cordialement,<br><strong>${getSignatureArtisan()}</strong></p>
+    </div>
+    <p style="margin-top:20px;font-size:10px;color:#ccc;text-align:center;">Généré avec DevisVoice</p>
+  </div>
+</div>`;
   showES('loading','📧 Envoi en cours…');
   try{
     // Email client avec bouton accepter
-    const r=await fetch(BACKEND+'/api/send-devis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({artisanNom,artisanEmail,clientEmail:ce,subject:'Devis N° '+d.numero+' — '+d.chantier.nature,html})});
+    const r=await fetch(BACKEND+'/api/send-devis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({artisanNom,artisanEmail,clientEmail:ce,subject:'Devis '+d.numero+' - '+artisanNom,html})});
     const res=await r.json();
     if(!r.ok)throw new Error(res.error||'Erreur envoi');
 
@@ -2239,7 +2268,7 @@ function afficherLogoPreview(b64){
 }
 
 function saveProfil(){
-  ['ent-nom','ent-siret','ent-tel','ent-adr','ent-email','mentions','ent-decennale-compagnie','ent-decennale-numero','ent-banque','ent-iban','ent-bic','ent-titulaire','ent-comptable'].forEach(id=>{const el=document.getElementById(id);if(el)localStorage.setItem(id,el.value);});
+  ['ent-prenom','ent-nom-artisan','ent-nom','ent-siret','ent-tel','ent-adr','ent-email','mentions','ent-decennale-compagnie','ent-decennale-numero','ent-banque','ent-iban','ent-bic','ent-titulaire','ent-comptable'].forEach(id=>{const el=document.getElementById(id);if(el)localStorage.setItem(id,el.value);});
   flash('p-badge');
 }
 function saveTarifs(){
@@ -2622,20 +2651,19 @@ async function confirmerFinChantier(){
     const montant      = d.total_ttc ? fmt(parseFloat(d.total_ttc)) + ' €' : '';
     const accentColor  = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#FF4500';
 
-    const html = `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#222;">
-  <div style="background:${accentColor};padding:24px 28px;border-radius:10px 10px 0 0;">
-    <div style="color:#fff;font-size:20px;font-weight:800;letter-spacing:-0.5px;">${artisanNom}</div>
-    <div style="color:rgba(255,255,255,.75);font-size:13px;margin-top:4px;">Facture chantier terminé</div>
+    const html = `<div style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;color:#222;">
+  <div style="background:${accentColor};padding:22px 28px;border-radius:10px 10px 0 0;">
+    <div style="color:#fff;font-size:19px;font-weight:800;">${artisanNom}</div>
+    <div style="color:rgba(255,255,255,.75);font-size:12px;margin-top:3px;">Facture N° ${numero}</div>
   </div>
   <div style="background:#fff;padding:28px;border:1px solid #eee;border-top:none;border-radius:0 0 10px 10px;">
-    <p style="font-size:15px;font-weight:600;margin:0 0 8px;">Bonjour ${clientNom || ''},</p>
-    <p style="font-size:14px;color:#555;margin:0 0 20px;line-height:1.6;">Votre facture est disponible en pièce jointe de cet email.</p>
-    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:20px;">
-      <tr><td style="padding:9px 0;color:#888;border-bottom:1px solid #f0f0f0;">Numéro</td><td style="padding:9px 0;font-weight:600;border-bottom:1px solid #f0f0f0;">${numero}</td></tr>
-      <tr><td style="padding:9px 0;color:#888;border-bottom:1px solid #f0f0f0;">Chantier</td><td style="padding:9px 0;font-weight:600;border-bottom:1px solid #f0f0f0;">${d.chantier?.nature||'—'}</td></tr>
-      <tr><td style="padding:9px 0;color:#888;">Montant TTC</td><td style="padding:9px 0;font-weight:700;font-size:15px;color:${accentColor};">${montant}</td></tr>
-    </table>
-    <p style="font-size:12px;color:#aaa;margin:0;text-align:center;">Généré avec DevisVoice · ${new Date().toLocaleDateString('fr-FR')}</p>
+    <p style="font-size:15px;margin:0 0 6px;">Bonjour ${clientNom || ''},</p>
+    <p style="font-size:14px;color:#444;margin:0 0 20px;line-height:1.7;">Veuillez trouver ci-joint votre facture <strong>${numero}</strong> d'un montant de <strong style="color:${accentColor};">${montant}</strong>.</p>
+    <p style="font-size:14px;color:#444;margin:0 0 24px;line-height:1.7;">Pour tout renseignement complémentaire, n'hésitez pas à nous contacter.</p>
+    <div style="border-top:1px solid #f0f0f0;padding-top:20px;">
+      <p style="font-size:13px;color:#555;margin:0;line-height:1.9;">Cordialement,<br><strong>${getSignatureArtisan()}</strong></p>
+    </div>
+    <p style="margin-top:20px;font-size:10px;color:#ccc;text-align:center;">Généré avec DevisVoice</p>
   </div>
 </div>`;
 
@@ -3048,11 +3076,28 @@ async function envoyerFacture(){
   const sbar = document.getElementById('facture-sbar');
   if(!clientEmail){ sbar.className='sbar error'; sbar.style.display='flex'; sbar.innerHTML='❌ Email client manquant.'; return; }
   sbar.className='sbar loading'; sbar.style.display='flex'; sbar.innerHTML='<div class="spin"></div><span>Envoi en cours…</span>';
-  const htmlFacture = document.getElementById('facture-preview').innerHTML;
+  const factureNum = 'F-' + d.numero + '-' + new Date().getFullYear();
+  const montantTTC = d.total_ttc ? fmt(parseFloat(d.total_ttc)) + ' €' : '';
+  const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#FF4500';
+  const htmlFactureMail = `<div style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;color:#222;">
+  <div style="background:${accentColor};padding:22px 28px;border-radius:10px 10px 0 0;">
+    <div style="color:#fff;font-size:19px;font-weight:800;">${artisanNom}</div>
+    <div style="color:rgba(255,255,255,.75);font-size:12px;margin-top:3px;">Facture N° ${factureNum}</div>
+  </div>
+  <div style="background:#fff;padding:28px;border:1px solid #eee;border-top:none;border-radius:0 0 10px 10px;">
+    <p style="font-size:15px;margin:0 0 6px;">Bonjour ${d.client?.nom||''},</p>
+    <p style="font-size:14px;color:#444;margin:0 0 24px;line-height:1.7;">Veuillez trouver ci-joint votre facture <strong>${factureNum}</strong> d'un montant de <strong style="color:${accentColor};">${montantTTC}</strong>.</p>
+    <p style="font-size:14px;color:#444;margin:0 0 24px;line-height:1.7;">Pour tout renseignement complémentaire, n'hésitez pas à nous contacter.</p>
+    <div style="border-top:1px solid #f0f0f0;padding-top:20px;">
+      <p style="font-size:13px;color:#555;margin:0;line-height:1.9;">Cordialement,<br><strong>${getSignatureArtisan()}</strong></p>
+    </div>
+    <p style="margin-top:20px;font-size:10px;color:#ccc;text-align:center;">Généré avec DevisVoice</p>
+  </div>
+</div>`;
   try{
     const r = await fetch(BACKEND+'/api/send-devis',{
       method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({artisanNom, artisanEmail, clientEmail, subject:`Facture — ${d.chantier?.nature||'Travaux'} — ${artisanNom}`, html:`<div style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto;padding:20px;">${htmlFacture}<div style="margin-top:24px;padding-top:16px;border-top:1px solid #eee;text-align:center;"><a href="https://arbimalik.github.io/devisvoice/devis-pdf.html?id=${encodeURIComponent(d.numero)}&type=facture" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-family:Arial,sans-serif;font-weight:700;font-size:13px;">📄 Télécharger la facture en PDF</a></div></div>`})
+      body:JSON.stringify({artisanNom, artisanEmail, clientEmail, subject:`Facture ${factureNum} - ${artisanNom}`, html: htmlFactureMail})
     });
     const res = await r.json();
     if(!r.ok) throw new Error(res.error||'Erreur');
@@ -3171,7 +3216,7 @@ async function marquerPayee(){
 }
 
 function loadAll(){
-  const map={'ent-nom':'ent-nom','ent-siret':'ent-siret','ent-tel':'ent-tel','ent-adr':'ent-adr','ent-email':'ent-email','mentions':'mentions','ent-decennale-compagnie':'ent-decennale-compagnie','ent-decennale-numero':'ent-decennale-numero','ent-banque':'ent-banque','ent-iban':'ent-iban','ent-bic':'ent-bic','ent-titulaire':'ent-titulaire','ent-comptable':'ent-comptable','t-mo':'t-mo','t-tva':'t-tva'};
+  const map={'ent-prenom':'ent-prenom','ent-nom-artisan':'ent-nom-artisan','ent-nom':'ent-nom','ent-siret':'ent-siret','ent-tel':'ent-tel','ent-adr':'ent-adr','ent-email':'ent-email','mentions':'mentions','ent-decennale-compagnie':'ent-decennale-compagnie','ent-decennale-numero':'ent-decennale-numero','ent-banque':'ent-banque','ent-iban':'ent-iban','ent-bic':'ent-bic','ent-titulaire':'ent-titulaire','ent-comptable':'ent-comptable','t-mo':'t-mo','t-tva':'t-tva'};
   Object.keys(map).forEach(k=>{const v=localStorage.getItem(k);const el=document.getElementById(map[k]);if(v&&el){el.value=v;}});
   const tvaSaved=localStorage.getItem('t-tva');
   if(tvaSaved) majTvaDevis(tvaSaved);
