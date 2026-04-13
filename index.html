@@ -287,6 +287,17 @@ select option{background:var(--card);color:var(--text);}
   <div class="card">
     <div class="card-header ch-orange">📋 Maître d'Ouvrage &amp; Chantier</div>
     <div class="card-body">
+      <!-- RECHERCHE CLIENT EXISTANT -->
+      <div class="form-group" style="position:relative;">
+        <label>🔍 Client existant <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text2)">(nom, tél, email, adresse…)</span></label>
+        <input type="text" id="client-search" placeholder="Tapez pour rechercher un client enregistré…"
+          autocomplete="off"
+          oninput="rechercherClient(this.value)"
+          onfocus="rechercherClient(this.value)"
+          style="width:100%;box-sizing:border-box;"
+        >
+        <div id="client-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--rsm);box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:300;max-height:220px;overflow-y:auto;"></div>
+      </div>
       <div class="form-group">
         <label>SIRET Client <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text2)">(optionnel — remplissage auto)</span></label>
         <div style="display:flex;gap:8px;">
@@ -1808,6 +1819,7 @@ async function envoyerDevis(){
   const ce=document.getElementById('client-email').value.trim();
   if(!ce){alert('Email client requis.');return;}
   if(!devisData){alert('Générez d\'abord un devis.');return;}
+  sauvegarderClientAuto();
   const d=devisData;
 
   let rowsHtml='';
@@ -2097,6 +2109,85 @@ function flash(id){const el=document.getElementById(id);el.classList.add('show')
 
 
 // ===== RECHERCHE SIRET CLIENT =====
+// ===== AUTOCOMPLÉTION CLIENT =====
+let _clientSearchTimer = null;
+
+async function rechercherClient(q){
+  const email = ls('ent-email');
+  const dropdown = document.getElementById('client-dropdown');
+  if(!email){ dropdown.style.display='none'; return; }
+
+  clearTimeout(_clientSearchTimer);
+  _clientSearchTimer = setTimeout(async ()=>{
+    try{
+      const url = BACKEND+'/api/clients?email='+encodeURIComponent(email)+(q.trim()?'&q='+encodeURIComponent(q.trim()):'');
+      const r = await fetch(url);
+      const clients = r.ok ? await r.json() : [];
+      if(!clients.length){ dropdown.style.display='none'; return; }
+      dropdown.innerHTML = clients.map(c=>`
+        <div onclick="remplirClient(${JSON.stringify(c).replace(/"/g,'&quot;')})"
+          style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s;"
+          onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
+          <div style="font-weight:600;font-size:13px;color:var(--text)">${c.nom||''}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px;">
+            ${[c.telephone,c.email,c.ville].filter(Boolean).join(' · ')}
+          </div>
+        </div>`).join('');
+      dropdown.style.display='block';
+    }catch(e){ dropdown.style.display='none'; }
+  }, 200);
+}
+
+function remplirClient(c){
+  const set = (id, val) => { const el=document.getElementById(id); if(el && val) el.value=val; };
+  // Séparer nom complet en prénom / nom si possible
+  const parts = (c.nom||'').trim().split(' ');
+  if(parts.length >= 2){
+    set('client-prenom', parts[0]);
+    set('client-nom', parts.slice(1).join(' '));
+  } else {
+    set('client-nom', c.nom||'');
+  }
+  set('client-email', c.email||'');
+  set('client-tel', c.telephone||'');
+  set('client-siret', c.siret||'');
+  if(c.adresse || c.ville || c.code_postal){
+    const adr = [c.adresse, c.code_postal, c.ville].filter(Boolean).join(', ');
+    set('chantier-adresse', adr);
+  }
+  document.getElementById('client-search').value = c.nom||'';
+  document.getElementById('client-dropdown').style.display='none';
+  majDevisTempsReel();
+}
+
+// Fermer le dropdown si clic ailleurs
+document.addEventListener('click', e=>{
+  const dd = document.getElementById('client-dropdown');
+  const search = document.getElementById('client-search');
+  if(dd && search && !dd.contains(e.target) && e.target !== search){
+    dd.style.display='none';
+  }
+});
+
+// Sauvegarder automatiquement le client en BDD lors de l'envoi du devis
+async function sauvegarderClientAuto(){
+  const email = ls('ent-email');
+  const nom = [document.getElementById('client-prenom').value, document.getElementById('client-nom').value].filter(Boolean).join(' ');
+  if(!email || !nom.trim()) return;
+  const adresseFull = document.getElementById('chantier-adresse').value||'';
+  fetch(BACKEND+'/api/clients/save', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      artisanEmail: email,
+      nom: nom.trim(),
+      email: document.getElementById('client-email').value||'',
+      telephone: document.getElementById('client-tel').value||'',
+      siret: document.getElementById('client-siret').value.replace(/\s/g,'')||'',
+      adresse: adresseFull
+    })
+  }).catch(()=>{});
+}
+
 function onSiretInput(el){
   const v = el.value.replace(/\s/g,'');
   const msg = document.getElementById('siret-msg');
