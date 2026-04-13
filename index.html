@@ -2009,7 +2009,7 @@ async function envoyerDevis(){
 
   const artisanEmail=ls('ent-email')||'';
   const artisanNom=ls('ent-nom')||'Votre artisan';
-  const montantTTC=fmt(d.total_ttc)+' €';
+  const montantTTC=fmt(parseFloat(d.total_ttc)||0)+' €';
 
   const acomptePct = d.acompte_pct || 0;
   const acompteEmailHtml = acomptePct > 0
@@ -2809,7 +2809,7 @@ async function confirmerFinChantier(){
     const comptableEmail = ls('ent-comptable') || '';
     const clientNom    = d.client?.nom || '';
     const numero       = 'F-' + (d.numero||devisId) + '-' + new Date().getFullYear();
-    const montant      = d.total_ttc ? fmt(parseFloat(d.total_ttc)) + ' €' : '';
+    const montant      = fmt(parseFloat(d.total_ttc)||0) + ' €';
     const accentColor  = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#FF4500';
 
     const html = `<div style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;color:#222;">
@@ -3238,7 +3238,7 @@ async function envoyerFacture(){
   if(!clientEmail){ sbar.className='sbar error'; sbar.style.display='flex'; sbar.innerHTML='❌ Email client manquant.'; return; }
   sbar.className='sbar loading'; sbar.style.display='flex'; sbar.innerHTML='<div class="spin"></div><span>Envoi en cours…</span>';
   const factureNum = 'F-' + d.numero + '-' + new Date().getFullYear();
-  const montantTTC = d.total_ttc ? fmt(parseFloat(d.total_ttc)) + ' €' : '';
+  const montantTTC = fmt(parseFloat(d.total_ttc)||0) + ' €';
   const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#FF4500';
   const htmlFactureMail = `<div style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;color:#222;">
   <div style="background:${accentColor};padding:22px 28px;border-radius:10px 10px 0 0;">
