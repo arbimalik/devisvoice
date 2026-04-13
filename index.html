@@ -2451,6 +2451,153 @@ function fermerModalFinChantier(){
   _finChantierDevisId = null;
 }
 
+function genererPdfFactureBase64(d) {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const entNom    = d.entreprise?.nom    || ls('ent-nom')    || '';
+  const entSiret  = d.entreprise?.siret  || ls('ent-siret')  || '';
+  const entTel    = d.entreprise?.tel    || ls('ent-tel')    || '';
+  const entAdr    = d.entreprise?.adresse|| ls('ent-adr')    || '';
+  const entEmail  = d.entreprise?.email  || ls('ent-email')  || '';
+  const tva       = d.tva_pct            || ls('t-tva')      || '10';
+  const iban      = d.iban   || ls('ent-iban')  || '';
+  const bic       = d.bic    || ls('ent-bic')   || '';
+  const banque    = d.banque || ls('ent-banque') || '';
+  const factureNum = 'F-' + d.numero + '-' + new Date().getFullYear();
+  const today = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const acc = [255, 69, 0]; // orange DevisVoice
+  const M = 14, W = 210, CW = W - M * 2;
+  let y = M;
+
+  // En-tête entreprise (gauche)
+  pdf.setFontSize(14); pdf.setFont('helvetica','bold'); pdf.setTextColor(0,0,0);
+  pdf.text(entNom, M, y + 5); y += 9;
+  pdf.setFontSize(8.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(100,100,100);
+  if(entAdr)   { pdf.text(entAdr,   M, y); y += 4; }
+  if(entTel)   { pdf.text('Tél : '+entTel, M, y); y += 4; }
+  if(entEmail) { pdf.text(entEmail,  M, y); y += 4; }
+  if(entSiret) { pdf.text('SIRET : '+entSiret, M, y); y += 4; }
+
+  // FACTURE titre (droite)
+  pdf.setFontSize(22); pdf.setFont('helvetica','bold'); pdf.setTextColor(...acc);
+  pdf.text('FACTURE', W - M, M + 6, {align:'right'});
+  pdf.setFontSize(10); pdf.setTextColor(0,0,0);
+  pdf.text('N° ' + factureNum, W - M, M + 12, {align:'right'});
+  pdf.setFontSize(8.5); pdf.setTextColor(100,100,100);
+  pdf.text('Date : ' + today, W - M, M + 17, {align:'right'});
+
+  // Bloc client (droite)
+  const cx = W - M - 78, cw = 78;
+  let cy = M + 21;
+  pdf.setDrawColor(220,220,220); pdf.setFillColor(248,248,248);
+  pdf.roundedRect(cx, cy - 3, cw, 26, 2, 2, 'FD');
+  pdf.setFontSize(7.5); pdf.setTextColor(130,130,130); pdf.setFont('helvetica','bold');
+  pdf.text('CLIENT', cx + cw - 3, cy + 1, {align:'right'}); cy += 5;
+  pdf.setFontSize(9.5); pdf.setTextColor(0,0,0);
+  pdf.text(d.client?.nom||'—', cx + cw - 3, cy, {align:'right'}); cy += 4.5;
+  pdf.setFontSize(8); pdf.setFont('helvetica','normal'); pdf.setTextColor(100,100,100);
+  if(d.client?.email) { pdf.text(d.client.email, cx+cw-3, cy, {align:'right'}); cy+=3.5; }
+  if(d.client?.tel)   { pdf.text(d.client.tel,   cx+cw-3, cy, {align:'right'}); cy+=3.5; }
+  if(d.chantier?.adresse) pdf.text(d.chantier.adresse, cx+cw-3, cy, {align:'right'});
+
+  // Barre réf devis
+  y = Math.max(y + 4, M + 52);
+  pdf.setFillColor(...acc); pdf.rect(M, y, 3, 7, 'F');
+  pdf.setFontSize(8.5); pdf.setTextColor(80,80,80); pdf.setFont('helvetica','normal');
+  pdf.text('Réf. devis : ' + d.numero + ' — ' + (d.chantier?.nature||''), M+5, y+4.5);
+  y += 12;
+
+  // En-tête tableau
+  pdf.setFillColor(...acc); pdf.rect(M, y, CW, 7.5, 'F');
+  pdf.setFontSize(8.5); pdf.setFont('helvetica','bold'); pdf.setTextColor(255,255,255);
+  pdf.text('Désignation', M+2, y+5);
+  pdf.text('Qté',   M+98,  y+5, {align:'center'});
+  pdf.text('Unité', M+114, y+5, {align:'center'});
+  pdf.text('PU HT', M+142, y+5, {align:'right'});
+  pdf.text('Total HT', M+CW-1, y+5, {align:'right'});
+  y += 9;
+
+  const checkPage = (needed) => { if(y + needed > 278) { pdf.addPage(); y = M; } };
+
+  // Lignes sections / postes
+  (d.sections||[]).forEach(s => {
+    checkPage(8);
+    pdf.setFillColor(245,245,245); pdf.rect(M, y-1, CW, 6.5, 'F');
+    pdf.setFontSize(8); pdf.setFont('helvetica','bold'); pdf.setTextColor(...acc);
+    pdf.text(((s.emoji||'')+' '+(s.metier||'')).trim().toUpperCase(), M+2, y+4);
+    y += 8;
+
+    (s.postes||[]).forEach(p => {
+      const titLines = pdf.splitTextToSize((p.id||'')+'. '+(p.titre||''), 86);
+      const descLines = p.description ? pdf.splitTextToSize(p.description, 86) : [];
+      const rowH = Math.max(9, titLines.length*4 + descLines.length*3.5 + 3);
+      checkPage(rowH);
+
+      pdf.setFontSize(9); pdf.setFont('helvetica','bold'); pdf.setTextColor(0,0,0);
+      titLines.forEach((l,i) => pdf.text(l, M+2, y+4+i*4));
+
+      if(descLines.length) {
+        pdf.setFontSize(7.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(120,120,120);
+        descLines.forEach((l,i) => pdf.text(l, M+2, y+4+titLines.length*4+i*3.5));
+      }
+
+      pdf.setFontSize(8.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(0,0,0);
+      pdf.text(String(p.qte||''),     M+98,  y+4, {align:'center'});
+      pdf.text(String(p.unite||''),   M+114, y+4, {align:'center'});
+      pdf.text(fmt(p.pu_ht)+' €',     M+142, y+4, {align:'right'});
+      pdf.setFont('helvetica','bold');
+      pdf.text(fmt(p.total_ht)+' €',  M+CW-1,y+4, {align:'right'});
+      pdf.setDrawColor(230,230,230);
+      pdf.line(M, y+rowH, M+CW, y+rowH);
+      y += rowH;
+    });
+  });
+
+  y += 6;
+
+  // Totaux
+  checkPage(32);
+  const tW=72, tX=M+CW-tW;
+  pdf.setDrawColor(220,220,220); pdf.setFillColor(248,248,248);
+  pdf.roundedRect(tX, y, tW, 28, 2, 2, 'FD');
+  pdf.setFontSize(9); pdf.setFont('helvetica','normal'); pdf.setTextColor(0,0,0);
+  pdf.text('Total HT', tX+3, y+7);
+  pdf.text(fmt(d.total_ht)+' €', tX+tW-3, y+7, {align:'right'});
+  const mTva = parseFloat(d.total_ht||0) * parseFloat(tva) / 100;
+  pdf.text('TVA '+tva+'%', tX+3, y+13);
+  pdf.text(fmt(mTva)+' €', tX+tW-3, y+13, {align:'right'});
+  pdf.setDrawColor(210,210,210); pdf.line(tX+3, y+16.5, tX+tW-3, y+16.5);
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(11); pdf.setTextColor(...acc);
+  pdf.text('TOTAL TTC', tX+3, y+24);
+  pdf.text(fmt(d.total_ttc)+' €', tX+tW-3, y+24, {align:'right'});
+  y += 34;
+
+  // Coordonnées bancaires
+  if(iban || banque) {
+    checkPage(20);
+    pdf.setFontSize(8); pdf.setFont('helvetica','bold'); pdf.setTextColor(0,0,0);
+    pdf.text('COORDONNÉES BANCAIRES', M, y); y+=4.5;
+    pdf.setFont('helvetica','normal'); pdf.setTextColor(80,80,80);
+    if(banque) { pdf.text(banque, M, y); y+=3.5; }
+    if(iban)   { pdf.text('IBAN : '+iban, M, y); y+=3.5; }
+    if(bic)    { pdf.text('BIC : '+bic,   M, y); y+=3.5; }
+    y += 4;
+  }
+
+  // Mentions légales
+  const mentions = d.mentions || ls('mentions') || ('TVA '+tva+'% applicable');
+  const cgv = `Clause de réserve de propriété : les marchandises restent propriété du vendeur jusqu'au paiement intégral. Pénalité de retard : 3× taux légal. Indemnité forfaitaire : 40 €.`;
+  checkPage(12);
+  pdf.setFontSize(7.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(150,150,150);
+  [mentions, cgv].forEach(bloc => {
+    const lines = pdf.splitTextToSize(bloc, CW);
+    lines.forEach(l => { checkPage(4); pdf.text(l, M, y); y+=3.5; });
+    y+=2;
+  });
+
+  return pdf.output('datauristring').split(',')[1];
+}
+
 async function confirmerFinChantier(){
   const devisId = _finChantierDevisId;
   if(!devisId) return;
@@ -2463,41 +2610,15 @@ async function confirmerFinChantier(){
     const row = await r.json();
     const d = typeof row.data === 'string' ? JSON.parse(row.data) : row.data;
 
-    // Générer le HTML + PDF de la facture
+    // Générer le HTML de la facture (pour corps du mail)
     await ouvrirFacture(devisId);
-    await new Promise(res => setTimeout(res, 400)); // laisser renderFacture() finir
+    await new Promise(res => setTimeout(res, 300));
     const facturePreview = document.getElementById('facture-preview');
     const htmlFacture = facturePreview ? facturePreview.innerHTML : '';
-
-    // Générer le PDF en base64 via html2canvas + jsPDF
-    let pdfBase64 = null;
-    try {
-      const { jsPDF } = window.jspdf;
-      const canvas = await html2canvas(facturePreview, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const margin = 10;
-      const contentW = pageW - margin * 2;
-      const imgH = (canvas.height * contentW) / canvas.width;
-      // Gestion multi-pages
-      let yPos = margin;
-      let srcY = 0;
-      while (srcY < canvas.height) {
-        const slicePixels = Math.min((pageH - margin * 2) * (canvas.width / contentW), canvas.height - srcY);
-        const sliceCanvas = document.createElement('canvas');
-        sliceCanvas.width = canvas.width;
-        sliceCanvas.height = slicePixels;
-        sliceCanvas.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, slicePixels, 0, 0, canvas.width, slicePixels);
-        const sliceH = (slicePixels * contentW) / canvas.width;
-        if (srcY > 0) { pdf.addPage(); yPos = margin; }
-        pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, yPos, contentW, sliceH);
-        srcY += slicePixels;
-      }
-      pdfBase64 = pdf.output('datauristring').split(',')[1];
-    } catch(pdfErr) { console.warn('PDF generation failed:', pdfErr); }
-
     fermerFacture();
+
+    // Générer le PDF programmatiquement (sans DOM ni CSS variables)
+    const pdfBase64 = genererPdfFactureBase64(d);
 
     const artisanNom   = ls('ent-nom') || '';
     const artisanEmail = ls('ent-email') || '';
