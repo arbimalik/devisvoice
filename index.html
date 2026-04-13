@@ -500,24 +500,53 @@ select option{background:var(--card);color:var(--text);}
   <div class="card">
     <div class="card-header ch-orange">📊 Tableau de bord</div>
     <div class="card-body">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-        <div style="background:var(--bg3);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border);">
-          <div style="font-size:32px;font-weight:800;color:var(--accent);font-family:'Syne',sans-serif" id="stat-envoyes">—</div>
-          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-top:4px">Devis ce mois</div>
+
+      <!-- 4 CARTES STATS -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+
+        <div style="background:var(--bg3);border-radius:10px;padding:14px;border:1px solid var(--border);">
+          <div style="font-size:18px;margin-bottom:4px;">📋</div>
+          <div style="font-size:28px;font-weight:800;color:var(--accent);font-family:'Syne',sans-serif;line-height:1;" id="stat-envoyes">—</div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-top:4px;">Devis ce mois</div>
+          <div id="stat-envoyes-var" style="font-size:10px;margin-top:6px;"></div>
         </div>
-        <div style="background:var(--bg3);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border);">
-          <div style="font-size:32px;font-weight:800;color:#00b450;font-family:'Syne',sans-serif" id="stat-acceptes">—</div>
-          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-top:4px">Acceptés</div>
+
+        <div style="background:var(--bg3);border-radius:10px;padding:14px;border:1px solid var(--border);">
+          <div style="font-size:18px;margin-bottom:4px;">✅</div>
+          <div style="font-size:28px;font-weight:800;color:#00b450;font-family:'Syne',sans-serif;line-height:1;" id="stat-taux">—</div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-top:4px;">Taux d'acceptation</div>
+          <div id="stat-taux-var" style="font-size:10px;margin-top:6px;"></div>
         </div>
+
+        <div style="background:var(--accent-bg);border-radius:10px;padding:14px;border:1px solid var(--accent-border);">
+          <div style="font-size:18px;margin-bottom:4px;">💰</div>
+          <div style="font-size:22px;font-weight:800;color:var(--accent);font-family:'Syne',sans-serif;line-height:1;" id="stat-montant">—</div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-top:4px;">CA du mois</div>
+          <div id="stat-montant-var" style="font-size:10px;margin-top:6px;"></div>
+        </div>
+
+        <div style="background:var(--bg3);border-radius:10px;padding:14px;border:1px solid var(--border);">
+          <div style="font-size:18px;margin-bottom:4px;">⏳</div>
+          <div style="font-size:22px;font-weight:800;color:#e08000;font-family:'Syne',sans-serif;line-height:1;" id="stat-attente">—</div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-top:4px;">Factures en attente</div>
+          <div id="stat-attente-nb" style="font-size:10px;color:var(--text2);margin-top:6px;"></div>
+        </div>
+
       </div>
-      <div style="background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:10px;padding:14px;margin-bottom:12px;">
-        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:4px">💰 Montant accepté ce mois</div>
-        <div style="font-size:26px;font-weight:800;color:var(--accent);font-family:'Syne',sans-serif" id="stat-montant">—</div>
+
+      <!-- GRAPHIQUE ANNUEL -->
+      <div style="background:var(--bg3);border-radius:10px;padding:14px;border:1px solid var(--border);margin-bottom:14px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:12px;">📈 CA mensuel — <span id="stat-annee"></span></div>
+        <div id="stat-chart" style="display:flex;align-items:flex-end;gap:4px;height:70px;"></div>
+        <div id="stat-chart-labels" style="display:flex;gap:4px;margin-top:4px;"></div>
       </div>
+
+      <!-- DERNIERS DEVIS -->
       <div style="background:var(--bg3);border-radius:10px;padding:14px;border:1px solid var(--border);">
-        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:10px">🕒 Derniers devis</div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;">🕒 Derniers devis</div>
         <div id="stat-derniers" style="font-size:12px;color:var(--text2);">Chargement…</div>
       </div>
+
     </div>
   </div>
   <div class="card">
@@ -645,6 +674,19 @@ function setTheme(t, btn) {
 })();
 
 
+function varBadge(actuel, precedent, isPercent){
+  if(precedent === 0 && actuel === 0) return '';
+  if(precedent === 0) return `<span style="font-size:10px;padding:2px 6px;border-radius:20px;background:rgba(0,180,80,.12);color:#00b450;font-weight:700;">Nouveau</span>`;
+  const diff = actuel - precedent;
+  const pct = Math.round(diff / precedent * 100);
+  const sign = diff >= 0 ? '+' : '';
+  const color = diff >= 0 ? '#00b450' : '#e04040';
+  const bg = diff >= 0 ? 'rgba(0,180,80,.1)' : 'rgba(224,64,64,.1)';
+  const arrow = diff >= 0 ? '▲' : '▼';
+  const label = isPercent ? `${sign}${diff}pt` : `${sign}${pct}%`;
+  return `<span style="font-size:10px;padding:2px 6px;border-radius:20px;background:${bg};color:${color};font-weight:700;">${arrow} ${label} vs mois préc.</span>`;
+}
+
 async function loadStats(){
   const email = localStorage.getItem('ent-email');
   if(!email){ document.getElementById('stat-derniers').textContent='Renseignez votre email pro dans "Votre Entreprise".'; return; }
@@ -652,9 +694,40 @@ async function loadStats(){
     const r=await fetch(BACKEND+'/api/stats?email='+encodeURIComponent(email));
     if(!r.ok) return;
     const s=await r.json();
+
+    // Carte 1 — Devis ce mois
     document.getElementById('stat-envoyes').textContent = s.total_mois||0;
-    document.getElementById('stat-acceptes').textContent = s.acceptes_mois||0;
-    document.getElementById('stat-montant').textContent = s.montant_mois ? fmt(s.montant_mois)+' €' : '0,00 €';
+    document.getElementById('stat-envoyes-var').innerHTML = varBadge(s.total_mois||0, s.total_precedent||0, false);
+
+    // Carte 2 — Taux d'acceptation
+    document.getElementById('stat-taux').textContent = (s.taux_acceptation||0)+'%';
+    document.getElementById('stat-taux-var').innerHTML = varBadge(s.taux_acceptation||0, s.taux_precedent||0, true);
+
+    // Carte 3 — CA du mois
+    document.getElementById('stat-montant').textContent = fmt(s.montant_mois||0)+' €';
+    document.getElementById('stat-montant-var').innerHTML = varBadge(s.montant_mois||0, s.montant_precedent||0, false);
+
+    // Carte 4 — Factures en attente
+    document.getElementById('stat-attente').textContent = fmt(s.factures_attente_montant||0)+' €';
+    const nbFac = s.factures_attente_nb||0;
+    document.getElementById('stat-attente-nb').textContent = nbFac ? `${nbFac} facture${nbFac>1?'s':''} non payée${nbFac>1?'s':''}` : 'Aucune en attente';
+
+    // Graphique annuel (barres)
+    document.getElementById('stat-annee').textContent = new Date().getFullYear();
+    const hist = s.historique||[];
+    const maxMontant = Math.max(...hist.map(m=>m.montant), 1);
+    const moisCourant = new Date().getMonth(); // 0-based
+    document.getElementById('stat-chart').innerHTML = hist.map((m,i)=>{
+      const h = Math.max(Math.round(m.montant / maxMontant * 60), m.montant > 0 ? 2 : 0);
+      const isCurrent = i === moisCourant;
+      return `<div title="${m.mois} : ${fmt(m.montant)} €" style="flex:1;height:${h}px;background:${isCurrent?'var(--accent)':'var(--accent-border)'};border-radius:3px 3px 0 0;cursor:default;min-height:${m.montant>0?'2px':'0'};"></div>`;
+    }).join('');
+    document.getElementById('stat-chart-labels').innerHTML = hist.map((m,i)=>{
+      const isCurrent = i === moisCourant;
+      return `<div style="flex:1;text-align:center;font-size:9px;color:${isCurrent?'var(--accent)':'var(--text2)'};font-weight:${isCurrent?'700':'400'};">${m.mois}</div>`;
+    }).join('');
+
+    // Derniers devis
     if(s.derniers&&s.derniers.length){
       document.getElementById('stat-derniers').innerHTML=s.derniers.map(d=>`
         <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">
