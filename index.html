@@ -1971,6 +1971,11 @@ function renderDevis(d){
 
 function fmt(n){return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 
+// Supprime les emojis unicode — jsPDF ne supporte pas Unicode et corrompt les caractères
+function stripEmoji(str){
+  return (str||'').replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]|[\u{FE00}-\u{FEFF}]/gu,'').replace(/\s+/g,' ').trim();
+}
+
 function getSignatureArtisan(){
   const prenom = ls('ent-prenom')||'';
   const nomArt = ls('ent-nom-artisan')||'';
@@ -2046,10 +2051,14 @@ async function envoyerDevis(){
     <p style="margin-top:20px;font-size:10px;color:#ccc;text-align:center;">Généré avec DevisVoice</p>
   </div>
 </div>`;
+  // Générer le PDF devis en pièce jointe
+  const devisPdfBase64 = genererPdfDevisBase64(d);
+  const devisAttachments = [{ filename: 'Devis-'+d.numero+'.pdf', content: devisPdfBase64 }];
+
   showES('loading','📧 Envoi en cours…');
   try{
-    // Email client avec bouton accepter
-    const r=await fetch(BACKEND+'/api/send-devis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({artisanNom,artisanEmail,clientEmail:ce,subject:'Devis '+d.numero+' - '+artisanNom,html})});
+    // Email client avec bouton accepter + PDF en PJ
+    const r=await fetch(BACKEND+'/api/send-devis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({artisanNom,artisanEmail,clientEmail:ce,subject:'Devis '+d.numero+' - '+artisanNom,html,attachments:devisAttachments})});
     const res=await r.json();
     if(!r.ok)throw new Error(res.error||'Erreur envoi');
 
@@ -2480,6 +2489,158 @@ function fermerModalFinChantier(){
   _finChantierDevisId = null;
 }
 
+function genererPdfDevisBase64(d) {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const entNom    = d.entreprise?.nom    || ls('ent-nom')    || '';
+  const entSiret  = d.entreprise?.siret  || ls('ent-siret')  || '';
+  const entTel    = d.entreprise?.tel    || ls('ent-tel')    || '';
+  const entAdr    = d.entreprise?.adresse|| ls('ent-adr')    || '';
+  const entEmail  = d.entreprise?.email  || ls('ent-email')  || '';
+  const tva       = d.tva_pct            || ls('t-tva')      || '10';
+  const acc = [255, 69, 0];
+  const M = 14, W = 210, CW = W - M * 2;
+  let y = M;
+
+  // En-tête entreprise
+  pdf.setFontSize(14); pdf.setFont('helvetica','bold'); pdf.setTextColor(0,0,0);
+  pdf.text(entNom, M, y + 5); y += 9;
+  pdf.setFontSize(8.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(100,100,100);
+  if(entAdr)   { pdf.text(entAdr,   M, y); y += 4; }
+  if(entTel)   { pdf.text('Tél : '+entTel, M, y); y += 4; }
+  if(entEmail) { pdf.text(entEmail,  M, y); y += 4; }
+  if(entSiret) { pdf.text('SIRET : '+entSiret, M, y); y += 4; }
+
+  // DEVIS titre (droite)
+  pdf.setFontSize(22); pdf.setFont('helvetica','bold'); pdf.setTextColor(...acc);
+  pdf.text('DEVIS', W - M, M + 6, {align:'right'});
+  pdf.setFontSize(10); pdf.setTextColor(0,0,0);
+  pdf.text('N° ' + (d.numero||''), W - M, M + 12, {align:'right'});
+  pdf.setFontSize(8.5); pdf.setTextColor(100,100,100);
+  pdf.text('Date : ' + (d.date||'') + '   Validité : ' + (d.validite||''), W - M, M + 17, {align:'right'});
+
+  // Bloc client
+  const cx = W - M - 78, cw = 78;
+  let cy = M + 21;
+  pdf.setDrawColor(220,220,220); pdf.setFillColor(248,248,248);
+  pdf.roundedRect(cx, cy - 3, cw, 28, 2, 2, 'FD');
+  pdf.setFontSize(7.5); pdf.setTextColor(130,130,130); pdf.setFont('helvetica','bold');
+  pdf.text('CLIENT', cx + cw - 3, cy + 1, {align:'right'}); cy += 5;
+  pdf.setFontSize(9.5); pdf.setTextColor(0,0,0);
+  pdf.text(d.client?.nom||'—', cx + cw - 3, cy, {align:'right'}); cy += 4.5;
+  pdf.setFontSize(8); pdf.setFont('helvetica','normal'); pdf.setTextColor(100,100,100);
+  if(d.client?.email) { pdf.text(d.client.email, cx+cw-3, cy, {align:'right'}); cy+=3.5; }
+  if(d.client?.tel)   { pdf.text(d.client.tel,   cx+cw-3, cy, {align:'right'}); cy+=3.5; }
+  if(d.chantier?.adresse) pdf.text(d.chantier.adresse, cx+cw-3, cy, {align:'right'});
+
+  // Infos chantier
+  y = Math.max(y + 4, M + 54);
+  pdf.setFillColor(...acc); pdf.rect(M, y, 3, 7, 'F');
+  pdf.setFontSize(8.5); pdf.setTextColor(80,80,80); pdf.setFont('helvetica','normal');
+  const chantierInfo = [d.chantier?.nature, d.chantier?.adresse, d.chantier?.delai ? 'Délai : '+d.chantier.delai : ''].filter(Boolean).join('   |   ');
+  pdf.text(chantierInfo, M+5, y+4.5);
+  y += 12;
+
+  // En-tête tableau
+  pdf.setFillColor(...acc); pdf.rect(M, y, CW, 7.5, 'F');
+  pdf.setFontSize(8.5); pdf.setFont('helvetica','bold'); pdf.setTextColor(255,255,255);
+  pdf.text('Désignation', M+2, y+5);
+  pdf.text('Qté',   M+98,  y+5, {align:'center'});
+  pdf.text('Unité', M+114, y+5, {align:'center'});
+  pdf.text('PU HT', M+142, y+5, {align:'right'});
+  pdf.text('Total HT', M+CW-1, y+5, {align:'right'});
+  y += 9;
+
+  const checkPage = (needed) => { if(y + needed > 278) { pdf.addPage(); y = M; } };
+
+  (d.sections||[]).forEach(s => {
+    checkPage(8);
+    pdf.setFillColor(245,245,245); pdf.rect(M, y-1, CW, 6.5, 'F');
+    pdf.setFontSize(8); pdf.setFont('helvetica','bold'); pdf.setTextColor(...acc);
+    pdf.text(stripEmoji(s.metier||'').toUpperCase(), M+2, y+4);
+    y += 8;
+
+    (s.postes||[]).forEach(p => {
+      const titLines = pdf.splitTextToSize((p.id||'')+'. '+(p.titre||''), 86);
+      const descLines = p.description ? pdf.splitTextToSize(p.description, 86) : [];
+      const rowH = Math.max(9, titLines.length*4 + descLines.length*3.5 + 3);
+      checkPage(rowH);
+
+      pdf.setFontSize(9); pdf.setFont('helvetica','bold'); pdf.setTextColor(0,0,0);
+      titLines.forEach((l,i) => pdf.text(l, M+2, y+4+i*4));
+      if(descLines.length){
+        pdf.setFontSize(7.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(120,120,120);
+        descLines.forEach((l,i) => pdf.text(l, M+2, y+4+titLines.length*4+i*3.5));
+      }
+      pdf.setFontSize(8.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(0,0,0);
+      pdf.text(String(p.qte||''),     M+98,  y+4, {align:'center'});
+      pdf.text(String(p.unite||''),   M+114, y+4, {align:'center'});
+      pdf.text(fmt(p.pu_ht)+' €',     M+142, y+4, {align:'right'});
+      pdf.setFont('helvetica','bold');
+      pdf.text(fmt(p.total_ht)+' €',  M+CW-1,y+4, {align:'right'});
+      pdf.setDrawColor(230,230,230); pdf.line(M, y+rowH, M+CW, y+rowH);
+      y += rowH;
+    });
+  });
+
+  y += 6;
+
+  // Totaux
+  checkPage(38);
+  const tW=72, tX=M+CW-tW;
+  pdf.setDrawColor(220,220,220); pdf.setFillColor(248,248,248);
+  pdf.roundedRect(tX, y, tW, 28, 2, 2, 'FD');
+  pdf.setFontSize(9); pdf.setFont('helvetica','normal'); pdf.setTextColor(0,0,0);
+  pdf.text('Total HT', tX+3, y+7);
+  pdf.text(fmt(d.total_ht)+' €', tX+tW-3, y+7, {align:'right'});
+  const mTva = parseFloat(d.total_ht||0) * parseFloat(tva) / 100;
+  pdf.text('TVA '+tva+'%', tX+3, y+13);
+  pdf.text(fmt(mTva)+' €', tX+tW-3, y+13, {align:'right'});
+  pdf.setDrawColor(210,210,210); pdf.line(tX+3, y+16.5, tX+tW-3, y+16.5);
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(11); pdf.setTextColor(...acc);
+  pdf.text('TOTAL TTC', tX+3, y+24);
+  pdf.text(fmt(d.total_ttc)+' €', tX+tW-3, y+24, {align:'right'});
+  if(d.acompte_pct > 0){
+    pdf.setFontSize(8.5); pdf.setTextColor(0,0,0);
+    pdf.text('Acompte '+d.acompte_pct+'%', tX+3, y+30);
+    pdf.text(fmt(d.acompte_montant)+' €', tX+tW-3, y+30, {align:'right'});
+  }
+  y += 34;
+
+  // Observations
+  if(d.observations){
+    checkPage(16);
+    pdf.setFontSize(8); pdf.setFont('helvetica','bold'); pdf.setTextColor(0,0,0);
+    pdf.text('OBSERVATIONS', M, y); y += 4.5;
+    pdf.setFont('helvetica','normal'); pdf.setTextColor(80,80,80);
+    const obsLines = pdf.splitTextToSize(d.observations, CW);
+    obsLines.forEach(l => { checkPage(4); pdf.text(l, M, y); y += 3.5; });
+    y += 4;
+  }
+
+  // Signature BON POUR ACCORD
+  checkPage(22);
+  pdf.setDrawColor(200,200,200); pdf.rect(M, y, CW/2-4, 18, 'S');
+  pdf.setFontSize(7.5); pdf.setTextColor(120,120,120);
+  pdf.text('Signature et mention "Bon pour accord"', M+2, y+4);
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(8); pdf.setTextColor(0,0,0);
+  pdf.text('Date : ___/___/______', M + CW/2 + 6, y+8);
+  y += 24;
+
+  // Conditions + mentions
+  const conditions = d.conditions || '';
+  const mentions = d.mentions || ls('mentions') || ('TVA '+tva+'% applicable');
+  checkPage(10);
+  pdf.setFontSize(7.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(150,150,150);
+  [conditions, mentions].filter(Boolean).forEach(bloc => {
+    const lines = pdf.splitTextToSize(bloc, CW);
+    lines.forEach(l => { checkPage(4); pdf.text(l, M, y); y += 3.5; });
+    y += 2;
+  });
+
+  return pdf.output('datauristring').split(',')[1];
+}
+
 function genererPdfFactureBase64(d) {
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -2553,7 +2714,7 @@ function genererPdfFactureBase64(d) {
     checkPage(8);
     pdf.setFillColor(245,245,245); pdf.rect(M, y-1, CW, 6.5, 'F');
     pdf.setFontSize(8); pdf.setFont('helvetica','bold'); pdf.setTextColor(...acc);
-    pdf.text(((s.emoji||'')+' '+(s.metier||'')).trim().toUpperCase(), M+2, y+4);
+    pdf.text(stripEmoji(s.metier||'').toUpperCase(), M+2, y+4);
     y += 8;
 
     (s.postes||[]).forEach(p => {
