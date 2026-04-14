@@ -285,7 +285,7 @@ select option{background:var(--card);color:var(--text);}
 <div id="tab-devis" class="content active">
 
   <div class="card">
-    <div class="card-header ch-orange">📋 Maître d'Ouvrage &amp; Chantier</div>
+    <div class="card-header ch-orange" id="chantier-card-header">📋 Maître d'Ouvrage &amp; Chantier</div>
     <div class="card-body">
       <!-- RECHERCHE CLIENT EXISTANT -->
       <div class="form-group" style="position:relative;">
@@ -314,14 +314,21 @@ select option{background:var(--card);color:var(--text);}
         <div><label>Email Client</label><input type="email" id="client-email" placeholder="client@email.fr" oninput="majDevisTempsReel()"></div>
         <div><label>Téléphone Client</label><input type="tel" id="client-tel" placeholder="06 12 34 56 78" oninput="majDevisTempsReel()"></div>
       </div>
-      <div class="form-group"><label>Adresse du Chantier</label><input type="text" id="chantier-adresse" placeholder="12 rue des Lilas, 75011 Paris" oninput="majDevisTempsReel()"></div>
-      <div class="form-row">
-        <div><label>Nature des Travaux</label><input type="text" id="nature-travaux" placeholder="Rénovation salle de bain" oninput="majDevisTempsReel()"></div>
-        <div><label>Délai d'Exécution</label><input type="text" id="delai-execution" placeholder="3 semaines" oninput="majDevisTempsReel()"></div>
+      <div class="form-group" id="row-chantier-adresse"><label id="lbl-chantier-adresse">Adresse du Chantier</label><input type="text" id="chantier-adresse" placeholder="12 rue des Lilas, 75011 Paris" oninput="majDevisTempsReel()"></div>
+      <!-- Champs AUTO — masqués par défaut -->
+      <div class="form-row" id="row-auto" style="display:none;">
+        <div><label>Immatriculation</label><input type="text" id="immatriculation" placeholder="AB-123-CD" oninput="majDevisTempsReel()"></div>
+        <div><label>Marque / Modèle</label><input type="text" id="marque-modele" placeholder="Peugeot 308" oninput="majDevisTempsReel()"></div>
+      </div>
+      <div class="form-group" id="row-auto2" style="display:none;"><label>Kilométrage</label><input type="number" id="kilometrage" placeholder="85000" oninput="majDevisTempsReel()"></div>
+      <div class="form-row" id="row-nature-delai">
+        <div id="col-nature"><label id="lbl-nature">Nature des Travaux</label><input type="text" id="nature-travaux" placeholder="Rénovation salle de bain" oninput="majDevisTempsReel()"></div>
+        <div id="col-delai"><label>Délai d'Exécution</label><input type="text" id="delai-execution" placeholder="3 semaines" oninput="majDevisTempsReel()"></div>
+        <div id="col-nombre-personnes" style="display:none;"><label>Nombre de personnes</label><input type="number" id="nombre-personnes" placeholder="80" min="1" oninput="majDevisTempsReel()"></div>
       </div>
       <div class="form-row-3">
-        <div>
-          <label>Date de début des travaux</label>
+        <div id="col-date-debut">
+          <label id="lbl-date-debut">Date de début des travaux</label>
           <input type="date" id="date-debut" oninput="majDevisTempsReel()">
         </div>
         <div>
@@ -808,6 +815,7 @@ function selMetier(el, key) {
   el.classList.add('sel');
   metier = el.dataset.m;
   metierCourant = key;
+  adapterFormulaire(getFamille(key));
   if(!document.getElementById('nature-travaux').value) document.getElementById('nature-travaux').value = metier;
   afficherPrestations(key);
 }
@@ -858,14 +866,64 @@ function onAcompteChange() {
   if(sel !== 'custom') majDevisTempsReel();
 }
 
-function getMentionTVA(tvaPct) {
-  const map = {
-    '10':  'TVA à taux réduit 10% applicable — Art. 279 du CGI',
-    '20':  'TVA à taux normal 20% applicable',
-    '5.5': 'TVA à taux réduit 5,5% applicable — Art. 278-0 bis du CGI',
-    '0':   'TVA non applicable — Art. 293 B du CGI'
-  };
-  return map[String(tvaPct)] || `TVA ${tvaPct}% applicable`;
+function getFamille(key) {
+  return FAMILLES_METIERS[key || metierCourant] || 'BTP';
+}
+
+function getMentionTVA(tvaPct, famille) {
+  const f = famille || getFamille(metierCourant);
+  const t = String(tvaPct);
+  if(t === '0')   return 'TVA non applicable — Art. 293B du CGI';
+  if(t === '20')  return 'TVA à taux normal 20% applicable';
+  if(t === '5.5') {
+    if(f === 'EVENEMENTIEL') return 'TVA à taux réduit 5,5% applicable sur les denrées alimentaires — Art. 278-0 bis du CGI';
+    return 'TVA à taux réduit 5,5% applicable — Art. 278-0 bis du CGI (travaux d\'amélioration de la performance énergétique)';
+  }
+  if(t === '10') {
+    if(f === 'EVENEMENTIEL') return 'TVA à taux intermédiaire 10% applicable sur les prestations de restauration — Art. 279 du CGI';
+    return 'TVA à taux intermédiaire 10% applicable — Art. 279-0 bis du CGI (travaux de rénovation dans les logements achevés depuis plus de 2 ans)';
+  }
+  return `TVA ${tvaPct}% applicable`;
+}
+
+function adapterFormulaire(famille) {
+  const cfg = CHAMPS_FAMILLE[famille] || CHAMPS_FAMILLE.BTP;
+  // En-tête carte
+  const hdr = document.getElementById('chantier-card-header');
+  if(hdr) hdr.innerHTML = cfg.header;
+  // Champ adresse chantier
+  const rowAdr = document.getElementById('row-chantier-adresse');
+  if(rowAdr) rowAdr.style.display = cfg.showAdresse ? '' : 'none';
+  const lblAdr = document.getElementById('lbl-chantier-adresse');
+  if(lblAdr) lblAdr.textContent = cfg.labelAdresse;
+  const inAdr = document.getElementById('chantier-adresse');
+  if(inAdr) inAdr.placeholder = cfg.placeholderAdresse;
+  // Champ nature
+  const lblNat = document.getElementById('lbl-nature');
+  if(lblNat) lblNat.textContent = cfg.labelNature;
+  const inNat = document.getElementById('nature-travaux');
+  if(inNat) inNat.placeholder = cfg.placeholderNature;
+  // Champ délai
+  const colDelai = document.getElementById('col-delai');
+  if(colDelai) colDelai.style.display = cfg.showDelai ? '' : 'none';
+  // Champ nombre de personnes (EVENT)
+  const colNbP = document.getElementById('col-nombre-personnes');
+  if(colNbP) colNbP.style.display = cfg.showNbPersonnes ? '' : 'none';
+  // Champ date
+  const colDate = document.getElementById('col-date-debut');
+  if(colDate) colDate.style.display = cfg.showDate ? '' : 'none';
+  const lblDate = document.getElementById('lbl-date-debut');
+  if(lblDate) lblDate.textContent = cfg.labelDate;
+  // Champs AUTO
+  const rowAuto = document.getElementById('row-auto');
+  if(rowAuto) rowAuto.style.display = cfg.showAuto ? '' : 'none';
+  const rowAuto2 = document.getElementById('row-auto2');
+  if(rowAuto2) rowAuto2.style.display = cfg.showAuto ? '' : 'none';
+  // Validité par défaut (seulement si vide ou valeur standard)
+  const inVal = document.getElementById('validite-devis');
+  if(inVal && (!inVal.value || inVal.value === '3 mois' || inVal.value === '1 mois')) {
+    inVal.value = cfg.validiteDefaut;
+  }
 }
 
 function buildConditions(acomptePct) {
@@ -1192,6 +1250,87 @@ const UNITES_PAR_DEFAUT = {
     'Ajout rangements intérieurs tiroirs et plateaux':'u',
     'Joint silicone plan de travail / mur':'ml','Nettoyage fin de chantier':'forfait'
   }
+};
+
+// ===== FAMILLES DE MÉTIERS =====
+const FAMILLES_METIERS = {
+  carrelage:'BTP', plomberie:'BTP', electricite:'BTP', peinture:'BTP',
+  maconnerie:'BTP', menuiserie:'BTP', plaquiste:'BTP', charpentier:'BTP',
+  couverture:'BTP', isolation:'BTP', chauffage:'BTP', cuisiniste:'BTP',
+  serrurerie:'BTP', terrassement:'BTP', etancheur:'BTP', metallier:'BTP',
+  technicien_cvc:'BTP', pisciniste:'BTP', paysagiste:'BTP',
+  facade:'BTP', facadier:'BTP', tous:'BTP',
+  traiteur:'EVENEMENTIEL', wedding_planner:'EVENEMENTIEL',
+  dj_sono:'EVENEMENTIEL', decorateur_evenementiel:'EVENEMENTIEL', videaste:'EVENEMENTIEL'
+};
+
+const CGV_FAMILLE = {
+  BTP: "Garantie décennale obligatoire conformément aux articles 1792 et suivants du Code civil. Garantie biennale de bon fonctionnement sur les équipements. Clause de réserve de propriété : les matériaux restent la propriété de l'entreprise jusqu'au paiement intégral. Pénalités de retard : 3x le taux légal. Tout avenant doit faire l'objet d'un devis complémentaire signé.",
+  EVENEMENTIEL: "Acompte non remboursable en cas d'annulation à moins de 30 jours de l'événement. Annulation entre 30 et 60 jours : 50% du montant total dû. Annulation à plus de 60 jours : acompte retenu. Le prestataire décline toute responsabilité en cas de force majeure. Tout service supplémentaire fera l'objet d'un avenant signé.",
+  AUTO: "Autorisation d'intervention donnée par le client sur le véhicule désigné. Le véhicule reste en dépôt jusqu'au règlement intégral de la facture. Les pièces déposées sont tenues à disposition du client pendant 30 jours. Le prestataire décline toute responsabilité pour les objets laissés dans le véhicule. Pénalités de retard de paiement : 3x le taux légal.",
+  SERVICES: "Le client s'engage à assurer l'accès au site à la date convenue. En cas d'annulation à moins de 48h, l'acompte reste acquis au prestataire. Le prestataire est couvert par une assurance RC professionnelle. Pénalités de retard de paiement : 3x le taux légal.",
+  CREATION: "Les droits d'auteur sur les créations restent la propriété du prestataire jusqu'au paiement intégral. Le nombre de révisions incluses est précisé dans le devis. Toute révision supplémentaire sera facturée au tarif horaire en vigueur. Annulation après démarrage des travaux : facturation au prorata du travail effectué."
+};
+
+const CHAMPS_FAMILLE = {
+  BTP: {
+    header: "📋 Maître d'Ouvrage &amp; Chantier",
+    labelNature: "Nature des Travaux", placeholderNature: "Rénovation salle de bain",
+    labelAdresse: "Adresse du Chantier", placeholderAdresse: "12 rue des Lilas, 75011 Paris",
+    labelDate: "Date de début des travaux",
+    showAdresse: true, showDelai: true, showDate: true, showNbPersonnes: false, showAuto: false,
+    validiteDefaut: "3 mois",
+    titrePrestations: "DESCRIPTIF DES OUVRAGES",
+    labelNature2: "Nature des travaux", labelAdresse2: "Adresse du chantier"
+  },
+  EVENEMENTIEL: {
+    header: "📋 Client &amp; Événement",
+    labelNature: "Nature de l'événement", placeholderNature: "Mariage, anniversaire, séminaire…",
+    labelAdresse: "Lieu de l'événement", placeholderAdresse: "Salle des fêtes, château, restaurant…",
+    labelDate: "Date de l'événement",
+    showAdresse: true, showDelai: false, showDate: true, showNbPersonnes: true, showAuto: false,
+    validiteDefaut: "1 mois",
+    titrePrestations: "DESCRIPTIF DES PRESTATIONS",
+    labelNature2: "Nature de l'événement", labelAdresse2: "Lieu"
+  },
+  AUTO: {
+    header: "📋 Client &amp; Véhicule",
+    labelNature: "Nature de l'intervention", placeholderNature: "Vidange, freins, révision…",
+    labelAdresse: "", placeholderAdresse: "",
+    labelDate: "Date de l'intervention",
+    showAdresse: false, showDelai: false, showDate: false, showNbPersonnes: false, showAuto: true,
+    validiteDefaut: "1 mois",
+    titrePrestations: "DESCRIPTIF DES INTERVENTIONS",
+    labelNature2: "Nature de l'intervention", labelAdresse2: ""
+  },
+  SERVICES: {
+    header: "📋 Client &amp; Prestation",
+    labelNature: "Nature de la prestation", placeholderNature: "Nettoyage, déménagement…",
+    labelAdresse: "Adresse d'intervention", placeholderAdresse: "12 rue des Lilas, 75011 Paris",
+    labelDate: "Date de la prestation",
+    showAdresse: true, showDelai: false, showDate: true, showNbPersonnes: false, showAuto: false,
+    validiteDefaut: "1 mois",
+    titrePrestations: "DESCRIPTIF DES PRESTATIONS",
+    labelNature2: "Nature de la prestation", labelAdresse2: "Adresse d'intervention"
+  },
+  CREATION: {
+    header: "📋 Client &amp; Projet",
+    labelNature: "Nature du projet", placeholderNature: "Reportage photo, design graphique…",
+    labelAdresse: "Lieu", placeholderAdresse: "Paris, en distanciel…",
+    labelDate: "Date de la prestation",
+    showAdresse: true, showDelai: false, showDate: true, showNbPersonnes: false, showAuto: false,
+    validiteDefaut: "1 mois",
+    titrePrestations: "DESCRIPTIF DES PRESTATIONS",
+    labelNature2: "Nature du projet", labelAdresse2: "Lieu"
+  }
+};
+
+const VOCAB_FAMILLE = {
+  BTP:          { contexte: "chantier BTP",    mots: "chantier, travaux, ouvrages, maître d'ouvrage" },
+  EVENEMENTIEL: { contexte: "événementiel",     mots: "événement, prestation, client, invités" },
+  AUTO:         { contexte: "garage automobile", mots: "véhicule, intervention, réparation, propriétaire" },
+  SERVICES:     { contexte: "services",          mots: "prestation, mission, site, client" },
+  CREATION:     { contexte: "création / freelance", mots: "projet, livrable, client, révision" }
 };
 
 function getDefaultUnite(key, nom) {
@@ -1700,16 +1839,24 @@ async function genererDevis(){
     }catch(e){ /* silencieux — continue sans préférences */ }
   }
   gMentions=ls('mentions')||''; gDecCompagnie=ls('ent-decennale-compagnie')||''; gDecNumero=ls('ent-decennale-numero')||''; gIban=ls('ent-iban')||''; gBic=ls('ent-bic')||''; gBanque=ls('ent-banque')||''; gTitulaire=ls('ent-titulaire')||'';
+  const famille       = getFamille(metierCourant);
+  const cfgFamille    = CHAMPS_FAMILLE[famille] || CHAMPS_FAMILLE.BTP;
+  const vocabFamille  = VOCAB_FAMILLE[famille]  || VOCAB_FAMILLE.BTP;
+  const cgvFamille    = CGV_FAMILLE[famille]    || CGV_FAMILLE.BTP;
   const clientNom=getClientNomComplet();
   const clientEmail=document.getElementById('client-email').value||'';
   const clientTel=document.getElementById('client-tel').value||'';
   const chantierAdr=document.getElementById('chantier-adresse').value||'';
   const nature=document.getElementById('nature-travaux').value||metier||'';
   const delai=document.getElementById('delai-execution').value||'';
+  const nbPersonnes=document.getElementById('nombre-personnes').value||'';
+  const immatriculation=document.getElementById('immatriculation').value||'';
+  const marqueModele=document.getElementById('marque-modele').value||'';
+  const kilometrage=document.getElementById('kilometrage').value||'';
 
   const dateDebutISO  = document.getElementById('date-debut').value;
   const dateDebutFmt  = dateDebutISO ? formaterDate(dateDebutISO) : '';
-  const validiteDevis = document.getElementById('validite-devis').value.trim() || '3 mois';
+  const validiteDevis = document.getElementById('validite-devis').value.trim() || cfgFamille.validiteDefaut;
   const acomptePct    = getAcomptePct();
 
   document.getElementById('btn-gen').disabled=true;
@@ -1838,9 +1985,18 @@ async function genererDevis(){
 
   showProgress(0,totalPasses,'⚙️ Démarrage de la génération…');
 
+  const mentionsTVA = getMentionTVA(tva, famille);
   const conditionsDevis = acomptePct > 0
     ? `${acomptePct}% à la commande, solde à réception et levée des réserves`
     : 'Solde à réception et levée des réserves';
+
+  // Contexte chantier enrichi selon la famille
+  let chantierContexte = `Nature:${nature}`;
+  if(cfgFamille.showDelai && delai) chantierContexte += `|Délai:${delai}`;
+  if(nbPersonnes) chantierContexte += `|Personnes:${nbPersonnes}`;
+  if(immatriculation) chantierContexte += `|Immatriculation:${immatriculation}`;
+  if(marqueModele) chantierContexte += `|Véhicule:${marqueModele}`;
+  if(kilometrage) chantierContexte += `|Km:${kilometrage}`;
 
   const BIBLIO=`VOCABULAIRE — corrige les erreurs de reconnaissance vocale:
 "grésérum/grey serum/grès sérum/graissera" → Grès cérame
@@ -2034,21 +2190,26 @@ Ordre logique: Maçonnerie → Terrassement / VRD → Plomberie → Chauffage �
 Numérote les postes en continu sur tout le devis.
 
 RÈGLE ANTI-DOUBLON ABSOLUE: Chaque nom de section ne peut apparaître qu'UNE SEULE FOIS.
+${famille !== 'BTP' ? `
+ADAPTE LE VOCABULAIRE à la famille "${famille}" : utilise ${vocabFamille.mots}.
+Les noms de sections doivent refléter les ${vocabFamille.contexte} (ex: "${metier}").
+Ignore les sections BTP non pertinentes (Maçonnerie, Électricité, etc.) sauf si explicitement dictées.` : ''}
 
 Réponds UNIQUEMENT JSON sans backticks:
-{"numero":"${num}","date":"${today}","validite":"${validiteDevis}","entreprise":{"nom":"","siret":"","tel":"","adresse":"","email":""},"client":{"nom":"","email":"","tel":""},"chantier":{"adresse":"","nature":"","delai":""},"sections":[{"metier":"Carrelage / Sols","emoji":"🪨","postes":[{"id":1,"titre":"","description":"","qte":1,"unite":"Forfait","pu_ht":0,"total_ht":0}]}],"total_ht":0,"tva_pct":${tva},"tva_montant":0,"total_ttc":0,"total_lettres":"","mentions":"${gMentions||'TVA '+tva+'% applicable'}","conditions":"${conditionsDevis}"}
+{"numero":"${num}","date":"${today}","validite":"${validiteDevis}","entreprise":{"nom":"","siret":"","tel":"","adresse":"","email":""},"client":{"nom":"","email":"","tel":""},"chantier":{"adresse":"","nature":"","delai":""},"sections":[{"metier":"Designation section","postes":[{"id":1,"titre":"","description":"","qte":1,"unite":"Forfait","pu_ht":0,"total_ht":0}]}],"total_ht":0,"tva_pct":${tva},"tva_montant":0,"total_ttc":0,"total_lettres":"","mentions":"${mentionsTVA}","conditions":"${conditionsDevis}"}
 RÈGLES ABSOLUES: Ne jamais inventer un prix. Utiliser uniquement les prix dictés. Pour l'unité: "m²" surfaces, "ml" linéaires, "h" heures, "Forfait" tout le reste. Ne jamais utiliser "ens".`;
 
-  const structureJSON=`{"numero":"${num}","date":"${today}","validite":"${validiteDevis}","entreprise":{"nom":"${entNom}","siret":"${entSiret}","tel":"${entTel}","adresse":"","email":"${entEmail}"},"client":{"nom":"${clientNom}","email":"${clientEmail}","tel":"${clientTel}"},"chantier":{"adresse":"${chantierAdr}","nature":"${nature}","delai":"${delai}"},"sections":[{"metier":"Carrelage / Sols","emoji":"🪨","postes":[{"id":1,"titre":"","description":"","qte":1,"unite":"Forfait","pu_ht":0,"total_ht":0}]}],"total_ht":0,"tva_pct":${tva},"tva_montant":0,"total_ttc":0,"total_lettres":"","mentions":"${gMentions||'TVA '+tva+'% applicable'}","conditions":"${conditionsDevis}"}`;
+  const structureJSON=`{"numero":"${num}","date":"${today}","validite":"${validiteDevis}","entreprise":{"nom":"${entNom}","siret":"${entSiret}","tel":"${entTel}","adresse":"","email":"${entEmail}"},"client":{"nom":"${clientNom}","email":"${clientEmail}","tel":"${clientTel}"},"chantier":{"adresse":"${chantierAdr}","nature":"${nature}","delai":"${delai}"},"sections":[{"metier":"Designation section","postes":[{"id":1,"titre":"","description":"","qte":1,"unite":"Forfait","pu_ht":0,"total_ht":0}]}],"total_ht":0,"tva_pct":${tva},"tva_montant":0,"total_ttc":0,"total_lettres":"","mentions":"${mentionsTVA}","conditions":"${conditionsDevis}"}`;
 
   try{
     for(let i=0;i<passes.length;i++){
       showProgress(i,totalPasses,`⚙️ Génération passe ${i+1} / ${totalPasses}…`);
       const estDernierePasse=(i===passes.length-1);
-      const promptPasse=`Tu es expert devis BTP artisans français. Génère un JSON de sections de devis.
+      const promptPasse=`Tu es expert devis artisans français, spécialisé en ${vocabFamille.contexte}. Génère un JSON de sections de devis.
+FAMILLE DE MÉTIER: ${famille} — utilise le vocabulaire: ${vocabFamille.mots}
 ENTREPRISE: ${entNom}|SIRET:${entSiret}|Tél:${entTel}|${entAdr}|${entEmail}
 CLIENT: ${clientNom}|${clientEmail}|Tél:${clientTel}
-CHANTIER: ${chantierAdr}|Nature:${nature}|Délai:${delai}
+CONTEXTE: ${chantierAdr}|${chantierContexte}
 TVA: ${tva}% | Numéro: ${num} | Date: ${today}
 ${prixBlock}${_prefsBlock}
 DICTÉE (partie ${i+1}/${passes.length}): ${passes[i]}
@@ -2107,6 +2268,14 @@ RÈGLES ABSOLUES: Ne jamais inventer un prix. Utiliser uniquement les prix dict�
         } else {
           parsed.conditions = 'Solde à réception et levée des réserves';
         }
+        // Données famille et chantier enrichi
+        parsed.famille        = famille;
+        parsed.cgv_famille    = cgvFamille;
+        parsed.mentions       = mentionsTVA;
+        if(nbPersonnes) parsed.chantier.nb_personnes = nbPersonnes;
+        if(immatriculation) parsed.chantier.immatriculation = immatriculation;
+        if(marqueModele)    parsed.chantier.marque_modele   = marqueModele;
+        if(kilometrage)     parsed.chantier.kilometrage     = kilometrage;
 
         devisData=parsed;
         dicteeOriginale = document.getElementById('dictee-text').innerText.trim();
@@ -2191,7 +2360,7 @@ function renderDevis(d){
       return `
         <tr>
           <td colspan="5" style="padding:10px 9px 6px;background:var(--bg3);border-bottom:1px solid var(--border)">
-            <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent)">${s.emoji} ${s.metier}</span>
+            <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent)">${s.metier}</span>
           </td>
         </tr>
         ${rows}
@@ -2225,10 +2394,10 @@ function renderDevis(d){
   <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Date : ${d.date} &nbsp;|&nbsp; Validité : ${d.validite}${dateDebutHtml}</div>
   <div class="hgrid">
     <div class="iblk"><h2>Entreprise</h2><p><strong>${d.entreprise.nom}</strong><br>${d.entreprise.siret?'SIRET : '+d.entreprise.siret+'<br>':''}${d.entreprise.tel?'📞 '+d.entreprise.tel+'<br>':''}${d.entreprise.adresse?'📍 '+d.entreprise.adresse+'<br>':''}${d.entreprise.email?'✉️ '+d.entreprise.email:''}</p></div>
-    <div class="iblk"><h2>Maître d'Ouvrage</h2><p><strong>${d.client.nom}</strong><br>${d.client.email?'✉️ '+d.client.email:''}${clientTelHtml}${d.chantier.adresse?'<br>📍 '+d.chantier.adresse:''}</p></div>
+    <div class="iblk"><h2>Client</h2><p><strong>${d.client.nom}</strong><br>${d.client.email?'✉️ '+d.client.email:''}${clientTelHtml}${d.chantier.adresse?'<br>📍 '+d.chantier.adresse:''}</p></div>
   </div>
-  <div class="iblk" style="margin-bottom:14px"><p><strong>Nature des travaux :</strong> ${d.chantier.nature} &nbsp; <strong>Délai :</strong> ${d.chantier.delai}</p></div>
-  <h2>Descriptif des Ouvrages</h2>
+  <div class="iblk" style="margin-bottom:14px"><p>${(()=>{const cfg=CHAMPS_FAMILLE[d.famille||'BTP']||CHAMPS_FAMILLE.BTP;let txt='<strong>'+cfg.labelNature2+' :</strong> '+(d.chantier.nature||'—');if(cfg.showDelai&&d.chantier.delai) txt+=' &nbsp; <strong>Délai :</strong> '+d.chantier.delai;if(d.chantier.nb_personnes) txt+=' &nbsp; <strong>Personnes :</strong> '+d.chantier.nb_personnes;return txt;})()}</p></div>
+  <h2>${(CHAMPS_FAMILLE[d.famille||'BTP']||CHAMPS_FAMILLE.BTP).titrePrestations}</h2>
   <table><thead><tr><th>Désignation</th><th style="text-align:center">Qté</th><th style="text-align:center">Unité</th><th style="text-align:right">P.U. HT €</th><th style="text-align:right">Total HT €</th><th style="width:32px"></th></tr></thead><tbody>${sectionsHtml}</tbody></table>
   <div style="margin-bottom:14px">
     <div style="background:var(--bg3);border:1.5px dashed var(--border);border-radius:8px;padding:12px 14px;">
@@ -2247,7 +2416,8 @@ function renderDevis(d){
       ${acompteHtml}
     </div>
   </div>
-  <div class="cond-box"><strong>Conditions :</strong> ${d.conditions}<br>${getMentionTVA(d.tva_pct)}${gDecCompagnie ? "<br>🛡️ Assurance décennale : "+gDecCompagnie+(gDecNumero?" — Police n° "+gDecNumero:"") : ""}</div>
+  <div class="cond-box"><strong>Conditions :</strong> ${d.conditions}<br>${getMentionTVA(d.tva_pct, d.famille||getFamille(metierCourant))}${(d.famille||getFamille(metierCourant))==='BTP'&&gDecCompagnie ? "<br>🛡️ Assurance décennale : "+gDecCompagnie+(gDecNumero?" — Police n° "+gDecNumero:"") : ""}</div>
+  ${d.cgv_famille ? '<div class="cond-box" style="margin-top:8px;font-size:11px;color:var(--text2)">'+d.cgv_famille+'</div>' : ''}
   ${gIban ? '<div class="cond-box" style="margin-top:8px">🏦 <strong>Coordonnées bancaires</strong><br>'+(gBanque?gBanque+"<br>":"")+"IBAN : "+gIban+(gBic?" — BIC : "+gBic:"")+(gTitulaire?"<br>Titulaire : "+gTitulaire:"")+"</div>" : ""}
   <div class="validite-txt">Bon pour accord : _________________ &nbsp; Date : _________________</div>`;
 }
@@ -2912,13 +3082,19 @@ function genererPdfDevisBase64(d) {
   pdf.text('Date : ___/___/______', M + CW/2 + 6, y+8);
   y += 24;
 
-  // Conditions + mentions
+  // Conditions + mentions légales + CGV famille
   const conditions = d.conditions || '';
-  const mentions = d.mentions || ls('mentions') || ('TVA '+tva+'% applicable');
+  const mentions   = d.mentions   || getMentionTVA(tva, d.famille) || ('TVA '+tva+'% applicable');
+  const cgvFam     = d.cgv_famille || CGV_FAMILLE[d.famille||'BTP'] || CGV_FAMILLE.BTP;
+  // Assurance décennale (BTP seulement)
+  const famille = d.famille || 'BTP';
+  const decLine = (famille === 'BTP' && d.decennale_compagnie)
+    ? 'Assurance décennale : '+d.decennale_compagnie+(d.decennale_numero?' — Police n° '+d.decennale_numero:'')
+    : '';
   checkPage(10);
   pdf.setFontSize(7.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(150,150,150);
-  [conditions, mentions].filter(Boolean).forEach(bloc => {
-    const lines = pdf.splitTextToSize(bloc, CW);
+  [conditions, mentions, decLine, cgvFam].filter(Boolean).forEach(bloc => {
+    const lines = pdf.splitTextToSize(stripEmoji(bloc), CW);
     lines.forEach(l => { checkPage(4); pdf.text(l, M, y); y += 3.5; });
     y += 2;
   });
@@ -3059,13 +3235,14 @@ function genererPdfFactureBase64(d) {
     y += 4;
   }
 
-  // Mentions légales
-  const mentions = d.mentions || ls('mentions') || ('TVA '+tva+'% applicable');
-  const cgv = `Clause de réserve de propriété : les marchandises restent propriété du vendeur jusqu'au paiement intégral. Pénalité de retard : 3× taux légal. Indemnité forfaitaire : 40 €.`;
+  // Mentions légales + CGV famille
+  const famFact  = d.famille || 'BTP';
+  const mentions = d.mentions || getMentionTVA(tva, famFact) || ('TVA '+tva+'% applicable');
+  const cgv      = d.cgv_famille || CGV_FAMILLE[famFact] || CGV_FAMILLE.BTP;
   checkPage(12);
   pdf.setFontSize(7.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(150,150,150);
   [mentions, cgv].forEach(bloc => {
-    const lines = pdf.splitTextToSize(bloc, CW);
+    const lines = pdf.splitTextToSize(stripEmoji(bloc), CW);
     lines.forEach(l => { checkPage(4); pdf.text(l, M, y); y+=3.5; });
     y+=2;
   });
