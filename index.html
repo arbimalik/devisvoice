@@ -367,6 +367,8 @@ select option{background:var(--card);color:var(--text);}
         <div class="mc" onclick="selMetier(this,'serrurerie')" data-m="Serrurerie / Métallerie">🔒 Serrurier</div>
         <div class="mc" onclick="selMetier(this,'terrassement')" data-m="Terrassement / VRD / Gros œuvre">🚜 Terrassier</div>
         <div class="mc" onclick="selMetier(this,'cuisiniste')" data-m="Cuisine / Agencement">📐 Cuisiniste</div>
+        <div class="mc" onclick="selMetier(this,'technicien_cvc')" data-m="Climatisation / VMC / PAC">❄️ Technicien CVC</div>
+        <div class="mc" onclick="selMetier(this,'metallier')" data-m="Métallerie / Serrurerie fine">⚙️ Métallier</div>
         <div class="mc" onclick="selMetier(this,'pisciniste')" data-m="Piscine / Spa / Bassin">🏊 Pisciniste</div>
         <div class="mc" onclick="selMetier(this,'etancheur')" data-m="Étanchéité / Toiture terrasse">🛡️ Étancheur</div>
         <div class="mc" onclick="selMetier(this,'paysagiste')" data-m="Paysagisme / Espaces verts">🌿 Paysagiste</div>
@@ -883,6 +885,8 @@ const PRESTATIONS = {
   serrurerie: ['Pose porte blindée','Pose serrure multipoints','Remplacement cylindre','Pose portail coulissant','Pose portail battant','Automatisme portail / porte garage','Garde-corps acier / alu','Escalier métallique','Grilles de défense','Pose clôture métal','Soudure / réparation métallerie','Pose boîte aux lettres sécurisée'],
   terrassement: ['Étude géotechnique du sol','Piquetage et bornage terrain','Débroussaillage avant travaux','Démolition existant','Décapage terre végétale','Déblai terrain','Remblai terrain','Nivellement terrain','Compactage sol','Fouille en pleine masse','Fouilles en rigole fondations','Fouille pour piscine','Fouille pour sous-sol','Fouille pour cave','Tranchée réseaux eau','Tranchée réseaux électrique','Tranchée réseaux assainissement','Tranchée réseaux gaz','Pose canalisation eau','Pose canalisation assainissement','Pose regard béton','Terrassement accès véhicule','Terrassement terrasse','Terrassement parking','Création chemin accès','Pose géotextile','Apport grave concassée','Apport sable','Apport tout-venant','Évacuation terres excédentaires','Transport déblais en décharge','Drainage terrain','Pose drain agricole','Création noue drainage','Consolidation talus','Pose enrochements','Gabions soutènement','Mur de soutènement béton','Terrassement piscine','Terrassement jardin en pente','Création plateforme stockage','Décaissement garage','Apport remblai sélectionné','Implantation ouvrage'],
   cuisiniste: ['Visite à domicile / métrés','Plan 3D de conception cuisine','Dépose ancienne cuisine','Évacuation ancienne cuisine en déchetterie','Fourniture et pose meubles bas','Fourniture et pose meubles hauts','Fourniture et pose colonne four / réfrigérateur','Fourniture et pose îlot central','Pose plan de travail stratifié','Pose plan de travail quartz','Pose plan de travail granit','Découpe plan de travail évier / plaque','Fourniture et pose évier inox simple bac','Fourniture et pose évier inox double bac','Fourniture et pose robinetterie','Raccordement plomberie évier','Fourniture et pose crédence carrelage','Fourniture et pose crédence verre','Fourniture et pose crédence inox','Pose plaque de cuisson','Raccordement électrique plaque','Pose four encastrable','Pose hotte aspirante','Pose lave-vaisselle encastrable','Pose réfrigérateur encastrable','Pose micro-ondes encastrable','Fourniture et pose éclairage LED sous meubles','Fourniture et pose spots encastrés','Remplacement façades / relooking cuisine','Remplacement poignées','Ajout rangements intérieurs tiroirs et plateaux','Joint silicone plan de travail / mur','Nettoyage fin de chantier'],
+  technicien_cvc: ['Bilan thermique et étude de faisabilité','Pose climatisation monosplit réversible','Pose climatisation multisplit réversible','Pose climatisation gainable','Pose climatisation cassette plafond','Pose climatisation console sol','Pose système VRV / DRV multi-zones','Pose pompe à chaleur air / air','Pose pompe à chaleur air / eau','Pose pompe à chaleur géothermique','Raccordement liaisons frigorifiques cuivre','Raccordement électrique unité extérieure','Raccordement électrique unité intérieure','Passage gaines et percements','Mise en service et réglage','Récupération fluide frigorigène','Recharge fluide frigorigène','Pose VMC simple flux','Pose VMC double flux','Pose VMC hygro A','Pose VMC hygro B','Remplacement caisson VMC','Pose bouches VMC','Pose réseau gaines aérauliques','Pose CTA centrale de traitement air','Équilibrage réseau aéraulique','Pose récupérateur chaleur sur air extrait','Entretien climatisation contrat annuel','Nettoyage filtres et évaporateur','Nettoyage condenseur unité extérieure','Contrôle étanchéité circuit frigorifique','Dépannage climatisation','Dépannage pompe à chaleur','Dépannage VMC','Remplacement compresseur','Remplacement carte électronique','Remplacement ventilateur','Pose thermostat connecté','Pose régulation programmable','Pose GTB gestion technique bâtiment','Désembouage circuit hydraulique','Traitement eau circuit chauffage','Mise aux normes fluides frigorigènes'],
+  metallier: ['Relevé de cotes et étude sur mesure','Fabrication garde-corps acier sur mesure','Fabrication garde-corps inox sur mesure','Fabrication garde-corps aluminium sur mesure','Fabrication garde-corps verre et métal','Pose garde-corps terrasse','Pose garde-corps balcon','Pose garde-corps escalier intérieur','Pose garde-corps escalier extérieur','Fabrication rampe escalier acier','Fabrication rampe escalier inox','Fabrication escalier droit acier','Fabrication escalier tournant acier','Fabrication escalier hélicoïdal','Fabrication escalier suspendu limon central','Fabrication escalier mixte métal bois','Fabrication escalier mixte métal verre','Pose marches en acier','Pose marches en caillebotis','Fabrication passerelle métallique','Fabrication mezzanine métallique','Fabrication portail acier sur mesure','Fabrication portail aluminium sur mesure','Pose portail coulissant motorisé','Pose portail battant motorisé','Fabrication portillon','Fabrication clôture métallique','Fabrication grille de défense','Fabrication grille occultante','Fabrication porte métallique sur mesure','Fabrication porte coupe-feu','Fabrication rideau métallique','Fabrication verrière intérieure','Fabrication verrière extérieure','Fabrication pergola métal','Fabrication carport acier','Fabrication auvent métallique','Fabrication structure métallique charpente','Fabrication main courante','Fabrication trappe de visite métallique','Soudure réparation ouvrage existant','Thermolaquage finition','Galvanisation traitement anticorrosion','Traitement peinture époxy','Pose fixations et scellements'],
   pisciniste: ['Visite technique et étude de projet','Terrassement piscine','Évacuation terres et remblai','Dalle béton armé fond de piscine','Structure bloc à bancher béton','Structure coque polyester','Structure piscine bois','Ferraillage et coulage béton','Réseaux hydrauliques PVC pression','Pose skimmer','Pose bonde de fond','Pose buses de refoulement','Pose prise balai','Pose trop-plein','Pose projecteur LED immergé','Local technique / coffret filtration','Pose pompe de filtration','Pose filtre à sable','Pose filtre à diatomées','Pose filtre à cartouche','Pose électrolyseur au sel','Pose régulateur pH automatique','Pose chlorinateur automatique','Pose pompe à chaleur piscine','Pose chauffage solaire piscine','Pose résistance électrique','Pose revêtement liner PVC','Pose membrane armée PVC','Pose carrelage piscine','Pose mosaïque piscine','Pose enduit piscine','Pose escalier piscine béton','Pose escalier piscine inox','Pose margelles pierre naturelle','Pose margelles béton','Pose margelles composite','Pose plage béton','Pose plage carrelage','Pose plage bois exotique','Pose plage composite','Volet immergé motorisé','Volet hors-sol solaire','Pose bâche à barres sécurité','Pose alarme piscine NF P90-308','Pose barrière sécurité piscine','Pose abri piscine bas','Pose abri piscine haut','Pose robot nettoyeur automatique','Pose nage à contre-courant','Pose balnéo jets massage','Pose éclairage LED RGB immergé','Pose domotique piscine','Remplacement liner','Remplacement membrane armée','Remplacement skimmer','Remplacement pompe','Remplacement filtre','Remplacement électrolyseur','Recherche de fuite par caméra','Recherche de fuite ultrasonique','Réparation fuite structure','Réparation fissure bassin','Réfection joints carrelage piscine','Rénovation margelles et plages','Rénovation complète bassin','Hivernage piscine','Remise en route piscine printemps','Analyse et traitement eau','Entretien saisonnier contrat','Nettoyage bassin haute pression','Déclaration préalable de travaux'],
   etancheur: ['Diagnostic étanchéité / recherche de fuite','Dépose ancien complexe étanchéité','Nettoyage et préparation support','Ragréage support avant étanchéité','Pose pare-vapeur','Pose isolant thermique toiture chaude','Pose isolant thermique toiture froide inversée','Étanchéité bicouche bitume soudé','Étanchéité monocouche bitume','Étanchéité membrane EPDM','Étanchéité membrane PVC','Système étanchéité liquide SEL résine','Étanchéité asphalte coulé','Relevés d\'étanchéité sur acrotères','Relevés d\'étanchéité sur cheminée','Relevés d\'étanchéité sur ventilation','Traitement angles et points singuliers','Pose costières et sorties de toit','Pose évacuation eaux pluviales','Pose trop-plein sécurité','Protection lourde gravier','Protection dalles sur plots','Protection béton désactivé','Toiture terrasse végétalisée extensive','Toiture terrasse végétalisée intensive','Étanchéité balcon sous carrelage','Étanchéité terrasse sous carrelage','Étanchéité terrasse bois sur membrane','Étanchéité façade enduit hydrofuge','Étanchéité murs enterrés cuvelage','Étanchéité cave et sous-sol','Étanchéité parking enterré','Étanchéité piscine béton cuvelage','Étanchéité bassin ornement','Injection résine anti-infiltration','Traitement fissures actives','Traitement fissures passives','Réparation ponctuelle membrane','Entretien préventif toiture terrasse','Mise en conformité DTU 43.1'],
   tous: ['Protection et installation chantier','Dépose générale','Démolition cloisons','Gros œuvre / maçonnerie','Plomberie / sanitaire','Électricité courants forts','Isolation','Plâtrerie / cloisons','Carrelage / sols','Peinture / finitions','Menuiserie intérieure','Menuiserie extérieure','Chauffage / VMC','Nettoyage fin de chantier','Levée des réserves'],
@@ -892,6 +896,59 @@ const PRESTATIONS = {
 let prestationsActives = {};
 
 const UNITES_PAR_DEFAUT = {
+  technicien_cvc: {
+    'Bilan thermique et étude de faisabilité':'forfait',
+    'Pose climatisation monosplit réversible':'u','Pose climatisation multisplit réversible':'u',
+    'Pose climatisation gainable':'u','Pose climatisation cassette plafond':'u',
+    'Pose climatisation console sol':'u','Pose système VRV / DRV multi-zones':'forfait',
+    'Pose pompe à chaleur air / air':'u','Pose pompe à chaleur air / eau':'u',
+    'Pose pompe à chaleur géothermique':'forfait',
+    'Raccordement liaisons frigorifiques cuivre':'ml',
+    'Raccordement électrique unité extérieure':'forfait',
+    'Raccordement électrique unité intérieure':'forfait',
+    'Passage gaines et percements':'forfait','Mise en service et réglage':'forfait',
+    'Récupération fluide frigorigène':'forfait','Recharge fluide frigorigène':'forfait',
+    'Pose VMC simple flux':'u','Pose VMC double flux':'u',
+    'Pose VMC hygro A':'u','Pose VMC hygro B':'u','Remplacement caisson VMC':'u',
+    'Pose bouches VMC':'u','Pose réseau gaines aérauliques':'ml',
+    'Pose CTA centrale de traitement air':'u','Équilibrage réseau aéraulique':'forfait',
+    'Pose récupérateur chaleur sur air extrait':'u',
+    'Entretien climatisation contrat annuel':'forfait',
+    'Nettoyage filtres et évaporateur':'h','Nettoyage condenseur unité extérieure':'h',
+    'Contrôle étanchéité circuit frigorifique':'h',
+    'Dépannage climatisation':'h','Dépannage pompe à chaleur':'h','Dépannage VMC':'h',
+    'Remplacement compresseur':'u','Remplacement carte électronique':'u',
+    'Remplacement ventilateur':'u','Pose thermostat connecté':'u',
+    'Pose régulation programmable':'u','Pose GTB gestion technique bâtiment':'forfait',
+    'Désembouage circuit hydraulique':'forfait','Traitement eau circuit chauffage':'forfait',
+    'Mise aux normes fluides frigorigènes':'forfait'
+  },
+  metallier: {
+    'Relevé de cotes et étude sur mesure':'forfait',
+    'Fabrication garde-corps acier sur mesure':'ml','Fabrication garde-corps inox sur mesure':'ml',
+    'Fabrication garde-corps aluminium sur mesure':'ml','Fabrication garde-corps verre et métal':'ml',
+    'Pose garde-corps terrasse':'ml','Pose garde-corps balcon':'ml',
+    'Pose garde-corps escalier intérieur':'ml','Pose garde-corps escalier extérieur':'ml',
+    'Fabrication rampe escalier acier':'ml','Fabrication rampe escalier inox':'ml',
+    'Fabrication escalier droit acier':'forfait','Fabrication escalier tournant acier':'forfait',
+    'Fabrication escalier hélicoïdal':'forfait','Fabrication escalier suspendu limon central':'forfait',
+    'Fabrication escalier mixte métal bois':'forfait','Fabrication escalier mixte métal verre':'forfait',
+    'Pose marches en acier':'u','Pose marches en caillebotis':'u',
+    'Fabrication passerelle métallique':'forfait','Fabrication mezzanine métallique':'forfait',
+    'Fabrication portail acier sur mesure':'u','Fabrication portail aluminium sur mesure':'u',
+    'Pose portail coulissant motorisé':'u','Pose portail battant motorisé':'u',
+    'Fabrication portillon':'u','Fabrication clôture métallique':'ml',
+    'Fabrication grille de défense':'m²','Fabrication grille occultante':'m²',
+    'Fabrication porte métallique sur mesure':'u','Fabrication porte coupe-feu':'u',
+    'Fabrication rideau métallique':'u',
+    'Fabrication verrière intérieure':'m²','Fabrication verrière extérieure':'m²',
+    'Fabrication pergola métal':'m²','Fabrication carport acier':'m²',
+    'Fabrication auvent métallique':'m²','Fabrication structure métallique charpente':'forfait',
+    'Fabrication main courante':'ml','Fabrication trappe de visite métallique':'u',
+    'Soudure réparation ouvrage existant':'h',
+    'Thermolaquage finition':'forfait','Galvanisation traitement anticorrosion':'forfait',
+    'Traitement peinture époxy':'m²','Pose fixations et scellements':'forfait'
+  },
   pisciniste: {
     'Visite technique et étude de projet':'forfait','Terrassement piscine':'forfait',
     'Évacuation terres et remblai':'forfait','Dalle béton armé fond de piscine':'forfait',
