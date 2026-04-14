@@ -367,6 +367,10 @@ select option{background:var(--card);color:var(--text);}
         <div class="mc" onclick="selMetier(this,'serrurerie')" data-m="Serrurerie / Métallerie">Serrurier</div>
         <div class="mc" onclick="selMetier(this,'terrassement')" data-m="Terrassement / VRD / Gros œuvre">Terrassier</div>
         <div class="mc" onclick="selMetier(this,'cuisiniste')" data-m="Cuisine / Agencement">Cuisiniste</div>
+        <div class="mc" onclick="selMetier(this,'traiteur')" data-m="Traiteur / Réception">Traiteur</div>
+        <div class="mc" onclick="selMetier(this,'wedding_planner')" data-m="Wedding Planner / Organisation événements">Wedding Planner</div>
+        <div class="mc" onclick="selMetier(this,'dj_sono')" data-m="DJ / Sonorisation / Éclairage">DJ / Sono</div>
+        <div class="mc" onclick="selMetier(this,'decorateur_evenementiel')" data-m="Décoration événementielle / Florale">Décorateur événementiel</div>
         <div class="mc" onclick="selMetier(this,'technicien_cvc')" data-m="Climatisation / VMC / PAC">Technicien CVC</div>
         <div class="mc" onclick="selMetier(this,'metallier')" data-m="Métallerie / Serrurerie fine">Métallier</div>
         <div class="mc" onclick="selMetier(this,'pisciniste')" data-m="Piscine / Spa / Bassin">Pisciniste</div>
@@ -885,6 +889,10 @@ const PRESTATIONS = {
   serrurerie: ['Pose porte blindée','Pose serrure multipoints','Remplacement cylindre','Pose portail coulissant','Pose portail battant','Automatisme portail / porte garage','Garde-corps acier / alu','Escalier métallique','Grilles de défense','Pose clôture métal','Soudure / réparation métallerie','Pose boîte aux lettres sécurisée'],
   terrassement: ['Étude géotechnique du sol','Piquetage et bornage terrain','Débroussaillage avant travaux','Démolition existant','Décapage terre végétale','Déblai terrain','Remblai terrain','Nivellement terrain','Compactage sol','Fouille en pleine masse','Fouilles en rigole fondations','Fouille pour piscine','Fouille pour sous-sol','Fouille pour cave','Tranchée réseaux eau','Tranchée réseaux électrique','Tranchée réseaux assainissement','Tranchée réseaux gaz','Pose canalisation eau','Pose canalisation assainissement','Pose regard béton','Terrassement accès véhicule','Terrassement terrasse','Terrassement parking','Création chemin accès','Pose géotextile','Apport grave concassée','Apport sable','Apport tout-venant','Évacuation terres excédentaires','Transport déblais en décharge','Drainage terrain','Pose drain agricole','Création noue drainage','Consolidation talus','Pose enrochements','Gabions soutènement','Mur de soutènement béton','Terrassement piscine','Terrassement jardin en pente','Création plateforme stockage','Décaissement garage','Apport remblai sélectionné','Implantation ouvrage'],
   cuisiniste: ['Visite à domicile / métrés','Plan 3D de conception cuisine','Dépose ancienne cuisine','Évacuation ancienne cuisine en déchetterie','Fourniture et pose meubles bas','Fourniture et pose meubles hauts','Fourniture et pose colonne four / réfrigérateur','Fourniture et pose îlot central','Pose plan de travail stratifié','Pose plan de travail quartz','Pose plan de travail granit','Découpe plan de travail évier / plaque','Fourniture et pose évier inox simple bac','Fourniture et pose évier inox double bac','Fourniture et pose robinetterie','Raccordement plomberie évier','Fourniture et pose crédence carrelage','Fourniture et pose crédence verre','Fourniture et pose crédence inox','Pose plaque de cuisson','Raccordement électrique plaque','Pose four encastrable','Pose hotte aspirante','Pose lave-vaisselle encastrable','Pose réfrigérateur encastrable','Pose micro-ondes encastrable','Fourniture et pose éclairage LED sous meubles','Fourniture et pose spots encastrés','Remplacement façades / relooking cuisine','Remplacement poignées','Ajout rangements intérieurs tiroirs et plateaux','Joint silicone plan de travail / mur','Nettoyage fin de chantier'],
+  traiteur: ['Consultation et élaboration du menu','Dégustation avant événement','Cocktail apéritif dinatoire','Cocktail vin d\'honneur','Buffet froid','Buffet chaud','Buffet mixte chaud et froid','Repas assis service à l\'assiette','Repas assis service à la française','Brunch','Petit déjeuner professionnel','Plateau repas livré','Barbecue','Plancha','Pièce montée sur mesure','Gâteau de mariage','Desserts et mignardises','Bar à fromages','Bar à desserts','Food truck sur place','Menu enfants','Menu végétarien','Menu végétalien','Menu sans gluten','Animation culinaire live cooking','Chef à domicile','Personnel de service maître d\'hôtel','Personnel de service serveurs','Personnel de service cuisinier sur place','Vaisselle et verrerie','Mobilier tables et chaises','Nappes et linge de table','Location matériel réception','Livraison et installation buffet','Débarrassage et nettoyage après','Droit de bouchon','Boissons softs et eaux','Bar à cocktails avec alcools','Mise en place décoration table'],
+  wedding_planner: ['Première consultation et définition du projet','Formule coordination jour J uniquement','Formule organisation partielle','Formule organisation complète clé en main','Établissement du budget prévisionnel','Recherche et sélection du lieu de réception','Visite des lieux','Recherche et sélection des prestataires','Négociation des contrats prestataires','Planification du rétro-planning','Coordination cérémonie civile','Coordination cérémonie religieuse','Coordination cérémonie laïque','Officiant cérémonie laïque','Création du livret de cérémonie','Mise en place décoration jour J','Coordination des prestataires jour J','Gestion du planning heure par heure','Accueil et placement des invités','Gestion des imprévus jour J','Création et envoi des faire-part','Gestion des confirmations invités','Organisation voyage de noces','Accompagnement choix tenue mariés','Coordination coiffeur maquilleur','Consulting et conseils à la carte','Répétition de cérémonie la veille','Débrief et remerciements après mariage'],
+  dj_sono: ['Consultation et préparation musicale','Animation DJ mariage','Animation DJ anniversaire','Animation DJ soirée entreprise','Animation DJ concert privé','Animation DJ cérémonie laïque','Sonorisation cérémonie extérieure','Sonorisation salle de réception','Sonorisation scène concert','Sono légère cocktail et vin d\'honneur','Sono complète soirée dansante','Système line array professionnel','Micro HF chant ou discours','Console de mixage professionnelle','Éclairage festif LED','Éclairage architectural','Jeux de lumière scénique','Machine à fumée ou brouillard','Stroboscope','Feux froids sur mesure','Confettis canon','Boule à facettes','Écran LED et mapping vidéo','Projection personnalisée','Photobooth','Prestation maître de cérémonie','Animation jeux et quiz interactifs','Déplacement et installation','Dépose et récupération matériel'],
+  decorateur_evenementiel: ['Consultation et moodboard','Concept décoration sur mesure','Plan de table et disposition salle','Décoration florale cérémonie','Décoration florale salle réception','Bouquet de mariée','Boutonnières et corsages','Centres de table fleuris','Arche florale','Allée de cérémonie décorée','Décoration chaises et bancs','Backdrop photo personnalisé','Signalétique et plan de table','Chemin de table','Bougies et photophores','Lanternes et guirlandes','Ballons et arches de ballons','Décoration lumineuse LED','Lettres géantes lumineuses','Nappes et housses de chaises','Vaisselle et verrerie déco','Location mobilier vintage','Location mobilier lounge','Location tente ou chapiteau','Installation et mise en place','Débarrassage et reprise matériel','Décoration thématique sur mesure','Décoration entreprise et séminaire'],
   technicien_cvc: ['Bilan thermique et étude de faisabilité','Pose climatisation monosplit réversible','Pose climatisation multisplit réversible','Pose climatisation gainable','Pose climatisation cassette plafond','Pose climatisation console sol','Pose système VRV / DRV multi-zones','Pose pompe à chaleur air / air','Pose pompe à chaleur air / eau','Pose pompe à chaleur géothermique','Raccordement liaisons frigorifiques cuivre','Raccordement électrique unité extérieure','Raccordement électrique unité intérieure','Passage gaines et percements','Mise en service et réglage','Récupération fluide frigorigène','Recharge fluide frigorigène','Pose VMC simple flux','Pose VMC double flux','Pose VMC hygro A','Pose VMC hygro B','Remplacement caisson VMC','Pose bouches VMC','Pose réseau gaines aérauliques','Pose CTA centrale de traitement air','Équilibrage réseau aéraulique','Pose récupérateur chaleur sur air extrait','Entretien climatisation contrat annuel','Nettoyage filtres et évaporateur','Nettoyage condenseur unité extérieure','Contrôle étanchéité circuit frigorifique','Dépannage climatisation','Dépannage pompe à chaleur','Dépannage VMC','Remplacement compresseur','Remplacement carte électronique','Remplacement ventilateur','Pose thermostat connecté','Pose régulation programmable','Pose GTB gestion technique bâtiment','Désembouage circuit hydraulique','Traitement eau circuit chauffage','Mise aux normes fluides frigorigènes'],
   metallier: ['Relevé de cotes et étude sur mesure','Fabrication garde-corps acier sur mesure','Fabrication garde-corps inox sur mesure','Fabrication garde-corps aluminium sur mesure','Fabrication garde-corps verre et métal','Pose garde-corps terrasse','Pose garde-corps balcon','Pose garde-corps escalier intérieur','Pose garde-corps escalier extérieur','Fabrication rampe escalier acier','Fabrication rampe escalier inox','Fabrication escalier droit acier','Fabrication escalier tournant acier','Fabrication escalier hélicoïdal','Fabrication escalier suspendu limon central','Fabrication escalier mixte métal bois','Fabrication escalier mixte métal verre','Pose marches en acier','Pose marches en caillebotis','Fabrication passerelle métallique','Fabrication mezzanine métallique','Fabrication portail acier sur mesure','Fabrication portail aluminium sur mesure','Pose portail coulissant motorisé','Pose portail battant motorisé','Fabrication portillon','Fabrication clôture métallique','Fabrication grille de défense','Fabrication grille occultante','Fabrication porte métallique sur mesure','Fabrication porte coupe-feu','Fabrication rideau métallique','Fabrication verrière intérieure','Fabrication verrière extérieure','Fabrication pergola métal','Fabrication carport acier','Fabrication auvent métallique','Fabrication structure métallique charpente','Fabrication main courante','Fabrication trappe de visite métallique','Soudure réparation ouvrage existant','Thermolaquage finition','Galvanisation traitement anticorrosion','Traitement peinture époxy','Pose fixations et scellements'],
   pisciniste: ['Visite technique et étude de projet','Terrassement piscine','Évacuation terres et remblai','Dalle béton armé fond de piscine','Structure bloc à bancher béton','Structure coque polyester','Structure piscine bois','Ferraillage et coulage béton','Réseaux hydrauliques PVC pression','Pose skimmer','Pose bonde de fond','Pose buses de refoulement','Pose prise balai','Pose trop-plein','Pose projecteur LED immergé','Local technique / coffret filtration','Pose pompe de filtration','Pose filtre à sable','Pose filtre à diatomées','Pose filtre à cartouche','Pose électrolyseur au sel','Pose régulateur pH automatique','Pose chlorinateur automatique','Pose pompe à chaleur piscine','Pose chauffage solaire piscine','Pose résistance électrique','Pose revêtement liner PVC','Pose membrane armée PVC','Pose carrelage piscine','Pose mosaïque piscine','Pose enduit piscine','Pose escalier piscine béton','Pose escalier piscine inox','Pose margelles pierre naturelle','Pose margelles béton','Pose margelles composite','Pose plage béton','Pose plage carrelage','Pose plage bois exotique','Pose plage composite','Volet immergé motorisé','Volet hors-sol solaire','Pose bâche à barres sécurité','Pose alarme piscine NF P90-308','Pose barrière sécurité piscine','Pose abri piscine bas','Pose abri piscine haut','Pose robot nettoyeur automatique','Pose nage à contre-courant','Pose balnéo jets massage','Pose éclairage LED RGB immergé','Pose domotique piscine','Remplacement liner','Remplacement membrane armée','Remplacement skimmer','Remplacement pompe','Remplacement filtre','Remplacement électrolyseur','Recherche de fuite par caméra','Recherche de fuite ultrasonique','Réparation fuite structure','Réparation fissure bassin','Réfection joints carrelage piscine','Rénovation margelles et plages','Rénovation complète bassin','Hivernage piscine','Remise en route piscine printemps','Analyse et traitement eau','Entretien saisonnier contrat','Nettoyage bassin haute pression','Déclaration préalable de travaux'],
@@ -896,6 +904,85 @@ const PRESTATIONS = {
 let prestationsActives = {};
 
 const UNITES_PAR_DEFAUT = {
+  traiteur: {
+    'Consultation et élaboration du menu':'forfait','Dégustation avant événement':'forfait',
+    'Cocktail apéritif dinatoire':'pers','Cocktail vin d\'honneur':'pers',
+    'Buffet froid':'pers','Buffet chaud':'pers','Buffet mixte chaud et froid':'pers',
+    'Repas assis service à l\'assiette':'pers','Repas assis service à la française':'pers',
+    'Brunch':'pers','Petit déjeuner professionnel':'pers','Plateau repas livré':'pers',
+    'Barbecue':'pers','Plancha':'pers',
+    'Pièce montée sur mesure':'forfait','Gâteau de mariage':'forfait',
+    'Desserts et mignardises':'pers','Bar à fromages':'pers','Bar à desserts':'pers',
+    'Food truck sur place':'forfait','Menu enfants':'pers','Menu végétarien':'pers',
+    'Menu végétalien':'pers','Menu sans gluten':'pers',
+    'Animation culinaire live cooking':'forfait','Chef à domicile':'forfait',
+    'Personnel de service maître d\'hôtel':'u','Personnel de service serveurs':'u',
+    'Personnel de service cuisinier sur place':'u',
+    'Vaisselle et verrerie':'pers','Mobilier tables et chaises':'pers',
+    'Nappes et linge de table':'pers','Location matériel réception':'forfait',
+    'Livraison et installation buffet':'forfait','Débarrassage et nettoyage après':'forfait',
+    'Droit de bouchon':'pers','Boissons softs et eaux':'pers',
+    'Bar à cocktails avec alcools':'pers','Mise en place décoration table':'forfait'
+  },
+  wedding_planner: {
+    'Première consultation et définition du projet':'forfait',
+    'Formule coordination jour J uniquement':'forfait',
+    'Formule organisation partielle':'forfait',
+    'Formule organisation complète clé en main':'forfait',
+    'Établissement du budget prévisionnel':'forfait',
+    'Recherche et sélection du lieu de réception':'forfait',
+    'Visite des lieux':'forfait','Recherche et sélection des prestataires':'forfait',
+    'Négociation des contrats prestataires':'forfait',
+    'Planification du rétro-planning':'forfait',
+    'Coordination cérémonie civile':'forfait','Coordination cérémonie religieuse':'forfait',
+    'Coordination cérémonie laïque':'forfait','Officiant cérémonie laïque':'forfait',
+    'Création du livret de cérémonie':'forfait','Mise en place décoration jour J':'forfait',
+    'Coordination des prestataires jour J':'forfait',
+    'Gestion du planning heure par heure':'forfait',
+    'Accueil et placement des invités':'forfait','Gestion des imprévus jour J':'forfait',
+    'Création et envoi des faire-part':'forfait','Gestion des confirmations invités':'forfait',
+    'Organisation voyage de noces':'forfait','Accompagnement choix tenue mariés':'forfait',
+    'Coordination coiffeur maquilleur':'forfait','Consulting et conseils à la carte':'forfait',
+    'Répétition de cérémonie la veille':'forfait',
+    'Débrief et remerciements après mariage':'forfait'
+  },
+  dj_sono: {
+    'Consultation et préparation musicale':'forfait',
+    'Animation DJ mariage':'forfait','Animation DJ anniversaire':'forfait',
+    'Animation DJ soirée entreprise':'forfait','Animation DJ concert privé':'forfait',
+    'Animation DJ cérémonie laïque':'forfait',
+    'Sonorisation cérémonie extérieure':'forfait','Sonorisation salle de réception':'forfait',
+    'Sonorisation scène concert':'forfait',
+    'Sono légère cocktail et vin d\'honneur':'h','Sono complète soirée dansante':'h',
+    'Système line array professionnel':'forfait',
+    'Micro HF chant ou discours':'u','Console de mixage professionnelle':'u',
+    'Éclairage festif LED':'forfait','Éclairage architectural':'forfait',
+    'Jeux de lumière scénique':'forfait','Machine à fumée ou brouillard':'u',
+    'Stroboscope':'u','Feux froids sur mesure':'forfait','Confettis canon':'u',
+    'Boule à facettes':'u','Écran LED et mapping vidéo':'forfait',
+    'Projection personnalisée':'forfait','Photobooth':'forfait',
+    'Prestation maître de cérémonie':'forfait',
+    'Animation jeux et quiz interactifs':'forfait',
+    'Déplacement et installation':'forfait','Dépose et récupération matériel':'forfait'
+  },
+  decorateur_evenementiel: {
+    'Consultation et moodboard':'forfait','Concept décoration sur mesure':'forfait',
+    'Plan de table et disposition salle':'forfait',
+    'Décoration florale cérémonie':'forfait','Décoration florale salle réception':'forfait',
+    'Bouquet de mariée':'u','Boutonnières et corsages':'u',
+    'Centres de table fleuris':'u','Arche florale':'u',
+    'Allée de cérémonie décorée':'forfait','Décoration chaises et bancs':'u',
+    'Backdrop photo personnalisé':'u','Signalétique et plan de table':'forfait',
+    'Chemin de table':'u','Bougies et photophores':'u',
+    'Lanternes et guirlandes':'forfait','Ballons et arches de ballons':'u',
+    'Décoration lumineuse LED':'forfait','Lettres géantes lumineuses':'u',
+    'Nappes et housses de chaises':'pers','Vaisselle et verrerie déco':'pers',
+    'Location mobilier vintage':'forfait','Location mobilier lounge':'forfait',
+    'Location tente ou chapiteau':'forfait',
+    'Installation et mise en place':'forfait','Débarrassage et reprise matériel':'forfait',
+    'Décoration thématique sur mesure':'forfait',
+    'Décoration entreprise et séminaire':'forfait'
+  },
   technicien_cvc: {
     'Bilan thermique et étude de faisabilité':'forfait',
     'Pose climatisation monosplit réversible':'u','Pose climatisation multisplit réversible':'u',
@@ -1122,7 +1209,7 @@ function afficherPrestations(key) {
         style="width:100%;padding:4px 6px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text);text-align:right">
       <select onchange="setUnite('${key}',${i},this.value)"
         style="width:100%;padding:4px 4px;border:1.5px solid var(--border);border-radius:5px;font-size:11px;background:var(--input-bg);color:var(--text)">
-        ${['m²','ml','m³','u','h','j','forfait','kg','tonne','lot'].map(u=>`<option value="${u}" ${(p.unite||'')=== u?'selected':''}>${u}</option>`).join('')}
+        ${['m²','ml','m³','u','h','j','forfait','pers','kg','tonne','lot'].map(u=>`<option value="${u}" ${(p.unite||'')=== u?'selected':''}>${u}</option>`).join('')}
       </select>
       <button onclick="supprimerPrestation('${key}',${i})" title="Supprimer"
         style="background:rgba(220,50,50,.12);color:#e04040;border:1px solid rgba(220,50,50,.2);border-radius:5px;padding:4px 8px;font-size:13px;cursor:pointer">🗑</button>
