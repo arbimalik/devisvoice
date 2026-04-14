@@ -2253,6 +2253,8 @@ function renderDevis(d){
 }
 
 function fmt(n){return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+// Version PDF : remplace l'espace fine insécable (U+202F) par un espace normal — jsPDF n'encode pas U+202F en Latin-1
+function fmtPdf(n){return fmt(n).replace(/\u202F/g,' ').replace(/\u00A0/g,' ');}
 
 // Supprime les emojis unicode — jsPDF ne supporte pas Unicode et corrompt les caractères
 function stripEmoji(str){
@@ -2858,9 +2860,9 @@ function genererPdfDevisBase64(d) {
       pdf.setFontSize(8.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(0,0,0);
       pdf.text(String(p.qte||''),     M+98,  y+4, {align:'center'});
       pdf.text(String(p.unite||''),   M+114, y+4, {align:'center'});
-      pdf.text(fmt(p.pu_ht)+' €',     M+142, y+4, {align:'right'});
+      pdf.text(fmtPdf(p.pu_ht)+' €',     M+142, y+4, {align:'right'});
       pdf.setFont('helvetica','bold');
-      pdf.text(fmt(p.total_ht)+' €',  M+CW-1,y+4, {align:'right'});
+      pdf.text(fmtPdf(p.total_ht)+' €',  M+CW-1,y+4, {align:'right'});
       pdf.setDrawColor(230,230,230); pdf.line(M, y+rowH, M+CW, y+rowH);
       y += rowH;
     });
@@ -2868,25 +2870,25 @@ function genererPdfDevisBase64(d) {
 
   y += 6;
 
-  // Totaux
-  checkPage(38);
+  // Totaux — forcer une nouvelle page si totaux + signature ne tiennent pas ensemble
+  checkPage(34 + 24);
   const tW=72, tX=M+CW-tW;
   pdf.setDrawColor(220,220,220); pdf.setFillColor(248,248,248);
   pdf.roundedRect(tX, y, tW, 28, 2, 2, 'FD');
   pdf.setFontSize(9); pdf.setFont('helvetica','normal'); pdf.setTextColor(0,0,0);
   pdf.text('Total HT', tX+3, y+7);
-  pdf.text(fmt(d.total_ht)+' €', tX+tW-3, y+7, {align:'right'});
+  pdf.text(fmtPdf(d.total_ht)+' €', tX+tW-3, y+7, {align:'right'});
   const mTva = parseFloat(d.total_ht||0) * parseFloat(tva) / 100;
   pdf.text('TVA '+tva+'%', tX+3, y+13);
-  pdf.text(fmt(mTva)+' €', tX+tW-3, y+13, {align:'right'});
+  pdf.text(fmtPdf(mTva)+' €', tX+tW-3, y+13, {align:'right'});
   pdf.setDrawColor(210,210,210); pdf.line(tX+3, y+16.5, tX+tW-3, y+16.5);
   pdf.setFont('helvetica','bold'); pdf.setFontSize(11); pdf.setTextColor(...acc);
   pdf.text('TOTAL TTC', tX+3, y+24);
-  pdf.text(fmt(d.total_ttc)+' €', tX+tW-3, y+24, {align:'right'});
+  pdf.text(fmtPdf(d.total_ttc)+' €', tX+tW-3, y+24, {align:'right'});
   if(d.acompte_pct > 0){
     pdf.setFontSize(8.5); pdf.setTextColor(0,0,0);
     pdf.text('Acompte '+d.acompte_pct+'%', tX+3, y+30);
-    pdf.text(fmt(d.acompte_montant)+' €', tX+tW-3, y+30, {align:'right'});
+    pdf.text(fmtPdf(d.acompte_montant)+' €', tX+tW-3, y+30, {align:'right'});
   }
   y += 34;
 
@@ -3017,9 +3019,9 @@ function genererPdfFactureBase64(d) {
       pdf.setFontSize(8.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(0,0,0);
       pdf.text(String(p.qte||''),     M+98,  y+4, {align:'center'});
       pdf.text(String(p.unite||''),   M+114, y+4, {align:'center'});
-      pdf.text(fmt(p.pu_ht)+' €',     M+142, y+4, {align:'right'});
+      pdf.text(fmtPdf(p.pu_ht)+' €',     M+142, y+4, {align:'right'});
       pdf.setFont('helvetica','bold');
-      pdf.text(fmt(p.total_ht)+' €',  M+CW-1,y+4, {align:'right'});
+      pdf.text(fmtPdf(p.total_ht)+' €',  M+CW-1,y+4, {align:'right'});
       pdf.setDrawColor(230,230,230);
       pdf.line(M, y+rowH, M+CW, y+rowH);
       y += rowH;
@@ -3028,26 +3030,26 @@ function genererPdfFactureBase64(d) {
 
   y += 6;
 
-  // Totaux
-  checkPage(32);
+  // Totaux — forcer une nouvelle page si totaux + RIB + mentions ne tiennent pas ensemble
+  const ribH = (iban || banque) ? 22 : 0;
+  checkPage(34 + ribH + 14);
   const tW=72, tX=M+CW-tW;
   pdf.setDrawColor(220,220,220); pdf.setFillColor(248,248,248);
   pdf.roundedRect(tX, y, tW, 28, 2, 2, 'FD');
   pdf.setFontSize(9); pdf.setFont('helvetica','normal'); pdf.setTextColor(0,0,0);
   pdf.text('Total HT', tX+3, y+7);
-  pdf.text(fmt(d.total_ht)+' €', tX+tW-3, y+7, {align:'right'});
+  pdf.text(fmtPdf(d.total_ht)+' €', tX+tW-3, y+7, {align:'right'});
   const mTva = parseFloat(d.total_ht||0) * parseFloat(tva) / 100;
   pdf.text('TVA '+tva+'%', tX+3, y+13);
-  pdf.text(fmt(mTva)+' €', tX+tW-3, y+13, {align:'right'});
+  pdf.text(fmtPdf(mTva)+' €', tX+tW-3, y+13, {align:'right'});
   pdf.setDrawColor(210,210,210); pdf.line(tX+3, y+16.5, tX+tW-3, y+16.5);
   pdf.setFont('helvetica','bold'); pdf.setFontSize(11); pdf.setTextColor(...acc);
   pdf.text('TOTAL TTC', tX+3, y+24);
-  pdf.text(fmt(d.total_ttc)+' €', tX+tW-3, y+24, {align:'right'});
+  pdf.text(fmtPdf(d.total_ttc)+' €', tX+tW-3, y+24, {align:'right'});
   y += 34;
 
   // Coordonnées bancaires
   if(iban || banque) {
-    checkPage(20);
     pdf.setFontSize(8); pdf.setFont('helvetica','bold'); pdf.setTextColor(0,0,0);
     pdf.text('COORDONNÉES BANCAIRES', M, y); y+=4.5;
     pdf.setFont('helvetica','normal'); pdf.setTextColor(80,80,80);
