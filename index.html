@@ -2431,7 +2431,7 @@ function fmtPdf(n){return fmt(n).replace(/\u202F/g,' ').replace(/\u00A0/g,' ');}
 
 // Supprime les emojis unicode — jsPDF ne supporte pas Unicode et corrompt les caractères
 function stripEmoji(str){
-  return (str||'').replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]|[\u{FE00}-\u{FEFF}]/gu,'').replace(/\s+/g,' ').trim();
+  return (str||'').replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu,'').replace(/\s+/g,' ').trim();
 }
 
 function getSignatureArtisan(){
@@ -2468,98 +2468,109 @@ async function envoyerDevis(){
 
   const artisanEmail=ls('ent-email')||'';
   const artisanNom=ls('ent-nom')||'Votre artisan';
+  const entAdrEmail=ls('ent-adr')||'';
+  const entSiretEmail=ls('ent-siret')||'';
+  const entTelArtisan=ls('ent-tel')||'';
+  const logoEmail=localStorage.getItem('ent-logo')||'';
   const montantTTC=fmtPdf(parseFloat(d.total_ttc)||0)+' €';
-
   const acomptePct = d.acompte_pct || 0;
-  const acompteEmailHtml = acomptePct > 0
-    ? `<tr><td style="padding:3px 14px 3px 0;color:#666">Acompte ${acomptePct}%</td><td style="padding:3px 0;font-weight:600;color:#FF4500">${fmtPdf(d.acompte_montant)} €</td></tr>`
-    : '';
-
-  const dateDebutEmailHtml = d.date_debut
-    ? `<br><strong>Début des travaux :</strong> ${d.date_debut}` : '';
-
-  const clientTelEmailHtml = d.client.tel
-    ? `<br>📞 ${d.client.tel}` : '';
-
   const BASE_URL='https://arbimalik.github.io/devisvoice';
   const acceptUrl=`${BASE_URL}/accept.html?numero=${encodeURIComponent(d.numero)}&client=${encodeURIComponent(d.client.nom)}&artisan=${encodeURIComponent(artisanNom)}&artisanEmail=${encodeURIComponent(artisanEmail)}&montant=${encodeURIComponent(montantTTC)}&clientEmail=${encodeURIComponent(ce)}`;
-  const pdfUrl=`${BASE_URL}/devis-pdf.html?id=${encodeURIComponent(d.numero)}`;
-
   const accentColor=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#FF4500';
-  const entTelArtisan = ls('ent-tel')||'';
   const clientPrenom = document.getElementById('client-prenom').value.trim();
   const clientNomSeul = document.getElementById('client-nom').value.trim();
   const clientSalutation = [clientPrenom, clientNomSeul].filter(Boolean).join(' ') || d.client.nom;
-  const html=`<div style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;color:#222;">
-  <div style="background:${accentColor};padding:22px 28px;border-radius:10px 10px 0 0;">
-    <div style="color:#fff;font-size:19px;font-weight:800;">${artisanNom}</div>
-    <div style="color:rgba(255,255,255,.75);font-size:12px;margin-top:3px;">Devis N° ${d.numero} · ${d.date}</div>
-  </div>
-  <div style="background:#fff;padding:28px;border:1px solid #eee;border-top:none;border-radius:0 0 10px 10px;">
-    <p style="font-size:15px;margin:0 0 6px;">Bonjour ${clientSalutation},</p>
-    <p style="font-size:14px;color:#444;margin:0 0 20px;line-height:1.7;">Veuillez trouver ci-joint votre devis <strong>${d.numero}</strong> d'un montant de <strong style="color:${accentColor};">${montantTTC}</strong>, valable ${d.validite}.</p>
-    <p style="font-size:14px;color:#444;margin:0 0 24px;line-height:1.7;">Pour accepter ce devis, cliquez sur le bouton ci-dessous.</p>
-    <div style="text-align:center;margin-bottom:28px;">
-      <a href="${acceptUrl}" style="display:inline-block;background:${accentColor};color:#fff;text-decoration:none;padding:14px 36px;border-radius:8px;font-weight:700;font-size:15px;letter-spacing:.3px;">✅ Accepter ce devis</a>
-      <br><br>
-      <a href="${pdfUrl}" style="display:inline-block;background:#fff;color:${accentColor};text-decoration:none;padding:10px 24px;border-radius:8px;font-weight:600;font-size:13px;border:2px solid ${accentColor};">📄 Télécharger en PDF</a>
-    </div>
-    <div style="border-top:1px solid #f0f0f0;padding-top:20px;">
-      <p style="font-size:13px;color:#555;margin:0;line-height:1.9;">Cordialement,<br><strong>${getSignatureArtisan()}</strong></p>
-    </div>
-    <p style="margin-top:20px;font-size:10px;color:#ccc;text-align:center;">Généré avec DevisVoice</p>
-  </div>
+
+  // En-tête PDF-style réutilisable
+  const buildEmailHeader = (titre, numero, date) => `
+<table width="100%" cellpadding="0" cellspacing="0" style="background:${accentColor};border-radius:10px 10px 0 0;border-collapse:collapse;">
+  <tr>
+    <td style="padding:18px 22px;vertical-align:top;width:55%">
+      ${logoEmail?`<img src="${logoEmail}" style="max-height:48px;max-width:150px;object-fit:contain;display:block;margin-bottom:8px;">`:''}
+      <div style="color:#fff;font-weight:800;font-size:15px;margin-bottom:2px;">${artisanNom}</div>
+      ${entAdrEmail?`<div style="color:rgba(255,255,255,.75);font-size:10.5px;">${entAdrEmail}</div>`:''}
+      ${entTelArtisan?`<div style="color:rgba(255,255,255,.75);font-size:10.5px;">Tél : ${entTelArtisan}</div>`:''}
+      ${artisanEmail?`<div style="color:rgba(255,255,255,.75);font-size:10.5px;">${artisanEmail}</div>`:''}
+      ${entSiretEmail?`<div style="color:rgba(255,255,255,.6);font-size:10px;">SIRET : ${entSiretEmail}</div>`:''}
+    </td>
+    <td style="padding:18px 22px;vertical-align:top;text-align:right;width:45%">
+      <div style="color:#fff;font-size:20px;font-weight:800;letter-spacing:2px;">${titre}</div>
+      <div style="color:rgba(255,255,255,.9);font-size:11px;margin-bottom:10px;">N° ${numero} &bull; ${date}</div>
+      <div style="background:rgba(255,255,255,.12);border-radius:6px;padding:9px 12px;display:inline-block;text-align:right;">
+        <div style="color:#fff;font-weight:700;font-size:12px;">${d.client.nom}</div>
+        ${d.client.email?`<div style="color:rgba(255,255,255,.8);font-size:10.5px;">${d.client.email}</div>`:''}
+        ${d.client.tel?`<div style="color:rgba(255,255,255,.8);font-size:10.5px;">${d.client.tel}</div>`:''}
+        ${d.chantier?.adresse?`<div style="color:rgba(255,255,255,.8);font-size:10.5px;">${d.chantier.adresse}</div>`:''}
+      </div>
+    </td>
+  </tr>
+</table>`;
+
+  // Bloc total + conditions groupés
+  const condEmailTxt = [d.conditions, d.mentions||getMentionTVA(d.tva_pct,d.famille), d.cgv_famille||(CGV_FAMILLE[d.famille||'BTP']||CGV_FAMILLE.BTP)].filter(Boolean).join('<br>');
+  const buildTotalConditions = () => `
+<div style="text-align:right;margin-bottom:16px;">
+  <table style="margin-left:auto;font-size:12px;border-collapse:collapse;min-width:220px;">
+    <tr><td style="padding:4px 14px 4px 0;color:#666;">Total HT</td><td style="padding:4px 0;font-weight:600;">${fmtPdf(d.total_ht)} &euro;</td></tr>
+    <tr><td style="padding:4px 14px 4px 0;color:#666;">TVA ${d.tva_pct}%</td><td style="padding:4px 0;font-weight:600;">${fmtPdf(d.tva_montant)} &euro;</td></tr>
+    <tr style="border-top:2px solid ${accentColor}"><td style="padding:7px 14px 4px 0;font-weight:700;font-size:14px;">TOTAL TTC</td><td style="padding:7px 0 4px;font-weight:700;font-size:14px;color:${accentColor};">${montantTTC}</td></tr>
+    ${acomptePct>0?`<tr><td style="padding:4px 14px 4px 0;color:#666;">Acompte ${acomptePct}%</td><td style="padding:4px 0;font-weight:600;color:${accentColor};">${fmtPdf(d.acompte_montant)} &euro;</td></tr>`:''}
+  </table>
+  <div style="border-top:1px solid #f0f0f0;margin-top:12px;padding-top:10px;font-size:10.5px;color:#999;line-height:1.7;text-align:left;">${condEmailTxt}</div>
 </div>`;
+
+  // Email client (avec bouton accepter)
+  const html=`<div style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;color:#222;">
+${buildEmailHeader('DEVIS',d.numero,d.date)}
+<div style="background:#fff;padding:24px;border:1px solid #eee;border-top:none;border-radius:0 0 10px 10px;">
+  <p style="font-size:15px;margin:0 0 6px;">Bonjour ${clientSalutation},</p>
+  <p style="font-size:13px;color:#444;margin:0 0 20px;line-height:1.7;">Veuillez trouver ci-dessous votre devis <strong>${d.numero}</strong> d'un montant de <strong style="color:${accentColor};">${montantTTC}</strong>, valable ${d.validite}.</p>
+  <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:18px">
+    <thead><tr style="background:${accentColor};color:#fff"><th style="padding:8px;text-align:left;">Désignation</th><th style="padding:8px;text-align:center;">Qté</th><th style="padding:8px;text-align:center;">Unité</th><th style="padding:8px;text-align:right;">P.U. HT</th><th style="padding:8px;text-align:right;">Total HT</th></tr></thead>
+    <tbody>${rowsHtml}</tbody>
+  </table>
+  ${buildTotalConditions()}
+  ${d.observations?`<div style="background:#fffbf0;border-left:3px solid #f59e0b;padding:10px 12px;margin-bottom:16px;border-radius:0 6px 6px 0;font-size:12px;color:#444"><strong>Observations :</strong><br>${d.observations}</div>`:''}
+  <div style="text-align:center;margin:20px 0;">
+    <a href="${acceptUrl}" style="display:inline-block;background:${accentColor};color:#fff;text-decoration:none;padding:14px 36px;border-radius:8px;font-weight:700;font-size:15px;">Accepter ce devis</a>
+  </div>
+  <div style="border-top:1px solid #f0f0f0;padding-top:16px;">
+    <p style="font-size:13px;color:#555;margin:0;line-height:1.9;">Cordialement,<br><strong>${getSignatureArtisan()}</strong></p>
+  </div>
+  <p style="margin-top:16px;font-size:10px;color:#ccc;text-align:center;">Généré avec DevisVoice</p>
+</div>
+</div>`;
+
   // Générer le PDF devis en pièce jointe
   const devisPdfBase64 = genererPdfDevisBase64(d);
   const devisAttachments = [{ filename: 'Devis-'+d.numero+'.pdf', content: devisPdfBase64 }];
 
   showES('loading','📧 Envoi en cours…');
   try{
-    // Email client avec bouton accepter + PDF en PJ
     const r=await fetch(BACKEND+'/api/send-devis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({artisanNom,artisanEmail,clientEmail:ce,subject:'Devis '+d.numero+' - '+artisanNom,html,attachments:devisAttachments})});
     const res=await r.json();
     if(!r.ok)throw new Error(res.error||'Erreur envoi');
 
-    // Email copie artisan SANS bouton accepter
+    // Copie artisan
     if(artisanEmail){
-      const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#FF4500';
-      const htmlArtisan=`<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#222">
-        <div style="background:${accentColor};padding:18px 22px;border-radius:8px 8px 0 0">
-          <h1 style="color:#fff;font-size:18px;margin:0">📋 Copie — Devis N° ${d.numero}</h1>
-          <p style="color:rgba(255,255,255,.85);margin:3px 0 0;font-size:12px">Envoyé à ${d.client.nom} le ${d.date}</p>
-        </div>
-        <div style="background:#fff;padding:22px;border:1px solid #eee;border-top:none">
-          <table style="width:100%;font-size:12px;margin-bottom:18px">
-            <tr>
-              <td style="width:50%;vertical-align:top;padding-right:10px"><strong style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#999">Client</strong><br><br><strong>${d.client.nom}</strong><br>${d.client.email||''}${clientTelEmailHtml}<br>${d.chantier.adresse||''}</td>
-              <td style="width:50%;vertical-align:top;background:#f9f9f9;padding:10px;border-radius:6px"><strong style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#999">Chantier</strong><br><br><strong>${d.chantier.nature}</strong><br>Délai : ${d.chantier.delai}${dateDebutEmailHtml}</td>
-            </tr>
-          </table>
-          <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:18px">
-            <thead><tr style="background:${accentColor};color:#fff"><th style="padding:8px;text-align:left">Désignation</th><th style="padding:8px;text-align:center">Qté</th><th style="padding:8px;text-align:center">Unité</th><th style="padding:8px;text-align:right">P.U. HT</th><th style="padding:8px;text-align:right">Total HT</th></tr></thead>
-            <tbody>${rowsHtml}</tbody>
-          </table>
-          <div style="text-align:right;margin-bottom:16px">
-            <table style="margin-left:auto;font-size:12px;border-collapse:collapse">
-              <tr><td style="padding:3px 14px 3px 0;color:#666">Total HT</td><td style="padding:3px 0;font-weight:600">${fmtPdf(d.total_ht)} €</td></tr>
-              <tr><td style="padding:3px 14px 3px 0;color:#666">TVA ${d.tva_pct}%</td><td style="padding:3px 0;font-weight:600">${fmtPdf(d.tva_montant)} €</td></tr>
-              <tr style="border-top:2px solid ${accentColor}"><td style="padding:7px 14px 3px 0;font-weight:700;font-size:14px">TOTAL TTC</td><td style="padding:7px 0 3px;font-weight:700;font-size:14px;color:#222">${fmtPdf(d.total_ttc)} €</td></tr>
-              ${acompteEmailHtml}
-            </table>
-          </div>
-          ${d.observations?`<div style="background:#fffbf0;border-left:3px solid #f59e0b;padding:10px 12px;margin-bottom:16px;border-radius:0 6px 6px 0;font-size:12px;color:#444"><strong>📝 Observations :</strong><br>${d.observations}</div>`:''}
-          <div style="background:#fff8f5;border-radius:8px;padding:14px;text-align:center;margin-top:16px;border:1px solid #ffd0b0;">
-            <p style="font-size:12px;color:#888;margin-bottom:12px;">Accès rapide :</p>
-            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-              <a href="${BASE_URL}/devis-pdf.html?id=${encodeURIComponent(d.numero)}" style="display:inline-block;background:${accentColor};color:#fff;text-decoration:none;padding:11px 22px;border-radius:8px;font-weight:700;font-size:13px;">📄 Télécharger le PDF</a>
-              <a href="${BASE_URL}/" style="display:inline-block;background:#00a651;color:#fff;text-decoration:none;padding:11px 22px;border-radius:8px;font-weight:700;font-size:13px;">✓ Valider manuellement</a>
-            </div>
-          </div>
-          <p style="margin-top:14px;font-size:11px;color:#ccc;text-align:center">Copie artisan — Généré avec DevisVoice</p>
-        </div>
-      </div>`;
-      await fetch(BACKEND+'/api/send-devis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({artisanNom,artisanEmail,clientEmail:artisanEmail,subject:'📋 Copie devis N° '+d.numero+' — '+d.client.nom,html:htmlArtisan})}).catch(()=>{});
+      const htmlArtisan=`<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#222;">
+${buildEmailHeader('DEVIS',d.numero,d.date)}
+<div style="background:#fff;padding:22px;border:1px solid #eee;border-top:none;border-radius:0 0 10px 10px;">
+  <div style="background:#f9f9f9;border-radius:6px;padding:8px 12px;margin-bottom:16px;font-size:11px;color:#888;">Copie — envoyé à ${d.client.nom} le ${d.date}</div>
+  <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:18px">
+    <thead><tr style="background:${accentColor};color:#fff"><th style="padding:8px;text-align:left;">Désignation</th><th style="padding:8px;text-align:center;">Qté</th><th style="padding:8px;text-align:center;">Unité</th><th style="padding:8px;text-align:right;">P.U. HT</th><th style="padding:8px;text-align:right;">Total HT</th></tr></thead>
+    <tbody>${rowsHtml}</tbody>
+  </table>
+  ${buildTotalConditions()}
+  ${d.observations?`<div style="background:#fffbf0;border-left:3px solid #f59e0b;padding:10px 12px;margin-bottom:16px;border-radius:0 6px 6px 0;font-size:12px;color:#444"><strong>Observations :</strong><br>${d.observations}</div>`:''}
+  <div style="text-align:center;margin:16px 0;">
+    <a href="${BASE_URL}/devis-pdf.html?id=${encodeURIComponent(d.numero)}" style="display:inline-block;background:${accentColor};color:#fff;text-decoration:none;padding:10px 22px;border-radius:8px;font-weight:700;font-size:13px;margin:4px;">Télécharger le PDF</a>
+    <a href="${BASE_URL}/" style="display:inline-block;background:#00a651;color:#fff;text-decoration:none;padding:10px 22px;border-radius:8px;font-weight:700;font-size:13px;margin:4px;">Valider manuellement</a>
+  </div>
+  <p style="font-size:10px;color:#ccc;text-align:center;margin-top:10px;">Copie artisan — DevisVoice</p>
+</div>
+</div>`;
+      await fetch(BACKEND+'/api/send-devis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({artisanNom,artisanEmail,clientEmail:artisanEmail,subject:'Copie devis N° '+d.numero+' — '+d.client.nom,html:htmlArtisan})}).catch(()=>{});
     }
 
     showES('success','✅ Email envoyé à '+ce+' — copie envoyée à '+artisanEmail);
@@ -3090,7 +3101,7 @@ function genererPdfDevisBase64(d) {
   }
 
   // Signature BON POUR ACCORD
-  checkPage(22);
+  checkPage(55);
   pdf.setDrawColor(200,200,200); pdf.rect(M, y, CW/2-4, 18, 'S');
   pdf.setFontSize(7.5); pdf.setTextColor(120,120,120);
   pdf.text('Signature et mention "Bon pour accord"', M+2, y+4);
@@ -3266,9 +3277,12 @@ function genererPdfFactureBase64(d) {
   const famFact  = d.famille || 'BTP';
   const mentions = d.mentions || getMentionTVA(tva, famFact) || ('TVA '+tva+'% applicable');
   const cgv      = d.cgv_famille || CGV_FAMILLE[famFact] || CGV_FAMILLE.BTP;
+  const decLineFact = (famFact === 'BTP' && d.decennale_compagnie)
+    ? 'Assurance décennale : '+d.decennale_compagnie+(d.decennale_numero?' — Police n° '+d.decennale_numero:'')
+    : '';
   checkPage(12);
   pdf.setFontSize(7.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(150,150,150);
-  [mentions, cgv].forEach(bloc => {
+  [mentions, decLineFact, cgv].filter(Boolean).forEach(bloc => {
     const lines = pdf.splitTextToSize(stripEmoji(bloc), CW);
     lines.forEach(l => { checkPage(4); pdf.text(l, M, y); y+=3.5; });
     y+=2;
@@ -3292,29 +3306,89 @@ async function confirmerFinChantier(){
     // Générer le PDF programmatiquement (sans DOM ni CSS variables)
     const pdfBase64 = genererPdfFactureBase64(d);
 
-    const artisanNom   = ls('ent-nom') || '';
-    const artisanEmail = ls('ent-email') || '';
-    const clientEmail  = d.client?.email || row.client_email || '';
+    const artisanNom    = ls('ent-nom') || '';
+    const artisanEmail  = ls('ent-email') || '';
+    const entAdrFact    = ls('ent-adr') || '';
+    const entSiretFact  = ls('ent-siret') || '';
+    const entTelFact    = ls('ent-tel') || '';
+    const logoFact      = localStorage.getItem('ent-logo') || '';
+    const clientEmail   = d.client?.email || row.client_email || '';
     const comptableEmail = ls('ent-comptable') || '';
-    const clientNom    = d.client?.nom || '';
-    const numero       = 'F-' + (d.numero||devisId) + '-' + new Date().getFullYear();
-    const montant      = fmtPdf(parseFloat(d.total_ttc)||0) + ' €';
-    const accentColor  = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#FF4500';
+    const clientNom     = d.client?.nom || '';
+    const numero        = 'F-' + (d.numero||devisId) + '-' + new Date().getFullYear();
+    const montant       = fmtPdf(parseFloat(d.total_ttc)||0) + ' €';
+    const accentColor   = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#FF4500';
+    const dateFacture   = d.date || new Date().toLocaleDateString('fr-FR');
+
+    // Tableau des postes
+    let rowsFactHtml = '';
+    const showSHFact2 = (d.metier_cle === 'tous') || !d.metier_cle;
+    if(d.sections && d.sections.length){
+      d.sections.forEach(s=>{
+        if(showSHFact2) rowsFactHtml+=`<tr><td colspan="5" style="padding:8px 8px 4px;background:#fff3ee;border-bottom:1px solid #ffd0b0"><strong style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#FF4500">${stripEmoji(s.metier||'')}</strong></td></tr>`;
+        s.postes.forEach((p,i)=>{
+          rowsFactHtml+=`<tr style="background:${i%2?'#f9f9f9':'#fff'}"><td style="padding:8px;border-bottom:1px solid #eee"><strong>${p.id}. ${p.titre}</strong><br><span style="font-size:11px;color:#777">${p.description}</span></td><td style="padding:8px;text-align:center;border-bottom:1px solid #eee">${p.qte}</td><td style="padding:8px;text-align:center;border-bottom:1px solid #eee">${p.unite}</td><td style="padding:8px;text-align:right;border-bottom:1px solid #eee">${fmtPdf(p.pu_ht)} €</td><td style="padding:8px;text-align:right;border-bottom:1px solid #eee"><strong>${fmtPdf(p.total_ht)} €</strong></td></tr>`;
+        });
+      });
+    } else {
+      (d.postes||[]).forEach((p,i)=>{
+        rowsFactHtml+=`<tr style="background:${i%2?'#f9f9f9':'#fff'}"><td style="padding:8px;border-bottom:1px solid #eee"><strong>${p.titre}</strong><br><span style="font-size:11px;color:#777">${p.description}</span></td><td style="padding:8px;text-align:center;border-bottom:1px solid #eee">${p.qte}</td><td style="padding:8px;text-align:center;border-bottom:1px solid #eee">${p.unite}</td><td style="padding:8px;text-align:right;border-bottom:1px solid #eee">${fmtPdf(p.pu_ht)} €</td><td style="padding:8px;text-align:right;border-bottom:1px solid #eee"><strong>${fmtPdf(p.total_ht)} €</strong></td></tr>`;
+      });
+    }
+
+    const tva = parseFloat(d.tva_pct||d.tva||20);
+    const tvaMontantFact = parseFloat(d.total_ht||0)*tva/100;
+    const condFactTxt = [d.conditions, d.mentions||getMentionTVA(d.tva_pct,d.famille), d.cgv_famille||(CGV_FAMILLE[d.famille||'BTP']||CGV_FAMILLE.BTP)].filter(Boolean).join('<br>');
+
+    const headerFact = `
+<table width="100%" cellpadding="0" cellspacing="0" style="background:${accentColor};border-radius:10px 10px 0 0;border-collapse:collapse;">
+  <tr>
+    <td style="padding:18px 22px;vertical-align:top;width:55%">
+      ${logoFact?`<img src="${logoFact}" style="max-height:48px;max-width:150px;object-fit:contain;display:block;margin-bottom:8px;">`:''}
+      <div style="color:#fff;font-weight:800;font-size:15px;margin-bottom:2px;">${artisanNom}</div>
+      ${entAdrFact?`<div style="color:rgba(255,255,255,.75);font-size:10.5px;">${entAdrFact}</div>`:''}
+      ${entTelFact?`<div style="color:rgba(255,255,255,.75);font-size:10.5px;">Tél : ${entTelFact}</div>`:''}
+      ${artisanEmail?`<div style="color:rgba(255,255,255,.75);font-size:10.5px;">${artisanEmail}</div>`:''}
+      ${entSiretFact?`<div style="color:rgba(255,255,255,.6);font-size:10px;">SIRET : ${entSiretFact}</div>`:''}
+    </td>
+    <td style="padding:18px 22px;vertical-align:top;text-align:right;width:45%">
+      <div style="color:#fff;font-size:20px;font-weight:800;letter-spacing:2px;">FACTURE</div>
+      <div style="color:rgba(255,255,255,.9);font-size:11px;margin-bottom:10px;">N° ${numero} &bull; ${dateFacture}</div>
+      <div style="background:rgba(255,255,255,.12);border-radius:6px;padding:9px 12px;display:inline-block;text-align:right;">
+        <div style="color:#fff;font-weight:700;font-size:12px;">${d.client?.nom||clientNom}</div>
+        ${d.client?.email?`<div style="color:rgba(255,255,255,.8);font-size:10.5px;">${d.client.email}</div>`:''}
+        ${d.client?.tel?`<div style="color:rgba(255,255,255,.8);font-size:10.5px;">${d.client.tel}</div>`:''}
+        ${d.chantier?.adresse?`<div style="color:rgba(255,255,255,.8);font-size:10.5px;">${d.chantier.adresse}</div>`:''}
+      </div>
+    </td>
+  </tr>
+</table>`;
+
+    const totalFactBloc = `
+<div style="text-align:right;margin-bottom:16px;">
+  <table style="margin-left:auto;font-size:12px;border-collapse:collapse;min-width:220px;">
+    <tr><td style="padding:4px 14px 4px 0;color:#666;">Total HT</td><td style="padding:4px 0;font-weight:600;">${fmtPdf(d.total_ht)} &euro;</td></tr>
+    <tr><td style="padding:4px 14px 4px 0;color:#666;">TVA ${tva}%</td><td style="padding:4px 0;font-weight:600;">${fmtPdf(tvaMontantFact)} &euro;</td></tr>
+    <tr style="border-top:2px solid ${accentColor}"><td style="padding:7px 14px 4px 0;font-weight:700;font-size:14px;">TOTAL TTC</td><td style="padding:7px 0 4px;font-weight:700;font-size:14px;color:${accentColor};">${montant}</td></tr>
+  </table>
+  <div style="border-top:1px solid #f0f0f0;margin-top:12px;padding-top:10px;font-size:10.5px;color:#999;line-height:1.7;text-align:left;">${condFactTxt}</div>
+</div>`;
 
     const html = `<div style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;color:#222;">
-  <div style="background:${accentColor};padding:22px 28px;border-radius:10px 10px 0 0;">
-    <div style="color:#fff;font-size:19px;font-weight:800;">${artisanNom}</div>
-    <div style="color:rgba(255,255,255,.75);font-size:12px;margin-top:3px;">Facture N° ${numero}</div>
+${headerFact}
+<div style="background:#fff;padding:24px;border:1px solid #eee;border-top:none;border-radius:0 0 10px 10px;">
+  <p style="font-size:15px;margin:0 0 6px;">Bonjour ${clientNom || ''},</p>
+  <p style="font-size:13px;color:#444;margin:0 0 20px;line-height:1.7;">Veuillez trouver ci-joint votre facture <strong>${numero}</strong> d'un montant de <strong style="color:${accentColor};">${montant}</strong>.</p>
+  <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:18px">
+    <thead><tr style="background:${accentColor};color:#fff"><th style="padding:8px;text-align:left;">Désignation</th><th style="padding:8px;text-align:center;">Qté</th><th style="padding:8px;text-align:center;">Unité</th><th style="padding:8px;text-align:right;">P.U. HT</th><th style="padding:8px;text-align:right;">Total HT</th></tr></thead>
+    <tbody>${rowsFactHtml}</tbody>
+  </table>
+  ${totalFactBloc}
+  <div style="border-top:1px solid #f0f0f0;padding-top:16px;">
+    <p style="font-size:13px;color:#555;margin:0;line-height:1.9;">Cordialement,<br><strong>${getSignatureArtisan()}</strong></p>
   </div>
-  <div style="background:#fff;padding:28px;border:1px solid #eee;border-top:none;border-radius:0 0 10px 10px;">
-    <p style="font-size:15px;margin:0 0 6px;">Bonjour ${clientNom || ''},</p>
-    <p style="font-size:14px;color:#444;margin:0 0 20px;line-height:1.7;">Veuillez trouver ci-joint votre facture <strong>${numero}</strong> d'un montant de <strong style="color:${accentColor};">${montant}</strong>.</p>
-    <p style="font-size:14px;color:#444;margin:0 0 24px;line-height:1.7;">Pour tout renseignement complémentaire, n'hésitez pas à nous contacter.</p>
-    <div style="border-top:1px solid #f0f0f0;padding-top:20px;">
-      <p style="font-size:13px;color:#555;margin:0;line-height:1.9;">Cordialement,<br><strong>${getSignatureArtisan()}</strong></p>
-    </div>
-    <p style="margin-top:20px;font-size:10px;color:#ccc;text-align:center;">Généré avec DevisVoice</p>
-  </div>
+  <p style="margin-top:16px;font-size:10px;color:#ccc;text-align:center;">Généré avec DevisVoice</p>
+</div>
 </div>`;
 
     const resp = await fetch(BACKEND+'/api/send-fin-chantier', {
@@ -3727,23 +3801,82 @@ async function envoyerFacture(){
   const sbar = document.getElementById('facture-sbar');
   if(!clientEmail){ sbar.className='sbar error'; sbar.style.display='flex'; sbar.innerHTML='❌ Email client manquant.'; return; }
   sbar.className='sbar loading'; sbar.style.display='flex'; sbar.innerHTML='<div class="spin"></div><span>Envoi en cours…</span>';
-  const factureNum = 'F-' + d.numero + '-' + new Date().getFullYear();
-  const montantTTC = fmtPdf(parseFloat(d.total_ttc)||0) + ' €';
-  const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#FF4500';
+  const factureNum   = 'F-' + d.numero + '-' + new Date().getFullYear();
+  const montantTTC   = fmtPdf(parseFloat(d.total_ttc)||0) + ' €';
+  const accentColor  = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#FF4500';
+  const entAdrEnv    = ls('ent-adr')||'';
+  const entSiretEnv  = ls('ent-siret')||'';
+  const entTelEnv    = ls('ent-tel')||'';
+  const logoEnv      = localStorage.getItem('ent-logo')||'';
+  const dateEnv      = d.date || new Date().toLocaleDateString('fr-FR');
+  const tvaPctEnv    = parseFloat(d.tva_pct||d.tva||20);
+  const tvaMontantEnv = parseFloat(d.total_ht||0)*tvaPctEnv/100;
+  const condEnvTxt   = [d.conditions, d.mentions||getMentionTVA(d.tva_pct,d.famille), d.cgv_famille||(CGV_FAMILLE[d.famille||'BTP']||CGV_FAMILLE.BTP)].filter(Boolean).join('<br>');
+  const showSHEnv    = (d.metier_cle === 'tous') || !d.metier_cle;
+
+  let rowsEnvHtml = '';
+  if(d.sections && d.sections.length){
+    d.sections.forEach(s=>{
+      if(showSHEnv) rowsEnvHtml+=`<tr><td colspan="5" style="padding:8px 8px 4px;background:#fff3ee;border-bottom:1px solid #ffd0b0"><strong style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#FF4500">${stripEmoji(s.metier||'')}</strong></td></tr>`;
+      s.postes.forEach((p,i)=>{
+        rowsEnvHtml+=`<tr style="background:${i%2?'#f9f9f9':'#fff'}"><td style="padding:8px;border-bottom:1px solid #eee"><strong>${p.id}. ${p.titre}</strong><br><span style="font-size:11px;color:#777">${p.description}</span></td><td style="padding:8px;text-align:center;border-bottom:1px solid #eee">${p.qte}</td><td style="padding:8px;text-align:center;border-bottom:1px solid #eee">${p.unite}</td><td style="padding:8px;text-align:right;border-bottom:1px solid #eee">${fmtPdf(p.pu_ht)} €</td><td style="padding:8px;text-align:right;border-bottom:1px solid #eee"><strong>${fmtPdf(p.total_ht)} €</strong></td></tr>`;
+      });
+    });
+  } else {
+    (d.postes||[]).forEach((p,i)=>{
+      rowsEnvHtml+=`<tr style="background:${i%2?'#f9f9f9':'#fff'}"><td style="padding:8px;border-bottom:1px solid #eee"><strong>${p.titre}</strong><br><span style="font-size:11px;color:#777">${p.description}</span></td><td style="padding:8px;text-align:center;border-bottom:1px solid #eee">${p.qte}</td><td style="padding:8px;text-align:center;border-bottom:1px solid #eee">${p.unite}</td><td style="padding:8px;text-align:right;border-bottom:1px solid #eee">${fmtPdf(p.pu_ht)} €</td><td style="padding:8px;text-align:right;border-bottom:1px solid #eee"><strong>${fmtPdf(p.total_ht)} €</strong></td></tr>`;
+    });
+  }
+
+  const headerEnv = `
+<table width="100%" cellpadding="0" cellspacing="0" style="background:${accentColor};border-radius:10px 10px 0 0;border-collapse:collapse;">
+  <tr>
+    <td style="padding:18px 22px;vertical-align:top;width:55%">
+      ${logoEnv?`<img src="${logoEnv}" style="max-height:48px;max-width:150px;object-fit:contain;display:block;margin-bottom:8px;">`:''}
+      <div style="color:#fff;font-weight:800;font-size:15px;margin-bottom:2px;">${artisanNom}</div>
+      ${entAdrEnv?`<div style="color:rgba(255,255,255,.75);font-size:10.5px;">${entAdrEnv}</div>`:''}
+      ${entTelEnv?`<div style="color:rgba(255,255,255,.75);font-size:10.5px;">Tél : ${entTelEnv}</div>`:''}
+      ${artisanEmail?`<div style="color:rgba(255,255,255,.75);font-size:10.5px;">${artisanEmail}</div>`:''}
+      ${entSiretEnv?`<div style="color:rgba(255,255,255,.6);font-size:10px;">SIRET : ${entSiretEnv}</div>`:''}
+    </td>
+    <td style="padding:18px 22px;vertical-align:top;text-align:right;width:45%">
+      <div style="color:#fff;font-size:20px;font-weight:800;letter-spacing:2px;">FACTURE</div>
+      <div style="color:rgba(255,255,255,.9);font-size:11px;margin-bottom:10px;">N° ${factureNum} &bull; ${dateEnv}</div>
+      <div style="background:rgba(255,255,255,.12);border-radius:6px;padding:9px 12px;display:inline-block;text-align:right;">
+        <div style="color:#fff;font-weight:700;font-size:12px;">${d.client?.nom||''}</div>
+        ${d.client?.email?`<div style="color:rgba(255,255,255,.8);font-size:10.5px;">${d.client.email}</div>`:''}
+        ${d.client?.tel?`<div style="color:rgba(255,255,255,.8);font-size:10.5px;">${d.client.tel}</div>`:''}
+        ${d.chantier?.adresse?`<div style="color:rgba(255,255,255,.8);font-size:10.5px;">${d.chantier.adresse}</div>`:''}
+      </div>
+    </td>
+  </tr>
+</table>`;
+
+  const totalEnvBloc = `
+<div style="text-align:right;margin-bottom:16px;">
+  <table style="margin-left:auto;font-size:12px;border-collapse:collapse;min-width:220px;">
+    <tr><td style="padding:4px 14px 4px 0;color:#666;">Total HT</td><td style="padding:4px 0;font-weight:600;">${fmtPdf(d.total_ht)} &euro;</td></tr>
+    <tr><td style="padding:4px 14px 4px 0;color:#666;">TVA ${tvaPctEnv}%</td><td style="padding:4px 0;font-weight:600;">${fmtPdf(tvaMontantEnv)} &euro;</td></tr>
+    <tr style="border-top:2px solid ${accentColor}"><td style="padding:7px 14px 4px 0;font-weight:700;font-size:14px;">TOTAL TTC</td><td style="padding:7px 0 4px;font-weight:700;font-size:14px;color:${accentColor};">${montantTTC}</td></tr>
+  </table>
+  <div style="border-top:1px solid #f0f0f0;margin-top:12px;padding-top:10px;font-size:10.5px;color:#999;line-height:1.7;text-align:left;">${condEnvTxt}</div>
+</div>`;
+
   const htmlFactureMail = `<div style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;color:#222;">
-  <div style="background:${accentColor};padding:22px 28px;border-radius:10px 10px 0 0;">
-    <div style="color:#fff;font-size:19px;font-weight:800;">${artisanNom}</div>
-    <div style="color:rgba(255,255,255,.75);font-size:12px;margin-top:3px;">Facture N° ${factureNum}</div>
+${headerEnv}
+<div style="background:#fff;padding:24px;border:1px solid #eee;border-top:none;border-radius:0 0 10px 10px;">
+  <p style="font-size:15px;margin:0 0 6px;">Bonjour ${d.client?.nom||''},</p>
+  <p style="font-size:13px;color:#444;margin:0 0 20px;line-height:1.7;">Veuillez trouver ci-joint votre facture <strong>${factureNum}</strong> d'un montant de <strong style="color:${accentColor};">${montantTTC}</strong>.</p>
+  <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:18px">
+    <thead><tr style="background:${accentColor};color:#fff"><th style="padding:8px;text-align:left;">Désignation</th><th style="padding:8px;text-align:center;">Qté</th><th style="padding:8px;text-align:center;">Unité</th><th style="padding:8px;text-align:right;">P.U. HT</th><th style="padding:8px;text-align:right;">Total HT</th></tr></thead>
+    <tbody>${rowsEnvHtml}</tbody>
+  </table>
+  ${totalEnvBloc}
+  <div style="border-top:1px solid #f0f0f0;padding-top:16px;">
+    <p style="font-size:13px;color:#555;margin:0;line-height:1.9;">Cordialement,<br><strong>${getSignatureArtisan()}</strong></p>
   </div>
-  <div style="background:#fff;padding:28px;border:1px solid #eee;border-top:none;border-radius:0 0 10px 10px;">
-    <p style="font-size:15px;margin:0 0 6px;">Bonjour ${d.client?.nom||''},</p>
-    <p style="font-size:14px;color:#444;margin:0 0 24px;line-height:1.7;">Veuillez trouver ci-joint votre facture <strong>${factureNum}</strong> d'un montant de <strong style="color:${accentColor};">${montantTTC}</strong>.</p>
-    <p style="font-size:14px;color:#444;margin:0 0 24px;line-height:1.7;">Pour tout renseignement complémentaire, n'hésitez pas à nous contacter.</p>
-    <div style="border-top:1px solid #f0f0f0;padding-top:20px;">
-      <p style="font-size:13px;color:#555;margin:0;line-height:1.9;">Cordialement,<br><strong>${getSignatureArtisan()}</strong></p>
-    </div>
-    <p style="margin-top:20px;font-size:10px;color:#ccc;text-align:center;">Généré avec DevisVoice</p>
-  </div>
+  <p style="margin-top:16px;font-size:10px;color:#ccc;text-align:center;">Généré avec DevisVoice</p>
+</div>
 </div>`;
   try{
     const r = await fetch(BACKEND+'/api/send-devis',{
