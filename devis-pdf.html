@@ -164,19 +164,6 @@ function renderHtml(d){
   const acompteHtml=acomptePct>0?`<div class="pdf-trow-acompte"><span>Acompte ${acomptePct}%</span><span>${fmt(acompteMontant)} €</span></div>`:'';
   const dateDebut=d.date_debut||'';
 
-  // Labels adaptés à la famille du métier
-  const famille=d.famille||'';
-  const isBTP=famille==='BTP'||(famille===''&&(!d.metier_cle||d.metier_cle==='tous'||['carrelage','plomberie','electricite','peinture','maconnerie','menuiserie','plaquiste','charpentier','couverture','isolation','chauffage','cuisiniste','serrurerie','terrassement','etancheur','metallier','technicien_cvc','pisciniste','paysagiste','facade','facadier'].includes(d.metier_cle)));
-  const labelClient   = isBTP ? "Maître d'Ouvrage" : 'Client';
-  const natLabels     = { BTP:'Nature des travaux', EVENEMENTIEL:"Nature de l'événement", AUTO:"Nature de l'intervention", SERVICES:'Nature de la prestation', CREATION:'Nature du projet' };
-  const labelNature   = natLabels[famille] || (isBTP ? 'Nature des travaux' : 'Nature de la prestation');
-  const showDelai     = isBTP || famille==='';
-  const titreDescriptif = isBTP ? 'Descriptif des Ouvrages' : 'Descriptif des Prestations';
-  const chantierLine  = `<strong>${labelNature} :</strong> ${chantier.nature||'—'}`
-    + (showDelai && chantier.delai ? ` &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Délai :</strong> ${chantier.delai}` : '')
-    + (chantier.nb_personnes ? ` &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Personnes :</strong> ${chantier.nb_personnes}` : '')
-    + (dateDebut ? ` &nbsp;&nbsp;|&nbsp;&nbsp;<strong>Début :</strong> ${dateDebut}` : '');
-
   let sectionsHtml='';let rowCounter=0;
   if(d.sections&&d.sections.length){
     d.sections.forEach(s=>{
@@ -206,10 +193,10 @@ function renderHtml(d){
     </div>
     <div class="pdf-parties">
       <div class="pdf-bloc"><div class="pdf-bloc-label">Entreprise</div><strong>${ent.nom||''}</strong><br>${ent.siret?'SIRET : '+ent.siret+'<br>':''}${ent.tel?'📞 '+ent.tel+'<br>':''}${ent.adresse?'📍 '+ent.adresse+'<br>':''}${ent.email?'✉️ '+ent.email:''}</div>
-      <div class="pdf-bloc"><div class="pdf-bloc-label">${labelClient}</div><strong>${client.nom||''}</strong><br>${client.email?'✉️ '+client.email+'<br>':''}${client.tel?'📞 '+client.tel+'<br>':''}${chantier.adresse?'📍 '+chantier.adresse:''}</div>
+      <div class="pdf-bloc"><div class="pdf-bloc-label">Maître d'Ouvrage</div><strong>${client.nom||''}</strong><br>${client.email?'✉️ '+client.email+'<br>':''}${client.tel?'📞 '+client.tel+'<br>':''}${chantier.adresse?'📍 '+chantier.adresse:''}</div>
     </div>
-    <div class="pdf-nature">${chantierLine}</div>
-    <div class="pdf-section-title">${titreDescriptif}</div>
+    <div class="pdf-nature"><strong>Nature des travaux :</strong> ${chantier.nature||'—'} &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Délai :</strong> ${chantier.delai||'—'}${dateDebut?' &nbsp;&nbsp;|&nbsp;&nbsp;<strong>Début :</strong> '+dateDebut:''}</div>
+    <div class="pdf-section-title">Descriptif des Ouvrages</div>
     <table class="pdf-table">
       <thead><tr><th>Désignation</th><th style="text-align:center;width:48px">Qté</th><th style="text-align:center;width:52px">Unité</th><th style="text-align:right;width:72px">P.U. HT €</th><th style="text-align:right;width:80px">Total HT €</th></tr></thead>
       <tbody>${sectionsHtml}</tbody>
