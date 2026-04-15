@@ -94,8 +94,8 @@ body{font-family:'Inter',sans-serif;background:#f5f4f1;min-height:100vh;display:
     </div>
     <div class="card-body">
       <div class="recap">
-        <div class="recap-row"><span class="rlabel">Artisan</span><span class="rval" id="rc-artisan">—</span></div>
-        <div class="recap-row"><span class="rlabel">Nature des travaux</span><span class="rval" id="rc-nature">—</span></div>
+        <div class="recap-row"><span class="rlabel" id="lbl-artisan">Artisan</span><span class="rval" id="rc-artisan">—</span></div>
+        <div class="recap-row"><span class="rlabel" id="lbl-nature">Nature des travaux</span><span class="rval" id="rc-nature">—</span></div>
         <div class="recap-row"><span class="rlabel">Validité</span><span class="rval" id="rc-validite">3 mois</span></div>
       </div>
       <div class="recap-total">
@@ -256,6 +256,15 @@ function init(){
       if(d.chantier&&d.chantier.nature) document.getElementById('rc-nature').textContent=d.chantier.nature;
       if(d.validite) document.getElementById('rc-validite').textContent=d.validite;
       if(d.conditions||d.mentions) document.getElementById('conditions-box').innerHTML=(d.conditions||'')+(d.mentions?'<br>'+d.mentions:'');
+      // Adapter les labels selon la famille du métier
+      const famille = row.famille || d.famille || '';
+      const lblArtisan = document.getElementById('lbl-artisan');
+      const lblNature  = document.getElementById('lbl-nature');
+      if(lblArtisan) lblArtisan.textContent = (famille && famille !== 'BTP') ? 'Prestataire' : 'Artisan';
+      if(lblNature){
+        const natLabels = { EVENEMENTIEL: "Nature de l'événement", AUTO: 'Véhicule', SERVICES: 'Nature de la prestation', CREATION: 'Nature du projet' };
+        lblNature.textContent = natLabels[famille] || 'Nature des travaux';
+      }
     }).catch(()=>{});
 
   initCanvas();

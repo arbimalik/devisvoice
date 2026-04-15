@@ -867,7 +867,19 @@ function onAcompteChange() {
 }
 
 function getFamille(key) {
-  return FAMILLES_METIERS[key || metierCourant] || 'BTP';
+  const k = key || metierCourant;
+  if (!k || k === 'tous') return null; // multi-famille : pas de famille unique
+  return FAMILLES_METIERS[k] || 'BTP';
+}
+
+// Retourne le CGV correct en fonction du métier réel, sans se fier à d.cgv_famille stocké
+// (qui peut être incorrect pour les devis 'tous' générés avant le système famille)
+function getCGVPourDevis(d) {
+  const k = d.metier_cle;
+  if (k === 'tous') return CGV_FAMILLE.SERVICES;
+  if (k && FAMILLES_METIERS[k]) return CGV_FAMILLE[FAMILLES_METIERS[k]] || CGV_FAMILLE.SERVICES;
+  if (d.famille && CGV_FAMILLE[d.famille]) return CGV_FAMILLE[d.famille];
+  return CGV_FAMILLE.SERVICES;
 }
 
 function getMentionTVA(tvaPct, famille) {
@@ -1259,7 +1271,7 @@ const FAMILLES_METIERS = {
   couverture:'BTP', isolation:'BTP', chauffage:'BTP', cuisiniste:'BTP',
   serrurerie:'BTP', terrassement:'BTP', etancheur:'BTP', metallier:'BTP',
   technicien_cvc:'BTP', pisciniste:'BTP', paysagiste:'BTP',
-  facade:'BTP', facadier:'BTP', tous:'BTP',
+  facade:'BTP', facadier:'BTP', tous:null,
   traiteur:'EVENEMENTIEL', wedding_planner:'EVENEMENTIEL',
   dj_sono:'EVENEMENTIEL', decorateur_evenementiel:'EVENEMENTIEL', videaste:'EVENEMENTIEL'
 };
@@ -1495,6 +1507,22 @@ Réponds UNIQUEMENT avec le JSON brut, sans markdown, sans explication, sans tex
   }
 }
 
+function sauvegarderDevisDebounce(){
+  clearTimeout(window._saveDevisTimer);
+  window._saveDevisTimer = setTimeout(() => {
+    if(!devisData) return;
+    fetch(BACKEND+'/api/devis/save', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        id: devisData.numero, data: devisData,
+        artisanEmail: ls('ent-email')||'',
+        artisanNom: ls('ent-nom')||'',
+        clientEmail: devisData.client?.email||''
+      })
+    }).catch(()=>{});
+  }, 500);
+}
+
 function majPrixPoste(sIdx, pIdx, val){
   if(!devisData) return;
   const pu = parseFloat(val) || 0;
@@ -1503,6 +1531,7 @@ function majPrixPoste(sIdx, pIdx, val){
   poste.total_ht = Math.round(pu * poste.qte * 100) / 100;
   recalculerTotaux();
   renderDevis(devisData);
+  sauvegarderDevisDebounce();
 }
 
 function majQtePoste(sIdx, pIdx, val){
@@ -1513,6 +1542,7 @@ function majQtePoste(sIdx, pIdx, val){
   poste.total_ht = Math.round(poste.pu_ht * qte * 100) / 100;
   recalculerTotaux();
   renderDevis(devisData);
+  sauvegarderDevisDebounce();
 }
 
 function majTvaDevis(val){
@@ -1842,7 +1872,7 @@ async function genererDevis(){
   const famille       = getFamille(metierCourant);
   const cfgFamille    = CHAMPS_FAMILLE[famille] || CHAMPS_FAMILLE.BTP;
   const vocabFamille  = VOCAB_FAMILLE[famille]  || VOCAB_FAMILLE.BTP;
-  const cgvFamille    = CGV_FAMILLE[famille]    || CGV_FAMILLE.BTP;
+  const cgvFamille    = metierCourant === 'tous' ? CGV_FAMILLE.SERVICES : (CGV_FAMILLE[famille] || CGV_FAMILLE.SERVICES);
   const clientNom=getClientNomComplet();
   const clientEmail=document.getElementById('client-email').value||'';
   const clientTel=document.getElementById('client-tel').value||'';
@@ -1998,7 +2028,7 @@ async function genererDevis(){
   if(marqueModele) chantierContexte += `|Véhicule:${marqueModele}`;
   if(kilometrage) chantierContexte += `|Km:${kilometrage}`;
 
-  const BIBLIO=`VOCABULAIRE — corrige les erreurs de reconnaissance vocale:
+  const BIBLIO_VOCAB=`VOCABULAIRE — corrige les erreurs de reconnaissance vocale:
 "grésérum/grey serum/grès sérum/graissera" → Grès cérame
 "ragréige/ragreage" → Ragréage
 "fayance/faience" → Faïence
@@ -2008,7 +2038,8 @@ async function genererDevis(){
 "serrurerie/serurerie" → Serrurerie
 "isolation/isolant" → Isolation
 "couverture/toiture" → Couverture
-
+`;
+  const BIBLIO_POSTES=`
 BIBLIOTHÈQUE POSTES STANDARDISÉS — utilise EXACTEMENT ces titres et descriptions, sans les modifier:
 
 📦 CARRELAGE:
@@ -2215,7 +2246,7 @@ ${prixBlock}${_prefsBlock}
 DICTÉE (partie ${i+1}/${passes.length}): ${passes[i]}
 NUMÉROTATION: commence les IDs à ${idCounter} (continue depuis la passe précédente)
 
-${BIBLIO}
+${BIBLIO_VOCAB}${famille === 'BTP' ? BIBLIO_POSTES : ''}
 
 STRUCTURE OBLIGATOIRE — groupe les postes par corps de métier dans "sections":
 Chaque section a: "metier", "emoji", "postes"
@@ -2400,7 +2431,7 @@ function renderDevis(d){
     <div class="iblk"><h2>Client</h2><p><strong>${d.client.nom}</strong><br>${d.client.email?'✉️ '+d.client.email:''}${clientTelHtml}${d.chantier.adresse?'<br>📍 '+d.chantier.adresse:''}</p></div>
   </div>
   <div class="iblk" style="margin-bottom:14px"><p>${(()=>{const cfg=CHAMPS_FAMILLE[d.famille||'BTP']||CHAMPS_FAMILLE.BTP;let txt='<strong>'+cfg.labelNature2+' :</strong> '+(d.chantier.nature||'—');if(cfg.showDelai&&d.chantier.delai) txt+=' &nbsp; <strong>Délai :</strong> '+d.chantier.delai;if(d.chantier.nb_personnes) txt+=' &nbsp; <strong>Personnes :</strong> '+d.chantier.nb_personnes;return txt;})()}</p></div>
-  <h2>${(CHAMPS_FAMILLE[d.famille||'BTP']||CHAMPS_FAMILLE.BTP).titrePrestations}</h2>
+  <h2>${(d.famille==='BTP'&&d.metier_cle&&d.metier_cle!=='tous')?'DESCRIPTIF DES OUVRAGES':'DESCRIPTIF DES PRESTATIONS'}</h2>
   <table><thead><tr><th>Désignation</th><th style="text-align:center">Qté</th><th style="text-align:center">Unité</th><th style="text-align:right">P.U. HT €</th><th style="text-align:right">Total HT €</th><th style="width:32px"></th></tr></thead><tbody>${sectionsHtml}</tbody></table>
   <div style="margin-bottom:14px">
     <div style="background:var(--bg3);border:1.5px dashed var(--border);border-radius:8px;padding:12px 14px;">
@@ -2411,18 +2442,20 @@ function renderDevis(d){
       <textarea id="obs-textarea" placeholder="Ex : Nous devrons couper l'eau pendant 2h pour le remplacement des radiateurs. Prévoir le remplacement du carrelage fissuré découvert lors du chantier…" style="width:100%;min-height:70px;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-family:'Inter',sans-serif;font-size:13px;color:var(--text);resize:vertical;outline:none;" oninput="majObservations(this.value)">${d.observations||''}</textarea>
     </div>
   </div>
-  <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
-    <div class="totaux-box">
-      <div class="trow"><span>Total HT</span><span>${fmt(d.total_ht)} €</span></div>
-      <div class="trow"><span>TVA ${d.tva_pct}%</span><span>${fmt(d.tva_montant)} €</span></div>
-      <div class="trow"><span>TOTAL TTC</span><span>${fmt(d.total_ttc)} €</span></div>
-      ${acompteHtml}
+  <div style="page-break-inside:avoid;">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+      <div class="totaux-box">
+        <div class="trow"><span>Total HT</span><span>${fmt(d.total_ht)} €</span></div>
+        <div class="trow"><span>TVA ${d.tva_pct}%</span><span>${fmt(d.tva_montant)} €</span></div>
+        <div class="trow"><span>TOTAL TTC</span><span>${fmt(d.total_ttc)} €</span></div>
+        ${acompteHtml}
+      </div>
     </div>
-  </div>
-  <div class="cond-box"><strong>Conditions :</strong> ${d.conditions}<br>${getMentionTVA(d.tva_pct, d.famille||getFamille(metierCourant))}${(d.famille||getFamille(metierCourant))==='BTP'&&gDecCompagnie ? "<br>🛡️ Assurance décennale : "+gDecCompagnie+(gDecNumero?" — Police n° "+gDecNumero:"") : ""}</div>
-  ${d.cgv_famille ? '<div class="cond-box" style="margin-top:8px;font-size:11px;color:var(--text2)">'+d.cgv_famille+'</div>' : ''}
-  ${gIban ? '<div class="cond-box" style="margin-top:8px">🏦 <strong>Coordonnées bancaires</strong><br>'+(gBanque?gBanque+"<br>":"")+"IBAN : "+gIban+(gBic?" — BIC : "+gBic:"")+(gTitulaire?"<br>Titulaire : "+gTitulaire:"")+"</div>" : ""}
-  <div class="validite-txt">Bon pour accord : _________________ &nbsp; Date : _________________</div>`;
+    <div class="cond-box"><strong>Conditions :</strong> ${d.conditions}<br>${getMentionTVA(d.tva_pct, d.famille||getFamille(metierCourant))}${(d.famille==='BTP'&&d.metier_cle&&d.metier_cle!=='tous'&&gDecCompagnie) ? "<br>Assurance décennale : "+gDecCompagnie+(gDecNumero?" — Police n° "+gDecNumero:"") : ""}</div>
+    ${(()=>{const c=getCGVPourDevis(d);return c?'<div class="cond-box" style="margin-top:8px;font-size:11px;color:var(--text2)">'+c+'</div>':'';})()}
+    ${gIban ? '<div class="cond-box" style="margin-top:8px">🏦 <strong>Coordonnées bancaires</strong><br>'+(gBanque?gBanque+"<br>":"")+"IBAN : "+gIban+(gBic?" — BIC : "+gBic:"")+(gTitulaire?"<br>Titulaire : "+gTitulaire:"")+"</div>" : ""}
+    <div class="validite-txt">Bon pour accord : _________________ &nbsp; Date : _________________</div>
+  </div>`;
 }
 
 function fmt(n){return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -3002,7 +3035,9 @@ function genererPdfDevisBase64(d) {
 
   // Titre descriptif adapté à la famille
   const famDevis = d.famille || 'BTP';
-  const titrePrestPdf = (CHAMPS_FAMILLE[famDevis]||CHAMPS_FAMILLE.BTP).titrePrestations;
+  const titrePrestPdf = (famDevis === 'BTP' && d.metier_cle && d.metier_cle !== 'tous')
+    ? 'DESCRIPTIF DES OUVRAGES'
+    : 'DESCRIPTIF DES PRESTATIONS';
   pdf.setFontSize(8); pdf.setFont('helvetica','bold'); pdf.setTextColor(...acc);
   pdf.text(titrePrestPdf, M, y); y += 6;
 
@@ -3101,10 +3136,10 @@ function genererPdfDevisBase64(d) {
   // Conditions + mentions légales + CGV famille
   const conditions = d.conditions || '';
   const mentions   = d.mentions   || getMentionTVA(tva, d.famille) || ('TVA '+tva+'% applicable');
-  const cgvFam     = d.cgv_famille || CGV_FAMILLE[d.famille||'BTP'] || CGV_FAMILLE.BTP;
-  // Assurance décennale (BTP seulement)
+  const cgvFam     = getCGVPourDevis(d);
+  // Assurance décennale (BTP single-métier seulement)
   const famille = d.famille || 'BTP';
-  const decLine = (famille === 'BTP' && d.decennale_compagnie)
+  const decLine = (famille === 'BTP' && d.metier_cle && d.metier_cle !== 'tous' && d.decennale_compagnie)
     ? 'Assurance décennale : '+d.decennale_compagnie+(d.decennale_numero?' — Police n° '+d.decennale_numero:'')
     : '';
   checkPage(10);
@@ -3176,7 +3211,9 @@ function genererPdfFactureBase64(d) {
 
   // Titre descriptif adapté à la famille
   const famFact2 = d.famille || 'BTP';
-  const titrePrestFact = (CHAMPS_FAMILLE[famFact2]||CHAMPS_FAMILLE.BTP).titrePrestations;
+  const titrePrestFact = (famFact2 === 'BTP' && d.metier_cle && d.metier_cle !== 'tous')
+    ? 'DESCRIPTIF DES OUVRAGES'
+    : 'DESCRIPTIF DES PRESTATIONS';
   pdf.setFontSize(8); pdf.setFont('helvetica','bold'); pdf.setTextColor(...acc);
   pdf.text(titrePrestFact, M, y); y += 6;
 
@@ -3265,7 +3302,7 @@ function genererPdfFactureBase64(d) {
   // Mentions légales + CGV famille
   const famFact  = d.famille || 'BTP';
   const mentions = d.mentions || getMentionTVA(tva, famFact) || ('TVA '+tva+'% applicable');
-  const cgv      = d.cgv_famille || CGV_FAMILLE[famFact] || CGV_FAMILLE.BTP;
+  const cgv      = getCGVPourDevis(d);
   checkPage(12);
   pdf.setFontSize(7.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(150,150,150);
   [mentions, cgv].forEach(bloc => {
@@ -3656,7 +3693,7 @@ function renderFacture(d){
     });
   }
   const mentionTVA = d.mentions||getMentionTVA(tva, d.famille)||`TVA ${tva}% applicable`;
-  const cgv = d.cgv_famille || CGV_FAMILLE[d.famille||'BTP'] || CGV_FAMILLE.BTP;
+  const cgv = getCGVPourDevis(d);
   content.innerHTML=`<div id="facture-preview" style="font-family:'Inter',sans-serif;font-size:12px;color:var(--text);line-height:1.6;">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
       <div>${d.logo?`<img src="${d.logo}" style="max-height:50px;max-width:160px;object-fit:contain;margin-bottom:10px;display:block;">`:''}
