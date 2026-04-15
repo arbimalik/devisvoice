@@ -2113,7 +2113,12 @@ function renderDevis(d){
   <div class="validite-txt">Bon pour accord : _________________ &nbsp; Date : _________________</div>`;
 }
 
-function fmt(n){return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmt(n){
+  const num = parseFloat(n) || 0;
+  const parts = num.toFixed(2).split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return parts[0] + ',' + parts[1];
+}
 
 // Supprime les emojis unicode — jsPDF ne supporte pas Unicode et corrompt les caractères
 function stripEmoji(str){
