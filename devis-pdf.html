@@ -276,7 +276,7 @@ function renderFactureHtml(d){
     d.sections.forEach(s=>{
       rowsHtml+=`<tr><td colspan="5" style="padding:6px 8px;background:#f5f5f5;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${accent}">${s.emoji||''} ${s.metier}</td></tr>`;
       s.postes.forEach(p=>{
-        rowsHtml+=`<tr><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0;font-size:12px;"><strong>${p.id}. ${p.titre}</strong><br><span style="font-size:10px;color:#888">${p.description||''}</span></td><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:12px;">${p.qte}</td><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:12px;">${p.unite}</td><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0;text-align:right;font-size:12px;">${Number(p.pu_ht).toFixed(2)} €</td><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0;text-align:right;font-size:12px;font-weight:600;">${Number(p.total_ht).toFixed(2)} €</td></tr>`;
+        rowsHtml+=`<tr><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0;font-size:12px;"><strong>${p.id}. ${p.titre}</strong><br><span style="font-size:10px;color:#888">${p.description||''}</span></td><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:12px;">${p.qte}</td><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:12px;">${p.unite}</td><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0;text-align:right;font-size:12px;">${fmt(p.pu_ht)} €</td><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0;text-align:right;font-size:12px;font-weight:600;">${fmt(p.total_ht)} €</td></tr>`;
       });
     });
   }
@@ -316,9 +316,9 @@ function renderFactureHtml(d){
     </table>
     <div class="pdf-totaux-wrap">
       <div class="pdf-totaux">
-        <div class="pdf-trow"><span class="pdf-trow-label">Total HT</span><span>${Number(d.total_ht).toFixed(2)} €</span></div>
-        <div class="pdf-trow"><span class="pdf-trow-label">TVA ${d.tva_pct||10}%</span><span>${Number(d.tva_montant).toFixed(2)} €</span></div>
-        <div class="pdf-trow"><span class="pdf-trow-label">TOTAL TTC</span><span>${Number(d.total_ttc).toFixed(2)} €</span></div>
+        <div class="pdf-trow"><span class="pdf-trow-label">Total HT</span><span>${fmt(d.total_ht)} €</span></div>
+        <div class="pdf-trow"><span class="pdf-trow-label">TVA ${d.tva_pct||10}%</span><span>${fmt(d.tva_montant)} €</span></div>
+        <div class="pdf-trow"><span class="pdf-trow-label">TOTAL TTC</span><span>${fmt(d.total_ttc)} €</span></div>
       </div>
     </div>
     <div class="pdf-footer-bloc">Paiement à réception de facture<br>${d.mentions||''}</div>
