@@ -1187,6 +1187,22 @@ Réponds UNIQUEMENT avec le JSON brut, sans markdown, sans explication, sans tex
   }
 }
 
+function sauvegarderDevisDebounce(){
+  clearTimeout(window._saveDevisTimer);
+  window._saveDevisTimer = setTimeout(() => {
+    if(!devisData) return;
+    fetch(BACKEND+'/api/devis/save', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        id: devisData.numero, data: devisData,
+        artisanEmail: ls('ent-email')||'',
+        artisanNom: ls('ent-nom')||'',
+        clientEmail: devisData.client?.email||''
+      })
+    }).catch(()=>{});
+  }, 500);
+}
+
 function majPrixPoste(sIdx, pIdx, val){
   if(!devisData) return;
   const pu = parseFloat(val) || 0;
@@ -1195,6 +1211,7 @@ function majPrixPoste(sIdx, pIdx, val){
   poste.total_ht = Math.round(pu * poste.qte * 100) / 100;
   recalculerTotaux();
   renderDevis(devisData);
+  sauvegarderDevisDebounce();
 }
 
 function majQtePoste(sIdx, pIdx, val){
@@ -1205,6 +1222,7 @@ function majQtePoste(sIdx, pIdx, val){
   poste.total_ht = Math.round(poste.pu_ht * qte * 100) / 100;
   recalculerTotaux();
   renderDevis(devisData);
+  sauvegarderDevisDebounce();
 }
 
 function majTvaDevis(val){
