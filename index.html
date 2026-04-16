@@ -2151,9 +2151,10 @@ function renderDevis(d){
               </div>
               <span style="font-size:11px;color:var(--text2);">${p.unite}</span>
               <div style="margin-left:auto;display:flex;align-items:center;gap:6px;">
+                <span style="font-size:10px;color:var(--text2);">PU HT</span>
                 <input type="number" value="${p.pu_ht}" min="0" step="0.5" onchange="majPrixPoste(${sIdx},${pIdx},this.value)"
                   style="width:65px;padding:3px 5px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text);text-align:right;">
-                <strong style="font-size:12px;white-space:nowrap;min-width:58px;text-align:right;">${fmt(p.total_ht)} €</strong>
+                <strong style="font-size:12px;white-space:nowrap;min-width:58px;text-align:right;color:var(--accent);">${fmt(p.total_ht)} €</strong>
               </div>
             </div>
           </div>`).join('');
