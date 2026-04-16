@@ -1409,7 +1409,7 @@ function recalculerTotaux(){
   if (hasPerPosteTva) {
     const breakdown = {};
     devisData.sections.forEach(s => (s.postes||[]).forEach(p => {
-      const rate = p.tva_pct ?? devisData.tva_pct ?? 10;
+      const rate = Number(p.tva_pct ?? devisData.tva_pct ?? 10) || 10;
       breakdown[rate] = (breakdown[rate] || 0) + Number(p.total_ht) * rate / 100;
     }));
     Object.keys(breakdown).forEach(k => { breakdown[k] = Math.round(breakdown[k] * 100) / 100; });
@@ -1423,7 +1423,10 @@ function recalculerTotaux(){
       devisData.mentions = 'TVA 10% sur nourriture et services — TVA 20% sur boissons alcoolisées';
     }
   } else {
-    const tva = devisData.tva_pct || 10;
+    // Pour traiteur (prestataire), la TVA par défaut est 10% même si l'IA a mis 20% au niveau global
+    const _PRESTATAIRES_RECALC = ['traiteur','restauration','evenementiel','reception'];
+    const _isTraiteurRecalc = devisData.sections?.some(s => _PRESTATAIRES_RECALC.some(k => (s.metier||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'').includes(k)));
+    const tva = _isTraiteurRecalc ? 10 : (devisData.tva_pct || 10);
     tvaMontant = totalHT * tva / 100;
     devisData.tva_breakdown = null;
   }
@@ -2173,6 +2176,16 @@ RÈGLES ABSOLUES: Ne jamais inventer un prix. Unité: "pers" par personne, "h" h
         }
 
         parsed.observations = ''; // réservé à l'artisan — jamais rempli par l'IA
+
+        // Traiteur : s'assurer que chaque poste a un tva_pct individuel (évite TVA 20% globale par erreur IA)
+        if(isPrestaGen){
+          parsed.tva_pct = 10; // la TVA globale est toujours 10 pour traiteur (mixte géré par tva_breakdown)
+          (parsed.sections||[]).forEach(s=>(s.postes||[]).forEach(p=>{
+            if(p.tva_pct == null) p.tva_pct = 10;
+            else p.tva_pct = Number(p.tva_pct) || 10;
+          }));
+        }
+
         devisData=parsed;
         dicteeOriginale = document.getElementById('dictee-text').innerText.trim();
         document.getElementById('btn-gen').innerHTML='🔄 Modifier le Devis';
@@ -2344,10 +2357,7 @@ function renderDevis(d){
       <div style="flex:1;min-width:0;text-align:right;">
         <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:3px;">Montants</div>
         <div style="color:var(--text);font-size:11px;">HT : ${fmt(d.total_ht)} €</div>
-        ${d.tva_breakdown && Object.keys(d.tva_breakdown).length > 1
-          ? Object.entries(d.tva_breakdown).sort(([a],[b])=>Number(a)-Number(b)).map(([r,m])=>`<div style="color:var(--text);font-size:11px;">TVA ${r}% : ${fmt(m)} €</div>`).join('')
-          : `<div style="color:var(--text);font-size:11px;">TVA ${d.tva_pct||10}% : ${fmt(d.tva_montant)} €</div>`
-        }
+        ${(()=>{const bd=d.tva_breakdown?Object.fromEntries(Object.entries(d.tva_breakdown).filter(([k])=>!isNaN(Number(k))&&Number(k)>0)):null;return bd&&Object.keys(bd).length>1?Object.entries(bd).sort(([a],[b])=>Number(a)-Number(b)).map(([r,m])=>`<div style="color:var(--text);font-size:11px;">TVA ${r}% : ${fmt(m)} €</div>`).join(''):`<div style="color:var(--text);font-size:11px;">TVA ${d.tva_pct||10}% : ${fmt(d.tva_montant)} €</div>`;})()}
       </div>
     </div>
   </div>
@@ -3007,8 +3017,9 @@ function genererPdfDevisBase64(d) {
   y += 6;
 
   // Totaux
-  const tvaLines = d.tva_breakdown && Object.keys(d.tva_breakdown).length > 1
-    ? Object.entries(d.tva_breakdown).sort(([a],[b])=>Number(a)-Number(b))
+  const _validBd = d.tva_breakdown ? Object.fromEntries(Object.entries(d.tva_breakdown).filter(([k])=>!isNaN(Number(k))&&Number(k)>0)) : null;
+  const tvaLines = _validBd && Object.keys(_validBd).length > 1
+    ? Object.entries(_validBd).sort(([a],[b])=>Number(a)-Number(b))
     : [[tva, d.tva_montant != null ? d.tva_montant : parseFloat(d.total_ht||0)*parseFloat(tva)/100]];
   const boxH = 14 + tvaLines.length * 6 + (d.acompte_pct > 0 ? 7 : 0);
   checkPage(boxH + 8);
