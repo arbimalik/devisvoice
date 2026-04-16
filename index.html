@@ -1415,9 +1415,13 @@ function recalculerTotaux(){
     Object.keys(breakdown).forEach(k => { breakdown[k] = Math.round(breakdown[k] * 100) / 100; });
     tvaMontant = Object.values(breakdown).reduce((a,b) => a+b, 0);
     devisData.tva_breakdown = breakdown;
-    // tva_pct racine : taux unique si homogène, sinon on garde la valeur existante comme référence
-    const rates = Object.keys(breakdown).map(Number);
-    if (rates.length === 1) devisData.tva_pct = rates[0];
+    const rates = Object.keys(breakdown).map(Number).sort((a,b)=>a-b);
+    if (rates.length === 1) {
+      devisData.tva_pct = rates[0];
+    } else {
+      // TVA mixte : mettre à jour les mentions légales
+      devisData.mentions = 'TVA 10% sur nourriture et services — TVA 20% sur boissons alcoolisées';
+    }
   } else {
     const tva = devisData.tva_pct || 10;
     tvaMontant = totalHT * tva / 100;
@@ -2079,7 +2083,9 @@ Réponds UNIQUEMENT JSON sans backticks:
 {"numero":"${num}","date":"${today}","validite":"${validiteDevis}","entreprise":{"nom":"","siret":"","tel":"","adresse":"","email":""},"client":{"nom":"","email":"","tel":""},"chantier":{"adresse":"","nature":"","delai":""},"sections":[{"metier":"Carrelage / Sols","emoji":"🪨","postes":[{"id":1,"titre":"","description":"","qte":1,"unite":"Forfait","pu_ht":0,"total_ht":0}]}],"total_ht":0,"tva_pct":${tva},"tva_montant":0,"total_ttc":0,"total_lettres":"","mentions":"${gMentions||'TVA '+tva+'% applicable'}","conditions":"${conditionsDevis}"}
 RÈGLES ABSOLUES: Ne jamais inventer un prix. Utiliser uniquement les prix dictés. Pour l'unité: "m²" surfaces, "ml" linéaires, "h" heures, "Forfait" tout le reste. Ne jamais utiliser "ens".`;
 
-  const structureJSON=`{"numero":"${num}","date":"${today}","validite":"${validiteDevis}","entreprise":{"nom":"${entNom}","siret":"${entSiret}","tel":"${entTel}","adresse":"","email":"${entEmail}"},"client":{"nom":"${clientNom}","email":"${clientEmail}","tel":"${clientTel}"},"chantier":{"adresse":"${chantierAdr}","nature":"${nature}","delai":"${delai}"},"sections":[{"metier":"Carrelage / Sols","emoji":"🪨","postes":[{"id":1,"titre":"","description":"","qte":1,"unite":"Forfait","pu_ht":0,"total_ht":0}]}],"total_ht":0,"tva_pct":${tva},"tva_montant":0,"total_ttc":0,"total_lettres":"","mentions":"${gMentions||'TVA '+tva+'% applicable'}","conditions":"${conditionsDevis}"}`;
+  const structureJSON = isPrestaGen
+    ? `{"numero":"${num}","date":"${today}","validite":"${validiteDevis}","entreprise":{"nom":"${entNom}","siret":"${entSiret}","tel":"${entTel}","adresse":"","email":"${entEmail}"},"client":{"nom":"${clientNom}","email":"${clientEmail}","tel":"${clientTel}"},"chantier":{"adresse":"${chantierAdr}","nature":"${nature}","delai":"${delai}"},"sections":[{"metier":"Traiteur / Réception","emoji":"🥂","postes":[{"id":1,"titre":"","description":"","qte":1,"unite":"pers","pu_ht":0,"total_ht":0,"tva_pct":10}]}],"total_ht":0,"tva_pct":10,"tva_montant":0,"total_ttc":0,"total_lettres":"","mentions":"TVA 10% sur nourriture et services — TVA 20% sur boissons alcoolisées","conditions":"${conditionsDevis}"}`
+    : `{"numero":"${num}","date":"${today}","validite":"${validiteDevis}","entreprise":{"nom":"${entNom}","siret":"${entSiret}","tel":"${entTel}","adresse":"","email":"${entEmail}"},"client":{"nom":"${clientNom}","email":"${clientEmail}","tel":"${clientTel}"},"chantier":{"adresse":"${chantierAdr}","nature":"${nature}","delai":"${delai}"},"sections":[{"metier":"Carrelage / Sols","emoji":"🪨","postes":[{"id":1,"titre":"","description":"","qte":1,"unite":"Forfait","pu_ht":0,"total_ht":0}]}],"total_ht":0,"tva_pct":${tva},"tva_montant":0,"total_ttc":0,"total_lettres":"","mentions":"${gMentions||'TVA '+tva+'% applicable'}","conditions":"${conditionsDevis}"}`;
 
   try{
     for(let i=0;i<passes.length;i++){
@@ -2104,9 +2110,16 @@ ${estDernierePasse
   ? `C'est la DERNIÈRE PASSE. Réponds avec le JSON COMPLET incluant tous les totaux:
 ${structureJSON}`
   : `Ce n'est PAS la dernière passe. Réponds UNIQUEMENT avec ce format JSON (sans totaux):
-{"sections":[{"metier":"Nom métier","emoji":"🔧","postes":[{"id":${idCounter},"titre":"","description":"","qte":1,"unite":"Forfait","pu_ht":0,"total_ht":0}]}]}`
+${isPrestaGen
+  ? `{"sections":[{"metier":"Traiteur / Réception","emoji":"🥂","postes":[{"id":${idCounter},"titre":"","description":"","qte":1,"unite":"pers","pu_ht":0,"total_ht":0,"tva_pct":10}]}]}`
+  : `{"sections":[{"metier":"Nom métier","emoji":"🔧","postes":[{"id":${idCounter},"titre":"","description":"","qte":1,"unite":"Forfait","pu_ht":0,"total_ht":0}]}]}`
+}`
 }
-RÈGLES ABSOLUES: Ne jamais inventer un prix. Utiliser uniquement les prix dictés. Pour l'unité: "m²" surfaces, "ml" linéaires, "h" heures, "pers" par personne (traiteur), "Forfait" tout le reste. Ne jamais utiliser "ens".${isPrestaGen?' Pour chaque poste traiteur ajouter le champ "tva_pct": 10 nourriture/service/personnel, 20 boissons alcoolisées.':''}`;
+${isPrestaGen ? `RÈGLES TVA TRAITEUR — OBLIGATOIRE sur chaque poste:
+• "tva_pct":10 par défaut sur TOUS les postes (menus, nourriture, service, personnel, location, transport, décoration)
+• "tva_pct":20 UNIQUEMENT si le poste contient: vin, vins, champagne, prosecco, cava, mousseux, pétillant, bière, bières, alcool, alcools, spiritueux, whisky, cognac, rhum, vodka, gin, tequila, calvados, armagnac, porto, sangria, cocktail alcoolisé, open bar, bar alcool, boissons alcoolisées, apéritif alcoolisé, digestif.
+RÈGLES ABSOLUES: Ne jamais inventer un prix. Unité: "pers" par personne, "h" heures, "Forfait" sinon.`
+: `RÈGLES ABSOLUES: Ne jamais inventer un prix. Utiliser uniquement les prix dictés. Pour l'unité: "m²" surfaces, "ml" linéaires, "h" heures, "Forfait" tout le reste. Ne jamais utiliser "ens".`}`;
 
       let res;
       for(let attempt=1;attempt<=3;attempt++){
