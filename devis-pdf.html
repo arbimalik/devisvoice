@@ -199,7 +199,9 @@ function renderHtml(d){
   const ribInline=iban?`<br><br><strong>🏦 Coordonnées bancaires</strong><br>${banque?banque+'<br>':''}IBAN : ${iban}${bic?' — BIC : '+bic:''}${titulaire?'<br>Titulaire : '+titulaire:''}`:'';
   const decHtml=decCompagnie?`<br>🛡️ Assurance décennale : ${decCompagnie}${decNumero?' — Police n° '+decNumero:''}`:'' ;
   const logoSrc=d.logo||localStorage.getItem('ent-logo')||'';
-  const logoHtml=logoSrc?`<img src="${logoSrc}" style="max-height:52px;max-width:160px;object-fit:contain;">`:`<div style="font-family:'Arial Black',sans-serif;font-size:20px;font-weight:900;color:#111;letter-spacing:-0.5px">${ent.nom||'Votre Entreprise'}</div>`;
+  const logoMaxH = isPresta ? '80px' : '52px';
+  const logoMaxW = isPresta ? '220px' : '160px';
+  const logoHtml=logoSrc?`<img src="${logoSrc}" style="max-height:${logoMaxH};max-width:${logoMaxW};object-fit:contain;">`:`<div style="font-family:'Arial Black',sans-serif;font-size:20px;font-weight:900;color:#111;letter-spacing:-0.5px">${ent.nom||'Votre Entreprise'}</div>`;
 
   document.getElementById('devis-container').innerHTML=`
   <div class="pdf-wrap">
@@ -221,7 +223,10 @@ function renderHtml(d){
     <div class="pdf-totaux-wrap">
       <div class="pdf-totaux">
         <div class="pdf-trow"><span class="pdf-trow-label">Total HT</span><span>${fmt(d.total_ht)} €</span></div>
-        <div class="pdf-trow"><span class="pdf-trow-label">TVA ${d.tva_pct}%</span><span>${fmt(d.tva_montant)} €</span></div>
+        ${d.tva_breakdown && Object.keys(d.tva_breakdown).length > 1
+          ? Object.entries(d.tva_breakdown).sort(([a],[b])=>Number(a)-Number(b)).map(([r,m])=>`<div class="pdf-trow"><span class="pdf-trow-label">TVA ${r}%</span><span>${fmt(m)} €</span></div>`).join('')
+          : `<div class="pdf-trow"><span class="pdf-trow-label">TVA ${d.tva_pct||10}%</span><span>${fmt(d.tva_montant)} €</span></div>`
+        }
         <div class="pdf-trow"><span class="pdf-trow-label">TOTAL TTC</span><span>${fmt(d.total_ttc)} €</span></div>
         ${acompteHtml}
       </div>
@@ -295,8 +300,10 @@ function renderFactureHtml(d){
     });
   }
   const logoSrcF = d.logo||localStorage.getItem('ent-logo')||'';
+  const _fLogoMaxH = _fIsPresta ? '80px' : '52px';
+  const _fLogoMaxW = _fIsPresta ? '220px' : '160px';
   const logoHtml = logoSrcF
-    ? `<img src="${logoSrcF}" style="max-height:52px;max-width:160px;object-fit:contain;">`
+    ? `<img src="${logoSrcF}" style="max-height:${_fLogoMaxH};max-width:${_fLogoMaxW};object-fit:contain;">`
     : `<div style="font-family:'Arial Black',sans-serif;font-size:20px;font-weight:900;color:#111;">${ent.nom||''}</div>`;
 
   const el = document.getElementById('devis-container');
