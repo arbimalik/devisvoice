@@ -650,6 +650,12 @@ select option{background:var(--card);color:var(--text);}
       <div class="savebadge" id="p-badge">✓ Profil sauvegardé</div>
     </div>
   </div>
+  <div class="card">
+    <div class="card-header ch-dark">Habitudes détectées</div>
+    <div class="card-body" id="habitudes-body">
+      <div style="font-size:12px;color:var(--text2);text-align:center;padding:12px 0;">Chargement…</div>
+    </div>
+  </div>
 </div>
 
 <!-- TARIFS -->
@@ -778,7 +784,57 @@ async function loadStats(){
   }catch(e){ document.getElementById('stat-derniers').textContent='Impossible de charger les stats.'; }
 }
 
-function showTab(n,el){document.querySelectorAll('.content').forEach(c=>c.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');el.classList.add('active');if(n==='profil')loadStats();if(n==='chantiers')loadChantiers();}
+function showTab(n,el){document.querySelectorAll('.content').forEach(c=>c.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');el.classList.add('active');if(n==='profil'){loadStats();loadHabitudes();}if(n==='chantiers')loadChantiers();}
+
+async function loadHabitudes(){
+  const email = ls('ent-email');
+  const container = document.getElementById('habitudes-body');
+  if(!container) return;
+  if(!email){
+    container.innerHTML='<div style="font-size:12px;color:var(--text2);">Renseignez votre email pro pour activer la mémoire IA.</div>';
+    return;
+  }
+  try{
+    const r = await fetch(BACKEND+'/api/preferences?email='+encodeURIComponent(email));
+    const p = r.ok ? await r.json() : {};
+    const vide = !p.metiers_frequents && !p.formulations_types?.length && !p.observations_recentes?.length && !p.acompte_habituel && !p.conditions_habituelles;
+    if(vide){
+      container.innerHTML='<div style="font-size:12px;color:var(--text2);text-align:center;padding:12px 0;">Aucune habitude détectée pour l\'instant.<br><span style="font-size:11px;">Elles apparaîtront après vos premiers devis.</span></div>';
+      return;
+    }
+    let html='<div style="display:flex;flex-direction:column;gap:12px;">';
+    if(p.metiers_frequents && Object.keys(p.metiers_frequents).length){
+      const top = Object.entries(p.metiers_frequents).sort((a,b)=>b[1]-a[1]).slice(0,5).map(e=>e[0]);
+      html+=`<div><div style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);margin-bottom:6px;">Métiers fréquents</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${top.map(m=>`<span style="background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-border);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;">${m}</span>`).join('')}</div></div>`;
+    }
+    if(p.acompte_habituel){
+      html+=`<div><div style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);margin-bottom:4px;">Acompte habituel</div><span style="font-size:13px;font-weight:700;color:var(--text);">${p.acompte_habituel}%</span></div>`;
+    }
+    if(p.formulations_types?.length){
+      html+=`<div><div style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);margin-bottom:6px;">Formulations mémorisées</div><div style="display:flex;flex-direction:column;gap:4px;">${p.formulations_types.slice(0,8).map(f=>`<div style="font-size:11px;color:var(--text);background:var(--bg3);border-radius:6px;padding:5px 9px;border:1px solid var(--border);">${f}</div>`).join('')}</div></div>`;
+    }
+    if(p.observations_recentes?.length){
+      html+=`<div><div style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);margin-bottom:6px;">Observations récentes</div><div style="display:flex;flex-direction:column;gap:4px;">${p.observations_recentes.slice(0,3).map(o=>`<div style="font-size:11px;color:var(--text);background:var(--bg3);border-radius:6px;padding:5px 9px;border:1px solid var(--border);">${o}</div>`).join('')}</div></div>`;
+    }
+    if(p.conditions_habituelles){
+      html+=`<div><div style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);margin-bottom:4px;">Conditions habituelles</div><div style="font-size:11px;color:var(--text);background:var(--bg3);border-radius:6px;padding:5px 9px;border:1px solid var(--border);">${p.conditions_habituelles}</div></div>`;
+    }
+    html+=`</div><button onclick="effacerMemoire()" style="margin-top:16px;width:100%;background:rgba(220,50,50,.07);color:#e04040;border:1px solid rgba(220,50,50,.2);border-radius:7px;padding:9px;font-size:12px;font-weight:600;cursor:pointer;">Effacer toute la mémoire</button>`;
+    container.innerHTML = html;
+  }catch(e){
+    container.innerHTML='<div style="font-size:12px;color:#e04040;">Impossible de charger les habitudes.</div>';
+  }
+}
+
+async function effacerMemoire(){
+  const email = ls('ent-email');
+  if(!email) return;
+  if(!confirm('Effacer toute la mémoire de l\'IA ? Cette action est irréversible.')) return;
+  try{
+    await fetch(BACKEND+'/api/preferences/reset?email='+encodeURIComponent(email), {method:'DELETE'});
+    loadHabitudes();
+  }catch(e){}
+}
 
 function getClientNomComplet(){
   const p=document.getElementById('client-prenom').value.trim();
@@ -1225,6 +1281,15 @@ function majQtePoste(sIdx, pIdx, val){
   recalculerTotaux();
   renderDevis(devisData);
   sauvegarderDevisDebounce();
+}
+
+function majTitrePoste(sIdx, pIdx, val){
+  if(!devisData) return;
+  const titre = val.trim();
+  if(!titre) return;
+  devisData.sections[sIdx].postes[pIdx].titre = titre;
+  sauvegarderDevisDebounce();
+  sauvegarderPreferencesAuto();
 }
 
 function majTvaDevis(val){
@@ -2033,7 +2098,7 @@ function renderDevis(d){
         <tr>
           <td style="padding:7px 9px;border-bottom:1px solid var(--border);vertical-align:top">
             <span style="font-size:11px;color:var(--text2);font-weight:600;margin-right:8px">${p.id}.</span>
-            <div class="ptit" style="display:inline">${p.titre}</div>
+            <input type="text" value="${p.titre.replace(/"/g,'&quot;')}" onblur="majTitrePoste(${sIdx},${pIdx},this.value)" style="border:none;background:transparent;font-weight:600;color:var(--text);font-family:'Inter',sans-serif;font-size:12px;width:calc(100% - 24px);padding:0;outline:none;cursor:text;" class="ptit">
             <div class="pdesc">${p.description}</div>
           </td>
           <td style="padding:7px 9px;border-bottom:1px solid var(--border);text-align:center">
@@ -2554,13 +2619,14 @@ function sauvegarderPreferencesAuto(){
   if(!email || !devisData) return;
   const observations = document.getElementById('obs-textarea')?.value || '';
   const descriptions = devisData.sections?.flatMap(s => s.postes?.map(p => p.description)||[]).filter(Boolean).slice(0, 10) || [];
+  const titres = devisData.sections?.flatMap(s => s.postes?.map(p => p.titre)||[]).filter(Boolean).slice(0, 10) || [];
   const metiers = devisData.sections?.map(s => s.metier).filter(Boolean) || [];
   fetch(BACKEND+'/api/preferences/update', {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
       artisanEmail: email,
       observations,
-      descriptions,
+      descriptions: [...new Set([...titres, ...descriptions])].slice(0, 15),
       acomptePct: devisData.acompte_pct || 0,
       metiers,
       conditions: devisData.conditions || ''
