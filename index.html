@@ -1130,20 +1130,41 @@ function afficherPrestations(key) {
 
   html += '<div style="display:flex;flex-direction:column;gap:5px">';
   prestationsActives[key].forEach((p, i) => {
-    html += `<div style="display:grid;grid-template-columns:${gridCols};gap:6px;align-items:center;padding:5px 6px;border-radius:6px;border:1px solid var(--border);background:var(--card)">
-      <input type="checkbox" ${p.actif?'checked':''} onchange="togglePrestation('${key}',${i},this.checked)" style="accent-color:var(--accent);width:14px;height:14px;">
-      <input type="text" value="${p.nom.replace(/'/g,'&#39;')}" onchange="renommerPrestation('${key}',${i},this.value)"
-        style="width:100%;padding:4px 6px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text)">
-      <input type="number" value="${p.prix||''}" placeholder="0" min="0" step="0.5"
-        onchange="setPrix('${key}',${i},this.value)"
-        style="width:100%;padding:4px 6px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text);text-align:right">
-      <select onchange="setUnite('${key}',${i},this.value)"
-        style="width:100%;padding:4px 4px;border:1.5px solid var(--border);border-radius:5px;font-size:11px;background:var(--input-bg);color:var(--text)">
-        ${['m²','ml','m³','u','h','j','forfait','kg','tonne','lot'].map(u=>`<option value="${u}" ${(p.unite||'')=== u?'selected':''}>${u}</option>`).join('')}
-      </select>
-      <button onclick="supprimerPrestation('${key}',${i})" title="Supprimer"
-        style="background:rgba(220,50,50,.12);color:#e04040;border:1px solid rgba(220,50,50,.2);border-radius:5px;padding:4px ${isMobile?'4px':'8px'};font-size:${isMobile?'11px':'13px'};cursor:pointer;width:100%;">🗑</button>
-    </div>`;
+    if(isMobile){
+      html += `<div style="padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card);">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <input type="checkbox" ${p.actif?'checked':''} onchange="togglePrestation('${key}',${i},this.checked)" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0;">
+          <input type="text" value="${p.nom.replace(/'/g,'&#39;')}" onchange="renommerPrestation('${key}',${i},this.value)"
+            style="flex:1;padding:5px 8px;border:1.5px solid var(--border);border-radius:5px;font-size:13px;background:var(--input-bg);color:var(--text);">
+          <button onclick="supprimerPrestation('${key}',${i})" title="Supprimer"
+            style="background:rgba(220,50,50,.12);color:#e04040;border:1px solid rgba(220,50,50,.2);border-radius:5px;padding:5px 8px;font-size:13px;cursor:pointer;flex-shrink:0;">🗑</button>
+        </div>
+        <div style="display:flex;gap:8px;padding-left:24px;">
+          <input type="number" value="${p.prix||''}" placeholder="Prix HT" min="0" step="0.5"
+            onchange="setPrix('${key}',${i},this.value)"
+            style="flex:1;padding:5px 8px;border:1.5px solid var(--border);border-radius:5px;font-size:13px;background:var(--input-bg);color:var(--text);text-align:right;">
+          <select onchange="setUnite('${key}',${i},this.value)"
+            style="flex:1;padding:5px 6px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text);">
+            ${['m²','ml','m³','u','h','j','forfait','kg','tonne','lot'].map(u=>`<option value="${u}" ${(p.unite||'')=== u?'selected':''}>${u}</option>`).join('')}
+          </select>
+        </div>
+      </div>`;
+    } else {
+      html += `<div style="display:grid;grid-template-columns:${gridCols};gap:6px;align-items:center;padding:5px 6px;border-radius:6px;border:1px solid var(--border);background:var(--card)">
+        <input type="checkbox" ${p.actif?'checked':''} onchange="togglePrestation('${key}',${i},this.checked)" style="accent-color:var(--accent);width:14px;height:14px;">
+        <input type="text" value="${p.nom.replace(/'/g,'&#39;')}" onchange="renommerPrestation('${key}',${i},this.value)"
+          style="width:100%;padding:4px 6px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text)">
+        <input type="number" value="${p.prix||''}" placeholder="0" min="0" step="0.5"
+          onchange="setPrix('${key}',${i},this.value)"
+          style="width:100%;padding:4px 6px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text);text-align:right">
+        <select onchange="setUnite('${key}',${i},this.value)"
+          style="width:100%;padding:4px 4px;border:1.5px solid var(--border);border-radius:5px;font-size:11px;background:var(--input-bg);color:var(--text)">
+          ${['m²','ml','m³','u','h','j','forfait','kg','tonne','lot'].map(u=>`<option value="${u}" ${(p.unite||'')=== u?'selected':''}>${u}</option>`).join('')}
+        </select>
+        <button onclick="supprimerPrestation('${key}',${i})" title="Supprimer"
+          style="background:rgba(220,50,50,.12);color:#e04040;border:1px solid rgba(220,50,50,.2);border-radius:5px;padding:4px 8px;font-size:13px;cursor:pointer;width:100%;">🗑</button>
+      </div>`;
+    }
   });
   html += '</div>';
 
@@ -2107,45 +2128,80 @@ function supprimerPoste(sIdx, pIdx){
 
 function renderDevis(d){
   if(isRec) return;
+  const isMobile = window.innerWidth < 480;
   let sectionsHtml='';
   if(d.sections && d.sections.length){
     sectionsHtml=d.sections.filter(s=>s&&s.postes&&s.postes.length).map((s,sIdx)=>{
-      const rows=s.postes.map((p,pIdx)=>`
-        <tr>
-          <td style="padding:7px 9px;border-bottom:1px solid var(--border);vertical-align:top">
-            <span style="font-size:11px;color:var(--text2);font-weight:600;margin-right:8px">${p.id}.</span>
-            <input type="text" value="${(p.titre||'').replace(/"/g,'&quot;')}" onblur="majTitrePoste(${sIdx},${pIdx},this.value)" style="border:none;background:transparent;font-weight:600;color:var(--text);font-family:'Inter',sans-serif;font-size:12px;width:calc(100% - 24px);padding:0;outline:none;cursor:text;" class="ptit">
-            <div class="pdesc">${p.description}</div>
-          </td>
-          <td style="padding:7px 9px;border-bottom:1px solid var(--border);text-align:center">
-            <input type="number" value="${p.qte}" min="0" step="0.5" onchange="majQtePoste(${sIdx},${pIdx},this.value)"
-              style="width:60px;padding:3px 5px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text);text-align:center;">
-          </td>
-          <td style="padding:7px 9px;border-bottom:1px solid var(--border);text-align:center">${p.unite}</td>
-          <td class="col-pu" style="padding:7px 9px;border-bottom:1px solid var(--border);">
-            <input type="number" value="${p.pu_ht}" min="0" step="0.5" onchange="majPrixPoste(${sIdx},${pIdx},this.value)"
-              style="width:75px;padding:3px 5px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text);text-align:right;">
-          </td>
-          <td class="col-total" style="padding:7px 9px;border-bottom:1px solid var(--border);"><strong>${fmt(p.total_ht)}</strong></td>
-          <td style="padding:7px 4px;border-bottom:1px solid var(--border);text-align:center;width:32px">
-            <button onclick="supprimerPoste(${sIdx},${pIdx})" style="background:rgba(220,50,50,.08);color:#e04040;border:none;border-radius:5px;width:26px;height:26px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;padding:0;" title="Supprimer">×</button>
-          </td>
-        </tr>`).join('');
       const sousTotalSection=s.postes.reduce((a,p)=>a+Number(p.total_ht),0);
-      return `
-        <tr>
-          <td colspan="5" style="padding:10px 9px 6px;background:var(--bg3);border-bottom:1px solid var(--border)">
+      if(isMobile){
+        const cards=s.postes.map((p,pIdx)=>`
+          <div style="padding:10px 0;border-bottom:1px solid var(--border);">
+            <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:3px;">
+              <span style="font-size:11px;color:var(--text2);font-weight:600;flex-shrink:0;padding-top:2px;">${p.id}.</span>
+              <input type="text" value="${(p.titre||'').replace(/"/g,'&quot;')}" onblur="majTitrePoste(${sIdx},${pIdx},this.value)"
+                style="flex:1;border:none;background:transparent;font-weight:600;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:0;outline:none;">
+              <button onclick="supprimerPoste(${sIdx},${pIdx})" style="background:rgba(220,50,50,.08);color:#e04040;border:none;border-radius:5px;width:26px;height:26px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;">×</button>
+            </div>
+            <div class="pdesc" style="margin-bottom:8px;padding-left:18px;">${p.description||''}</div>
+            <div style="display:flex;align-items:center;gap:8px;padding-left:18px;">
+              <div style="display:flex;align-items:center;gap:4px;">
+                <span style="font-size:10px;color:var(--text2);">Qté</span>
+                <input type="number" value="${p.qte}" min="0" step="0.5" onchange="majQtePoste(${sIdx},${pIdx},this.value)"
+                  style="width:52px;padding:3px 5px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text);text-align:center;">
+              </div>
+              <span style="font-size:11px;color:var(--text2);">${p.unite}</span>
+              <div style="margin-left:auto;display:flex;align-items:center;gap:6px;">
+                <input type="number" value="${p.pu_ht}" min="0" step="0.5" onchange="majPrixPoste(${sIdx},${pIdx},this.value)"
+                  style="width:65px;padding:3px 5px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text);text-align:right;">
+                <strong style="font-size:12px;white-space:nowrap;min-width:58px;text-align:right;">${fmt(p.total_ht)} €</strong>
+              </div>
+            </div>
+          </div>`).join('');
+        return `
+          <div style="padding:8px 0 4px;background:var(--bg3);margin:0 -1px;padding-left:4px;">
             <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent)">${s.emoji} ${s.metier}</span>
-          </td>
-        </tr>
-        ${rows}
-        <tr>
-          <td colspan="4" style="padding:5px 9px 10px;text-align:right;font-size:11px;color:var(--text2);font-style:italic;border-bottom:2px solid var(--border)">Sous-total ${s.metier}</td>
-          <td style="padding:5px 9px 10px;text-align:right;font-size:12px;font-weight:600;color:var(--text);border-bottom:2px solid var(--border)">${fmt(sousTotalSection)} €</td>
-        </tr>`;
+          </div>
+          ${cards}
+          <div style="padding:6px 0 10px;text-align:right;font-size:12px;font-weight:600;color:var(--text);border-bottom:2px solid var(--border);">
+            <span style="font-size:11px;color:var(--text2);font-style:italic;margin-right:8px;">Sous-total ${s.metier}</span>${fmt(sousTotalSection)} €
+          </div>`;
+      } else {
+        const rows=s.postes.map((p,pIdx)=>`
+          <tr>
+            <td style="padding:7px 9px;border-bottom:1px solid var(--border);vertical-align:top">
+              <span style="font-size:11px;color:var(--text2);font-weight:600;margin-right:8px">${p.id}.</span>
+              <input type="text" value="${(p.titre||'').replace(/"/g,'&quot;')}" onblur="majTitrePoste(${sIdx},${pIdx},this.value)" style="border:none;background:transparent;font-weight:600;color:var(--text);font-family:'Inter',sans-serif;font-size:12px;width:calc(100% - 24px);padding:0;outline:none;cursor:text;" class="ptit">
+              <div class="pdesc">${p.description||''}</div>
+            </td>
+            <td style="padding:7px 9px;border-bottom:1px solid var(--border);text-align:center">
+              <input type="number" value="${p.qte}" min="0" step="0.5" onchange="majQtePoste(${sIdx},${pIdx},this.value)"
+                style="width:60px;padding:3px 5px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text);text-align:center;">
+            </td>
+            <td style="padding:7px 9px;border-bottom:1px solid var(--border);text-align:center">${p.unite}</td>
+            <td class="col-pu" style="padding:7px 9px;border-bottom:1px solid var(--border);">
+              <input type="number" value="${p.pu_ht}" min="0" step="0.5" onchange="majPrixPoste(${sIdx},${pIdx},this.value)"
+                style="width:75px;padding:3px 5px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text);text-align:right;">
+            </td>
+            <td class="col-total" style="padding:7px 9px;border-bottom:1px solid var(--border);"><strong>${fmt(p.total_ht)}</strong></td>
+            <td style="padding:7px 4px;border-bottom:1px solid var(--border);text-align:center;width:32px">
+              <button onclick="supprimerPoste(${sIdx},${pIdx})" style="background:rgba(220,50,50,.08);color:#e04040;border:none;border-radius:5px;width:26px;height:26px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;padding:0;" title="Supprimer">×</button>
+            </td>
+          </tr>`).join('');
+        return `
+          <tr>
+            <td colspan="5" style="padding:10px 9px 6px;background:var(--bg3);border-bottom:1px solid var(--border)">
+              <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent)">${s.emoji} ${s.metier}</span>
+            </td>
+          </tr>
+          ${rows}
+          <tr>
+            <td colspan="4" style="padding:5px 9px 10px;text-align:right;font-size:11px;color:var(--text2);font-style:italic;border-bottom:2px solid var(--border)">Sous-total ${s.metier}</td>
+            <td style="padding:5px 9px 10px;text-align:right;font-size:12px;font-weight:600;color:var(--text);border-bottom:2px solid var(--border)">${fmt(sousTotalSection)} €</td>
+          </tr>`;
+      }
     }).join('');
   } else {
-    sectionsHtml=(d.postes||[]).map(p=>`<tr><td><div class="ptit">${p.id ? p.id+'. ' : ''}${p.titre}</div><div class="pdesc">${p.description}</div></td><td style="text-align:center">${p.qte}</td><td style="text-align:center">${p.unite}</td><td style="text-align:right">${fmt(p.pu_ht)}</td><td style="text-align:right"><strong>${fmt(p.total_ht)}</strong></td></tr>`).join('');
+    sectionsHtml=(d.postes||[]).map(p=>`<tr><td><div class="ptit">${p.id ? p.id+'. ' : ''}${p.titre||''}</div><div class="pdesc">${p.description||''}</div></td><td style="text-align:center">${p.qte}</td><td style="text-align:center">${p.unite}</td><td style="text-align:right">${fmt(p.pu_ht)}</td><td style="text-align:right"><strong>${fmt(p.total_ht)}</strong></td></tr>`).join('');
   }
 
   const acomptePct    = d.acompte_pct || 0;
@@ -2173,9 +2229,10 @@ function renderDevis(d){
   </div>
   <div class="iblk" style="margin-bottom:14px"><p><strong>Nature des travaux :</strong> ${d.chantier.nature} &nbsp; <strong>Délai :</strong> ${d.chantier.delai}</p></div>
   <h2>Descriptif des Ouvrages</h2>
-  <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-  <table style="min-width:480px;"><thead><tr><th>Désignation</th><th style="text-align:center">Qté</th><th style="text-align:center">Unité</th><th style="text-align:right">P.U. HT €</th><th style="text-align:right">Total HT €</th><th style="width:32px"></th></tr></thead><tbody>${sectionsHtml}</tbody></table>
-  </div>
+  ${isMobile
+    ? `<div style="margin-bottom:14px;">${sectionsHtml}</div>`
+    : `<div style="overflow-x:auto;"><table><thead><tr><th>Désignation</th><th style="text-align:center">Qté</th><th style="text-align:center">Unité</th><th style="text-align:right">P.U. HT €</th><th style="text-align:right">Total HT €</th><th style="width:32px"></th></tr></thead><tbody>${sectionsHtml}</tbody></table></div>`
+  }
   <div style="margin-bottom:14px">
     <div style="background:var(--bg3);border:1.5px dashed var(--border);border-radius:8px;padding:12px 14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
