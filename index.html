@@ -147,6 +147,8 @@ select option{background:var(--card);color:var(--text);}
 .devis-preview table{width:100%;border-collapse:collapse;margin:6px 0 14px;font-size:12px;}
 .devis-preview th{background:var(--accent);color:#fff;padding:8px 9px;text-align:left;font-weight:600;font-size:11px;}
 .devis-preview td{padding:7px 9px;border-bottom:1px solid var(--border);vertical-align:top;}
+.devis-preview td.col-pu{white-space:nowrap;min-width:80px;text-align:right;}
+.devis-preview td.col-total{white-space:nowrap;min-width:80px;text-align:right;font-weight:600;}
 .devis-preview tr:last-child td{border-bottom:none;}
 [data-theme="dark-orange"] .devis-preview tr:nth-child(even) td{background:rgba(255,255,255,.025);}
 [data-theme="light-orange"] .devis-preview tr:nth-child(even) td,
@@ -2039,11 +2041,11 @@ function renderDevis(d){
               style="width:60px;padding:3px 5px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text);text-align:center;">
           </td>
           <td style="padding:7px 9px;border-bottom:1px solid var(--border);text-align:center">${p.unite}</td>
-          <td style="padding:7px 9px;border-bottom:1px solid var(--border);text-align:right">
+          <td class="col-pu" style="padding:7px 9px;border-bottom:1px solid var(--border);">
             <input type="number" value="${p.pu_ht}" min="0" step="0.5" onchange="majPrixPoste(${sIdx},${pIdx},this.value)"
               style="width:75px;padding:3px 5px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text);text-align:right;">
           </td>
-          <td style="padding:7px 9px;border-bottom:1px solid var(--border);text-align:right"><strong>${fmt(p.total_ht)}</strong></td>
+          <td class="col-total" style="padding:7px 9px;border-bottom:1px solid var(--border);"><strong>${fmt(p.total_ht)}</strong></td>
           <td style="padding:7px 4px;border-bottom:1px solid var(--border);text-align:center;width:32px">
             <button onclick="supprimerPoste(${sIdx},${pIdx})" style="background:rgba(220,50,50,.08);color:#e04040;border:none;border-radius:5px;width:26px;height:26px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;padding:0;" title="Supprimer">×</button>
           </td>
