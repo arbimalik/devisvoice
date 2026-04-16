@@ -80,6 +80,8 @@ textarea{min-height:90px;resize:vertical;line-height:1.6;}
 select option{background:var(--card);color:var(--text);}
 
 .metiers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:4px;}
+.metiers-famille{grid-column:1/-1;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);padding:8px 0 2px;border-top:1px solid var(--border);margin-top:4px;}
+.metiers-famille:first-child{border-top:none;margin-top:0;padding-top:2px;}
 @media(max-width:460px){.metiers-grid{grid-template-columns:repeat(2,1fr);}}
 .mc{background:var(--bg3);border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:11px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .mc:hover,.mc.sel{border-color:var(--accent);color:var(--accent);background:var(--accent-bg);}
@@ -369,6 +371,7 @@ select option{background:var(--card);color:var(--text);}
     </div>
     <div id="metiers-body" class="card-body">
       <div class="metiers-grid" id="metiers-grid">
+        <div class="metiers-famille">🏗 BTP &amp; Bâtiment</div>
         <div class="mc" onclick="selMetier(this,'carrelage')" data-m="Carrelage / Sols">🪨 Carreleur</div>
         <div class="mc" onclick="selMetier(this,'plomberie')" data-m="Plomberie / Sanitaire">🚿 Plombier</div>
         <div class="mc" onclick="selMetier(this,'electricite')" data-m="Électricité">⚡ Électricien</div>
@@ -387,6 +390,8 @@ select option{background:var(--card);color:var(--text);}
         <div class="mc" onclick="selMetier(this,'etancheur')" data-m="Étanchéité / Toiture terrasse">🛡️ Étancheur</div>
         <div class="mc" onclick="selMetier(this,'paysagiste')" data-m="Paysagisme / Espaces verts">🌿 Paysagiste</div>
         <div class="mc" onclick="selMetier(this,'tous')" data-m="Multi-corps d'état / Rénovation globale">🏠 Tous corps d'état</div>
+        <div class="metiers-famille">🍽 Restauration &amp; Événementiel</div>
+        <div class="mc" onclick="selMetier(this,'traiteur')" data-m="Traiteur / Réception">🥂 Traiteur</div>
       </div>
       <div id="prestations-zone" style="display:none;margin-top:14px;"></div>
     </div>
@@ -958,7 +963,8 @@ const PRESTATIONS = {
   pisciniste: ['Visite technique et étude de projet','Terrassement piscine','Évacuation terres et remblai','Dalle béton armé fond de piscine','Structure bloc à bancher béton','Structure coque polyester','Structure piscine bois','Ferraillage et coulage béton','Réseaux hydrauliques PVC pression','Pose skimmer','Pose bonde de fond','Pose buses de refoulement','Pose prise balai','Pose trop-plein','Pose projecteur LED immergé','Local technique / coffret filtration','Pose pompe de filtration','Pose filtre à sable','Pose filtre à diatomées','Pose filtre à cartouche','Pose électrolyseur au sel','Pose régulateur pH automatique','Pose chlorinateur automatique','Pose pompe à chaleur piscine','Pose chauffage solaire piscine','Pose résistance électrique','Pose revêtement liner PVC','Pose membrane armée PVC','Pose carrelage piscine','Pose mosaïque piscine','Pose enduit piscine','Pose escalier piscine béton','Pose escalier piscine inox','Pose margelles pierre naturelle','Pose margelles béton','Pose margelles composite','Pose plage béton','Pose plage carrelage','Pose plage bois exotique','Pose plage composite','Volet immergé motorisé','Volet hors-sol solaire','Pose bâche à barres sécurité','Pose alarme piscine NF P90-308','Pose barrière sécurité piscine','Pose abri piscine bas','Pose abri piscine haut','Pose robot nettoyeur automatique','Pose nage à contre-courant','Pose balnéo jets massage','Pose éclairage LED RGB immergé','Pose domotique piscine','Remplacement liner','Remplacement membrane armée','Remplacement skimmer','Remplacement pompe','Remplacement filtre','Remplacement électrolyseur','Recherche de fuite par caméra','Recherche de fuite ultrasonique','Réparation fuite structure','Réparation fissure bassin','Réfection joints carrelage piscine','Rénovation margelles et plages','Rénovation complète bassin','Hivernage piscine','Remise en route piscine printemps','Analyse et traitement eau','Entretien saisonnier contrat','Nettoyage bassin haute pression','Déclaration préalable de travaux'],
   etancheur: ['Diagnostic étanchéité / recherche de fuite','Dépose ancien complexe étanchéité','Nettoyage et préparation support','Ragréage support avant étanchéité','Pose pare-vapeur','Pose isolant thermique toiture chaude','Pose isolant thermique toiture froide inversée','Étanchéité bicouche bitume soudé','Étanchéité monocouche bitume','Étanchéité membrane EPDM','Étanchéité membrane PVC','Système étanchéité liquide SEL résine','Étanchéité asphalte coulé','Relevés d\'étanchéité sur acrotères','Relevés d\'étanchéité sur cheminée','Relevés d\'étanchéité sur ventilation','Traitement angles et points singuliers','Pose costières et sorties de toit','Pose évacuation eaux pluviales','Pose trop-plein sécurité','Protection lourde gravier','Protection dalles sur plots','Protection béton désactivé','Toiture terrasse végétalisée extensive','Toiture terrasse végétalisée intensive','Étanchéité balcon sous carrelage','Étanchéité terrasse sous carrelage','Étanchéité terrasse bois sur membrane','Étanchéité façade enduit hydrofuge','Étanchéité murs enterrés cuvelage','Étanchéité cave et sous-sol','Étanchéité parking enterré','Étanchéité piscine béton cuvelage','Étanchéité bassin ornement','Injection résine anti-infiltration','Traitement fissures actives','Traitement fissures passives','Réparation ponctuelle membrane','Entretien préventif toiture terrasse','Mise en conformité DTU 43.1'],
   tous: ['Protection et installation chantier','Dépose générale','Démolition cloisons','Gros œuvre / maçonnerie','Plomberie / sanitaire','Électricité courants forts','Isolation','Plâtrerie / cloisons','Carrelage / sols','Peinture / finitions','Menuiserie intérieure','Menuiserie extérieure','Chauffage / VMC','Nettoyage fin de chantier','Levée des réserves'],
-  paysagiste: ['Visite et étude du terrain','Plan d\'aménagement paysager','Terrassement jardin','Nivellement terrain','Préparation sol / amendement','Création pelouse par engazonnement','Création pelouse par placage gazon','Tonte pelouse','Scarification pelouse','Aération pelouse','Traitement pelouse engrais et désherbant','Plantation arbres','Plantation arbustes','Plantation haie','Plantation massif fleuri','Plantation vivaces','Taille haie','Taille arbustes','Élagage arbre','Abattage arbre','Dessouchage','Débroussaillage','Désherbage manuel','Désherbage chimique','Pose paillage minéral','Pose paillage végétal','Pose bordures jardin','Création allée gravillons','Création allée béton','Création allée pavés','Création allée dalles','Pose terrasse bois','Pose terrasse composite','Pose dallage pierre naturelle','Pose muret pierre sèche','Pose muret béton','Création massif enrochement','Création bassin ornement','Pose clôture bois','Pose clôture grillage','Pose clôture aluminium','Pose portail','Pose portillon','Installation arrosage automatique','Installation goutte-à-goutte','Installation éclairage extérieur','Pose pergola bois','Pose pergola aluminium','Pose abri de jardin','Évacuation déchets verts','Entretien annuel jardin contrat']
+  paysagiste: ['Visite et étude du terrain','Plan d\'aménagement paysager','Terrassement jardin','Nivellement terrain','Préparation sol / amendement','Création pelouse par engazonnement','Création pelouse par placage gazon','Tonte pelouse','Scarification pelouse','Aération pelouse','Traitement pelouse engrais et désherbant','Plantation arbres','Plantation arbustes','Plantation haie','Plantation massif fleuri','Plantation vivaces','Taille haie','Taille arbustes','Élagage arbre','Abattage arbre','Dessouchage','Débroussaillage','Désherbage manuel','Désherbage chimique','Pose paillage minéral','Pose paillage végétal','Pose bordures jardin','Création allée gravillons','Création allée béton','Création allée pavés','Création allée dalles','Pose terrasse bois','Pose terrasse composite','Pose dallage pierre naturelle','Pose muret pierre sèche','Pose muret béton','Création massif enrochement','Création bassin ornement','Pose clôture bois','Pose clôture grillage','Pose clôture aluminium','Pose portail','Pose portillon','Installation arrosage automatique','Installation goutte-à-goutte','Installation éclairage extérieur','Pose pergola bois','Pose pergola aluminium','Pose abri de jardin','Évacuation déchets verts','Entretien annuel jardin contrat'],
+  traiteur: ['Consultation et conception du menu','Cocktail d\'accueil','Amuse-bouches','Plateau apéritif','Entrée froide','Entrée chaude','Plat principal viande','Plat principal poisson','Plat végétarien / vegan','Fromages sélection','Dessert à l\'assiette','Pièce montée','Wedding cake / layer cake','Buffet froid','Buffet chaud','Brunch','Cocktail dînatoire','Déjeuner d\'affaires','Menu mariage','Menu baptême / communion','Menu anniversaire / réception','Pain et beurre','Café et mignardises','Bar à cocktails avec alcool','Bar soft / sans alcool','Personnel de service','Maître d\'hôtel','Chef cuisinier sur place','Aide de cuisine','Location vaisselle','Location verrerie','Location couverts','Location linge de table','Location mobilier (tables, chaises)','Location matériel de cuisson','Livraison et mise en place','Transport et déplacement','Décoration de table','Nettoyage après événement','Supplément régime spécial / allergie']
 };
 
 let prestationsActives = {};
@@ -1094,6 +1100,28 @@ const UNITES_PAR_DEFAUT = {
     'Remplacement façades / relooking cuisine':'ml','Remplacement poignées':'u',
     'Ajout rangements intérieurs tiroirs et plateaux':'u',
     'Joint silicone plan de travail / mur':'ml','Nettoyage fin de chantier':'forfait'
+  },
+  traiteur: {
+    'Consultation et conception du menu':'forfait',
+    'Cocktail d\'accueil':'pers','Amuse-bouches':'pièce','Plateau apéritif':'pers',
+    'Entrée froide':'pers','Entrée chaude':'pers',
+    'Plat principal viande':'pers','Plat principal poisson':'pers','Plat végétarien / vegan':'pers',
+    'Fromages sélection':'pers','Dessert à l\'assiette':'pers',
+    'Pièce montée':'pers','Wedding cake / layer cake':'forfait',
+    'Buffet froid':'pers','Buffet chaud':'pers',
+    'Brunch':'pers','Cocktail dînatoire':'pers',
+    'Déjeuner d\'affaires':'pers','Menu mariage':'pers',
+    'Menu baptême / communion':'pers','Menu anniversaire / réception':'pers',
+    'Pain et beurre':'pers','Café et mignardises':'pers',
+    'Bar à cocktails avec alcool':'pers','Bar soft / sans alcool':'pers',
+    'Personnel de service':'h','Maître d\'hôtel':'h',
+    'Chef cuisinier sur place':'h','Aide de cuisine':'h',
+    'Location vaisselle':'u','Location verrerie':'u',
+    'Location couverts':'u','Location linge de table':'u',
+    'Location mobilier (tables, chaises)':'forfait','Location matériel de cuisson':'forfait',
+    'Livraison et mise en place':'forfait','Transport et déplacement':'forfait',
+    'Décoration de table':'table','Nettoyage après événement':'forfait',
+    'Supplément régime spécial / allergie':'forfait'
   }
 };
 
@@ -1586,6 +1614,10 @@ function fusionnerSections(sections) {
     'serrurerie': 'Serrurerie',
     'couverture': 'Couverture',
     'isolation': 'Isolation',
+    'traiteur': 'Traiteur / Réception',
+    'restauration': 'Traiteur / Réception',
+    'evenementiel': 'Traiteur / Réception',
+    'reception': 'Traiteur / Réception',
   };
 
   function normaliser(nom) {
