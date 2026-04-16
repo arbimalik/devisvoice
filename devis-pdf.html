@@ -160,6 +160,18 @@ function renderHtml(d){
     : `Bon pour accord : _________________________ &nbsp;&nbsp;&nbsp; Date : _________________________`;
 
   const ent=d.entreprise||{};const client=d.client||{};const chantier=d.chantier||{};
+
+  // Détection famille prestataire (traiteur, événementiel…)
+  const _PRESTATAIRES = ['traiteur','restauration','evenementiel','reception'];
+  function _normKey(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,''); }
+  const isPresta = d.sections?.some(s => _PRESTATAIRES.some(k => _normKey(s.metier).includes(k))) || false;
+  const lblMO        = isPresta ? 'Client'                       : "Maître d'Ouvrage";
+  const lblOuvrages  = isPresta ? 'Descriptif des Prestations'   : 'Descriptif des Ouvrages';
+  const lblNature    = isPresta ? 'Nature de la prestation'       : 'Nature des travaux';
+  const lblDelai     = isPresta ? 'Durée'                         : 'Délai';
+  const lblDebut     = isPresta ? 'Date'                          : 'Début';
+  const condDefault  = isPresta ? 'Paiement à réception de facture' : 'Solde à réception et levée des réserves';
+
   const decCompagnie=d.decennale_compagnie||ent.decennale_compagnie||'';
   const decNumero=d.decennale_numero||ent.decennale_numero||'';
   const banque=d.banque||ent.banque||'';const iban=d.iban||ent.iban||'';
@@ -197,10 +209,10 @@ function renderHtml(d){
     </div>
     <div class="pdf-parties">
       <div class="pdf-bloc"><div class="pdf-bloc-label">Entreprise</div><strong>${ent.nom||''}</strong><br>${ent.siret?'SIRET : '+ent.siret+'<br>':''}${ent.tel?'📞 '+ent.tel+'<br>':''}${ent.adresse?'📍 '+ent.adresse+'<br>':''}${ent.email?'✉️ '+ent.email:''}</div>
-      <div class="pdf-bloc"><div class="pdf-bloc-label">Maître d'Ouvrage</div><strong>${client.nom||''}</strong><br>${client.email?'✉️ '+client.email+'<br>':''}${client.tel?'📞 '+client.tel+'<br>':''}${chantier.adresse?'📍 '+chantier.adresse:''}</div>
+      <div class="pdf-bloc"><div class="pdf-bloc-label">${lblMO}</div><strong>${client.nom||''}</strong><br>${client.email?'✉️ '+client.email+'<br>':''}${client.tel?'📞 '+client.tel+'<br>':''}${chantier.adresse?'📍 '+chantier.adresse:''}</div>
     </div>
-    <div class="pdf-nature"><strong>Nature des travaux :</strong> ${chantier.nature||'—'} &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Délai :</strong> ${chantier.delai||'—'}${dateDebut?' &nbsp;&nbsp;|&nbsp;&nbsp;<strong>Début :</strong> '+dateDebut:''}</div>
-    <div class="pdf-section-title">Descriptif des Ouvrages</div>
+    <div class="pdf-nature"><strong>${lblNature} :</strong> ${chantier.nature||'—'} &nbsp;&nbsp;|&nbsp;&nbsp; <strong>${lblDelai} :</strong> ${chantier.delai||'—'}${dateDebut?' &nbsp;&nbsp;|&nbsp;&nbsp;<strong>'+lblDebut+' :</strong> '+dateDebut:''}</div>
+    <div class="pdf-section-title">${lblOuvrages}</div>
     <table class="pdf-table">
       <thead><tr><th>Désignation</th><th style="text-align:center;width:48px">Qté</th><th style="text-align:center;width:52px">Unité</th><th style="text-align:right;min-width:90px">P.U. HT €</th><th style="text-align:right;min-width:90px">Total HT €</th></tr></thead>
       <tbody>${sectionsHtml}</tbody>
@@ -215,7 +227,7 @@ function renderHtml(d){
       </div>
     </div>
     <div class="pdf-lettres">Arrêté à : <em>${lettres}</em></div>
-    <div class="pdf-footer-bloc"><strong>Conditions :</strong> ${d.conditions||'Solde à réception et levée des réserves'}<br>${d.mentions||''}${decHtml}${ribInline}</div>
+    <div class="pdf-footer-bloc"><strong>Conditions :</strong> ${d.conditions||condDefault}<br>${d.mentions||''}${isPresta?'':decHtml}${ribInline}</div>
     <div class="pdf-signature">${sigBloc}</div>
     <div class="pdf-credit">Généré avec DevisVoice</div>
   </div>`;
@@ -270,6 +282,9 @@ function renderFactureHtml(d){
   const ent = d.entreprise||{};
   const today = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
   const factureNum = 'F-'+d.numero+'-'+new Date().getFullYear();
+  const _fNormKey = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+  const _fPrestaKeys = ['traiteur','restauration','evenementiel','reception'];
+  const _fIsPresta = d.sections?.some(s => _fPrestaKeys.some(k => _fNormKey(s.metier).includes(k))) || false;
   let rowsHtml='';
   if(d.sections?.length){
     d.sections.forEach(s=>{
@@ -307,7 +322,7 @@ function renderFactureHtml(d){
         ${d.chantier?.adresse?'📍 '+d.chantier.adresse:''}
       </div>
     </div>
-    <div class="pdf-nature"><strong>Réf. devis :</strong> ${d.numero} &nbsp;|&nbsp; <strong>Nature :</strong> ${d.chantier?.nature||'—'}</div>
+    <div class="pdf-nature"><strong>Réf. devis :</strong> ${d.numero} &nbsp;|&nbsp; <strong>${_fIsPresta ? 'Prestation' : 'Nature'} :</strong> ${d.chantier?.nature||'—'}</div>
     <div class="pdf-section-title">Désignation des prestations</div>
     <table class="pdf-table">
       <thead><tr><th>Désignation</th><th style="text-align:center;width:48px">Qté</th><th style="text-align:center;width:52px">Unité</th><th style="text-align:right;min-width:90px">P.U. HT €</th><th style="text-align:right;min-width:90px">Total HT €</th></tr></thead>

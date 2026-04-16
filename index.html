@@ -303,7 +303,7 @@ select option{background:var(--card);color:var(--text);}
 <div id="tab-devis" class="content active">
 
   <div class="card">
-    <div class="card-header ch-orange">📋 Maître d'Ouvrage &amp; Chantier</div>
+    <div class="card-header ch-orange" id="card-header-client">📋 Maître d'Ouvrage &amp; Chantier</div>
     <div class="card-body">
       <!-- RECHERCHE CLIENT EXISTANT -->
       <div class="form-group" style="position:relative;">
@@ -332,10 +332,10 @@ select option{background:var(--card);color:var(--text);}
         <div><label>Email Client</label><input type="email" id="client-email" placeholder="client@email.fr" oninput="majDevisTempsReel()"></div>
         <div><label>Téléphone Client</label><input type="tel" id="client-tel" placeholder="06 12 34 56 78" oninput="majDevisTempsReel()"></div>
       </div>
-      <div class="form-group"><label>Adresse du Chantier</label><input type="text" id="chantier-adresse" placeholder="12 rue des Lilas, 75011 Paris" oninput="majDevisTempsReel()"></div>
+      <div class="form-group"><label id="lbl-chantier-adresse">Adresse du Chantier</label><input type="text" id="chantier-adresse" placeholder="12 rue des Lilas, 75011 Paris" oninput="majDevisTempsReel()"></div>
       <div class="form-row">
-        <div><label>Nature des Travaux</label><input type="text" id="nature-travaux" placeholder="Rénovation salle de bain" oninput="majDevisTempsReel()"></div>
-        <div><label>Délai d'Exécution</label><input type="text" id="delai-execution" placeholder="3 semaines" oninput="majDevisTempsReel()"></div>
+        <div><label id="lbl-nature-travaux">Nature des Travaux</label><input type="text" id="nature-travaux" placeholder="Rénovation salle de bain" oninput="majDevisTempsReel()"></div>
+        <div><label id="lbl-delai-execution">Délai d'Exécution</label><input type="text" id="delai-execution" placeholder="3 semaines" oninput="majDevisTempsReel()"></div>
       </div>
       <div class="form-row-3">
         <div>
@@ -864,6 +864,36 @@ function getClientNomComplet(){
 let metier='';
 let metierCourant = '';
 
+const METIERS_PRESTATAIRES = ['traiteur'];
+
+function updateFormLabels(key) {
+  const isP = METIERS_PRESTATAIRES.includes(key);
+  const h = document.getElementById('card-header-client');
+  const lA = document.getElementById('lbl-chantier-adresse');
+  const lN = document.getElementById('lbl-nature-travaux');
+  const lD = document.getElementById('lbl-delai-execution');
+  const iA = document.getElementById('chantier-adresse');
+  const iN = document.getElementById('nature-travaux');
+  const iD = document.getElementById('delai-execution');
+  if (isP) {
+    if(h)  h.textContent  = '📋 Client & Prestation';
+    if(lA) lA.textContent = 'Lieu de la Prestation';
+    if(lN) lN.textContent = 'Nature de la Prestation';
+    if(lD) lD.textContent = 'Date / Durée';
+    if(iA) iA.placeholder = 'Salle des fêtes, 12 rue des Roses, Paris';
+    if(iN) iN.placeholder = 'Cocktail mariage 150 pers., buffet dînatoire…';
+    if(iD) iD.placeholder = '15 juin 2025 — 18h à minuit';
+  } else {
+    if(h)  h.textContent  = "📋 Maître d'Ouvrage & Chantier";
+    if(lA) lA.textContent = 'Adresse du Chantier';
+    if(lN) lN.textContent = 'Nature des Travaux';
+    if(lD) lD.textContent = "Délai d'Exécution";
+    if(iA) iA.placeholder = '12 rue des Lilas, 75011 Paris';
+    if(iN) iN.placeholder = 'Rénovation salle de bain';
+    if(iD) iD.placeholder = '3 semaines';
+  }
+}
+
 function selMetier(el, key) {
   // Re-clic sur le métier déjà sélectionné → ferme le panneau
   if(el.classList.contains('sel')) {
@@ -872,6 +902,7 @@ function selMetier(el, key) {
     metierCourant = '';
     document.getElementById('prestations-zone').style.display = 'none';
     document.getElementById('prestations-zone').innerHTML = '';
+    updateFormLabels('');
     return;
   }
   document.querySelectorAll('.mc').forEach(c => c.classList.remove('sel'));
@@ -880,6 +911,7 @@ function selMetier(el, key) {
   metierCourant = key;
   if(!document.getElementById('nature-travaux').value) document.getElementById('nature-travaux').value = metier;
   afficherPrestations(key);
+  updateFormLabels(key);
 }
 
 // ===== MISE À JOUR TEMPS RÉEL =====
@@ -1681,7 +1713,7 @@ async function genererDevis(){
         lines.push('Métiers fréquents : '+top.join(', '));
       }
       if(lines.length)
-        _prefsBlock = `\nSTYLE ET HABITUDES DE CET ARTISAN (adapte tes formulations en conséquence) :\n${lines.map(l=>'- '+l).join('\n')}\n`;
+        _prefsBlock = `\nSTYLE ET HABITUDES DE L'UTILISATEUR (adapte tes formulations en conséquence) :\n${lines.map(l=>'- '+l).join('\n')}\n`;
     }catch(e){ /* silencieux — continue sans préférences */ }
   }
   gMentions=ls('mentions')||''; gDecCompagnie=ls('ent-decennale-compagnie')||''; gDecNumero=ls('ent-decennale-numero')||''; gIban=ls('ent-iban')||''; gBic=ls('ent-bic')||''; gBanque=ls('ent-banque')||''; gTitulaire=ls('ent-titulaire')||'';
@@ -1823,9 +1855,12 @@ async function genererDevis(){
 
   showProgress(0,totalPasses,'⚙️ Démarrage de la génération…');
 
+  const isPrestaGen = METIERS_PRESTATAIRES.includes(metierCourant);
   const conditionsDevis = acomptePct > 0
-    ? `${acomptePct}% à la commande, solde à réception et levée des réserves`
-    : 'Solde à réception et levée des réserves';
+    ? (isPrestaGen
+        ? `${acomptePct}% à la commande, solde à réception de facture`
+        : `${acomptePct}% à la commande, solde à réception et levée des réserves`)
+    : (isPrestaGen ? 'Paiement à réception de facture' : 'Solde à réception et levée des réserves');
 
   const BIBLIO=`VOCABULAIRE — corrige les erreurs de reconnaissance vocale:
 "grésérum/grey serum/grès sérum/graissera" → Grès cérame
@@ -2030,10 +2065,10 @@ RÈGLES ABSOLUES: Ne jamais inventer un prix. Utiliser uniquement les prix dict�
     for(let i=0;i<passes.length;i++){
       showProgress(i,totalPasses,`⚙️ Génération passe ${i+1} / ${totalPasses}…`);
       const estDernierePasse=(i===passes.length-1);
-      const promptPasse=`Tu es expert devis BTP artisans français. Génère un JSON de sections de devis.
+      const promptPasse=`Tu es expert devis ${isPrestaGen?'prestataires événementiels et traiteurs':'BTP artisans'} français. Génère un JSON de sections de devis.
 ENTREPRISE: ${entNom}|SIRET:${entSiret}|Tél:${entTel}|${entAdr}|${entEmail}
 CLIENT: ${clientNom}|${clientEmail}|Tél:${clientTel}
-CHANTIER: ${chantierAdr}|Nature:${nature}|Délai:${delai}
+${isPrestaGen?'PRESTATION':'CHANTIER'}: ${chantierAdr}|Nature:${nature}|Délai:${delai}
 TVA: ${tva}% | Numéro: ${num} | Date: ${today}
 ${prixBlock}${_prefsBlock}
 DICTÉE (partie ${i+1}/${passes.length}): ${passes[i]}
