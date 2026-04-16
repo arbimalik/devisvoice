@@ -2223,44 +2223,40 @@ function renderDevis(d){
     ? `<br>📞 ${d.client.tel}` : '';
 
   document.getElementById('devis-preview').innerHTML=`
-  <h1>DEVIS N° ${d.numero}</h1>
-  <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Date : ${d.date} &nbsp;|&nbsp; Validité : ${d.validite}${dateDebutHtml}</div>
-  <div class="hgrid">
-    <div class="iblk"><h2>Entreprise</h2><p><strong>${d.entreprise.nom}</strong><br>${d.entreprise.siret?'SIRET : '+d.entreprise.siret+'<br>':''}${d.entreprise.tel?'📞 '+d.entreprise.tel+'<br>':''}${d.entreprise.adresse?'📍 '+d.entreprise.adresse+'<br>':''}${d.entreprise.email?'✉️ '+d.entreprise.email:''}</p></div>
-    <div class="iblk"><h2>Maître d'Ouvrage</h2><p><strong>${d.client.nom}</strong><br>${d.client.email?'✉️ '+d.client.email:''}${clientTelHtml}${d.chantier.adresse?'<br>📍 '+d.chantier.adresse:''}</p></div>
-  </div>
-  <div class="iblk" style="margin-bottom:14px"><p><strong>Nature des travaux :</strong> ${d.chantier.nature} &nbsp; <strong>Délai :</strong> ${d.chantier.delai}</p></div>
-  <h2>Descriptif des Ouvrages</h2>
-  ${isMobile
-    ? `<div style="display:flex;background:var(--accent);color:#fff;border-radius:6px 6px 0 0;padding:8px 10px;font-size:11px;font-weight:700;letter-spacing:.3px;margin-bottom:0;">
-        <span style="flex:1;">Désignation</span>
-        <span style="display:flex;gap:18px;flex-shrink:0;">
-          <span>Qté</span><span>PU HT</span><span>Total HT</span>
-        </span>
+  <div style="padding:16px 18px 0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--accent);">DEVIS N° ${d.numero}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px;">${d.date} &nbsp;·&nbsp; Validité : ${d.validite}${dateDebutHtml}</div>
       </div>
-      <div style="margin-bottom:14px;border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;padding:0 10px;">${sectionsHtml}</div>`
-    : `<div style="overflow-x:auto;"><table><thead><tr><th>Désignation</th><th style="text-align:center">Qté</th><th style="text-align:center">Unité</th><th style="text-align:right">P.U. HT €</th><th style="text-align:right">Total HT €</th><th style="width:32px"></th></tr></thead><tbody>${sectionsHtml}</tbody></table></div>`
-  }
-  <div style="margin-bottom:14px">
+      <div style="text-align:right;">
+        <div style="font-size:11px;color:var(--text2);">TOTAL TTC</div>
+        <div style="font-size:20px;font-weight:800;color:var(--accent);">${fmt(d.total_ttc)} €</div>
+        ${acomptePct > 0 ? `<div style="font-size:11px;color:var(--text2);">Acompte ${acomptePct}% : ${fmt(acompteMontant)} €</div>` : ''}
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:12px;padding:10px 12px;background:var(--bg3);border-radius:8px;font-size:12px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:3px;">Client</div>
+        <div style="font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.client.nom}</div>
+        ${d.chantier.nature ? `<div style="color:var(--text2);font-size:11px;margin-top:1px;">${d.chantier.nature}</div>` : ''}
+      </div>
+      <div style="flex:1;min-width:0;text-align:right;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:3px;">Montants</div>
+        <div style="color:var(--text);font-size:11px;">HT : ${fmt(d.total_ht)} €</div>
+        <div style="color:var(--text);font-size:11px;">TVA ${d.tva_pct}% : ${fmt(d.tva_montant)} €</div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:0 18px 14px;">
     <div style="background:var(--bg3);border:1.5px dashed var(--border);border-radius:8px;padding:12px 14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);">📝 Observations / Notes pour le client</span>
         <button onclick="toggleObsVoice()" id="obs-mic-btn" style="background:var(--accent);color:#fff;border:none;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;">🎙 Dicter</button>
       </div>
-      <textarea id="obs-textarea" placeholder="Ex : Nous devrons couper l'eau pendant 2h pour le remplacement des radiateurs. Prévoir le remplacement du carrelage fissuré découvert lors du chantier…" style="width:100%;min-height:70px;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-family:'Inter',sans-serif;font-size:13px;color:var(--text);resize:vertical;outline:none;" oninput="majObservations(this.value)">${d.observations||''}</textarea>
+      <textarea id="obs-textarea" placeholder="Ex : Nous devrons couper l'eau pendant 2h pour le remplacement des radiateurs. Prévoir le remplacement du carrelage fissuré découvert lors du chantier…" style="width:100%;min-height:70px;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-family:'Inter',sans-serif;font-size:13px;color:var(--text);resize:vertical;outline:none;box-sizing:border-box;" oninput="majObservations(this.value)">${d.observations||''}</textarea>
     </div>
-  </div>
-  <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
-    <div class="totaux-box">
-      <div class="trow"><span>Total HT</span><span>${fmt(d.total_ht)} €</span></div>
-      <div class="trow"><span>TVA ${d.tva_pct}%</span><span>${fmt(d.tva_montant)} €</span></div>
-      <div class="trow"><span>TOTAL TTC</span><span>${fmt(d.total_ttc)} €</span></div>
-      ${acompteHtml}
-    </div>
-  </div>
-  <div class="cond-box"><strong>Conditions :</strong> ${d.conditions}<br>${getMentionTVA(d.tva_pct)}${gDecCompagnie ? "<br>🛡️ Assurance décennale : "+gDecCompagnie+(gDecNumero?" — Police n° "+gDecNumero:"") : ""}</div>
-  ${gIban ? '<div class="cond-box" style="margin-top:8px">🏦 <strong>Coordonnées bancaires</strong><br>'+(gBanque?gBanque+"<br>":"")+"IBAN : "+gIban+(gBic?" — BIC : "+gBic:"")+(gTitulaire?"<br>Titulaire : "+gTitulaire:"")+"</div>" : ""}
-  <div class="validite-txt">Bon pour accord : _________________ &nbsp; Date : _________________</div>`;
+  </div>`;
 }
 
 function fmt(n){
@@ -3432,6 +3428,7 @@ async function ouvrirFacture(devisId){
     const r = await fetch(BACKEND+'/api/devis/'+encodeURIComponent(devisId));
     const row = await r.json();
     const d = typeof row.data==='string'?JSON.parse(row.data):row.data;
+    if(!d.logo) d.logo = localStorage.getItem('ent-logo')||'';
     factureEnCours = {devis:d, row};
     // Enregistrer la facture en BDD si elle n'existe pas encore
     const factureId = 'F-'+devisId;
@@ -3578,10 +3575,12 @@ async function envoyerFacture(){
     <p style="margin-top:20px;font-size:10px;color:#ccc;text-align:center;">Généré avec DevisVoice</p>
   </div>
 </div>`;
+  const pdfBase64 = genererPdfFactureBase64(d);
+  const factureAttachments = pdfBase64 ? [{ filename: `${factureNum}.pdf`, content: pdfBase64 }] : [];
   try{
     const r = await fetch(BACKEND+'/api/send-devis',{
       method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({artisanNom, artisanEmail, clientEmail, subject:`Facture ${factureNum} - ${artisanNom}`, html: htmlFactureMail})
+      body:JSON.stringify({artisanNom, artisanEmail, clientEmail, subject:`Facture ${factureNum} - ${artisanNom}`, html: htmlFactureMail, attachments: factureAttachments})
     });
     const res = await r.json();
     if(!r.ok) throw new Error(res.error||'Erreur');
