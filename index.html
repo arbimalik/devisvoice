@@ -971,11 +971,36 @@ function getMentionTVA(tvaPct) {
 }
 
 function buildConditions(acomptePct) {
-  const _isPresta = METIERS_PRESTATAIRES.includes(metierCourant);
+  // Détection double : metierCourant sélectionné OU sections du devis (fallback historique)
+  const _bcPrestaKeys = ['traiteur','restauration','evenementiel','reception'];
+  const _bcNorm = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+  const _isPresta = METIERS_PRESTATAIRES.includes(metierCourant)
+    || !!(devisData?.sections?.some(s => _bcPrestaKeys.some(k => _bcNorm(s.metier).includes(k))));
   if(acomptePct === 0) return _isPresta ? 'Paiement à réception de facture.' : 'Solde à réception et levée des réserves.';
   return _isPresta
     ? `${acomptePct}% à la commande (${fmt(devisData ? devisData.total_ttc * acomptePct / 100 : 0)} € TTC), solde à réception de facture.`
     : `${acomptePct}% à la commande (${fmt(devisData ? devisData.total_ttc * acomptePct / 100 : 0)} € TTC), solde à réception et levée des réserves.`;
+}
+
+// ===== DÉTECTION TVA ALCOOL — DÉTERMINISTE (traiteur uniquement) =====
+const _ALCOOL_KW = [
+  'vin','vins','vin rouge','vin blanc','vin rosé','vin pétillant','champagne','crémant','cava','prosecco',
+  'brut','mousseux','pétillant','bière','bières','biere','bieres','pinte','demi','craft beer',
+  'whisky','whiskey','bourbon','scotch','cognac','armagnac','calvados','rhum','vodka','gin','tequila',
+  'mezcal','cachaça','liqueur','cointreau','grand marnier','baileys','amaretto','pastis','ricard',
+  'anisette','absinthe','chartreuse','limoncello','porto','muscat','sauternes','sherry','xérès',
+  'vermouth','martini','sangria','punch alcoolisé','kir','mojito','spritz','negroni','cosmopolitan',
+  'cocktail alcoolisé','open bar','free bar','bar alcool','bar à vins','bar à cocktails',
+  'boisson alcoolisée','boissons alcoolisées','alcoolisé','alcoolisée','alcoolisés','alcoolisées',
+  'alcool','alcools','spiritueux','digestif','cidre','hydromel','sake','soju','apéritif alcoolisé'
+];
+function _appliquerTvaAlcool(devis){
+  (devis.sections||[]).forEach(s=>(s.postes||[]).forEach(p=>{
+    const txt = ((p.titre||'') + ' ' + (p.description||'')).toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const isAlcool = _ALCOOL_KW.some(kw => txt.includes(kw.normalize('NFD').replace(/[\u0300-\u036f]/g,'')));
+    p.tva_pct = isAlcool ? 20 : 10;
+  }));
 }
 
 // ===== PRESTATIONS PAR MÉTIER =====
@@ -1323,6 +1348,20 @@ Réponds UNIQUEMENT avec le JSON brut, sans markdown, sans explication, sans tex
     updated.acompte_pct    = updated.acompte_pct   ?? devisData.acompte_pct;
     updated.acompte_montant= updated.acompte_montant ?? devisData.acompte_montant;
     updated.date_debut     = updated.date_debut    || devisData.date_debut;
+
+    // Traiteur : forcer conditions + TVA correcte après modification IA
+    const _majPrestaKeys = ['traiteur','restauration','evenementiel','reception'];
+    const _majNorm = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+    const _majIsPresta = updated.sections?.some(s => _majPrestaKeys.some(k => _majNorm(s.metier).includes(k))) || false;
+    if(_majIsPresta){
+      const _majAco = updated.acompte_pct || 0;
+      updated.conditions = _majAco > 0
+        ? `${_majAco}% à la commande (${fmt(updated.acompte_montant||0)} € TTC), solde à réception de facture`
+        : 'Paiement à réception de facture';
+      updated.tva_pct = 10;
+      _appliquerTvaAlcool(updated);
+    }
+
     devisData = updated;
     renderDevis(devisData);
     document.getElementById('dictee-text').innerText = '';
@@ -2212,13 +2251,10 @@ RÈGLES ABSOLUES: Ne jamais inventer un prix. Unité: "pers" par personne, "h" h
 
         parsed.observations = ''; // réservé à l'artisan — jamais rempli par l'IA
 
-        // Traiteur : s'assurer que chaque poste a un tva_pct individuel (évite TVA 20% globale par erreur IA)
+        // Traiteur : TVA par poste déterministe (scan mots-clés alcool) — ignore ce que l'IA a mis
         if(isPrestaGen){
-          parsed.tva_pct = 10; // la TVA globale est toujours 10 pour traiteur (mixte géré par tva_breakdown)
-          (parsed.sections||[]).forEach(s=>(s.postes||[]).forEach(p=>{
-            if(p.tva_pct == null) p.tva_pct = 10;
-            else p.tva_pct = Number(p.tva_pct) || 10;
-          }));
+          parsed.tva_pct = 10; // la TVA globale reste 10 pour traiteur (breakdown gère le détail)
+          _appliquerTvaAlcool(parsed);
         }
 
         devisData=parsed;
