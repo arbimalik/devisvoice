@@ -2432,6 +2432,22 @@ function renderDevis(d){
       </div>
     </div>
   </div>
+  ${isMobile
+    ? `<div style="padding:0 18px 14px;">${sectionsHtml}</div>`
+    : `<div style="padding:0 18px 14px;overflow-x:auto;">
+        <table>
+          <thead><tr>
+            <th>Désignation</th>
+            <th style="text-align:center;width:60px">Qté</th>
+            <th style="text-align:center;width:60px">Unité</th>
+            <th style="text-align:right;width:90px">P.U. HT</th>
+            <th style="text-align:right;width:90px">Total HT</th>
+            <th style="width:32px"></th>
+          </tr></thead>
+          <tbody>${sectionsHtml}</tbody>
+        </table>
+      </div>`
+  }
   <div style="padding:0 18px 14px;">
     <div style="background:var(--bg3);border:1.5px dashed var(--border);border-radius:8px;padding:12px 14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
