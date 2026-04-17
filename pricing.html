@@ -193,7 +193,7 @@ h1{
         <li>Dictée vocale IA avancée</li>
         <li>Support par email</li>
       </ul>
-      <button class="plan-btn primary" id="btn-starter" onclick="lancerPaiement(PRICES.starter_mensuel,'subscription')">Essayer 14 jours gratuit</button>
+      <button class="plan-btn primary" id="btn-starter" onclick="lancerPaiement(PRICES.starter_mensuel)">Essayer 14 jours gratuit</button>
     </div>
 
     <!-- PRO -->
@@ -209,7 +209,7 @@ h1{
         <li>Multi-utilisateurs (3 comptes)</li>
         <li>Support prioritaire</li>
       </ul>
-      <button class="plan-btn primary" id="btn-pro" onclick="lancerPaiement(PRICES.pro_mensuel,'subscription')">Essayer 14 jours gratuit</button>
+      <button class="plan-btn primary" id="btn-pro" onclick="lancerPaiement(PRICES.pro_mensuel)">Essayer 14 jours gratuit</button>
     </div>
 
     <!-- SUR-MESURE -->
@@ -234,16 +234,20 @@ h1{
 <script>
 'use strict';
 
+const STRIPE_PUBLIC_KEY = 'pk_test_51TNLQJ7LHQgZGOp7w7q7Ygt7GhetBvePQS06OrG9alZNBeSC0IHwBwO3zWymXeo9e72qm0dCr1fEa8b226apYkVh00lvOUoM4T';
+
 const BACKEND = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:8080'
   : 'https://devisvoice-backend-production-9ed2.up.railway.app';
 
 const PRICES = {
-  starter_mensuel: 'STRIPE_PRICE_ID_A_REMPLACER',
-  starter_annuel:  'STRIPE_PRICE_ID_A_REMPLACER',
-  pro_mensuel:     'STRIPE_PRICE_ID_A_REMPLACER',
-  pro_annuel:      'STRIPE_PRICE_ID_A_REMPLACER'
+  starter_mensuel: 'price_1TNLZv7LHQgZGOp7Lh3D87KQ',
+  starter_annuel:  'price_1TNLb57LHQgZGOp7ArsFH9tS',
+  pro_mensuel:     'price_1TNLbh7LHQgZGOp76lRk5ejx',
+  pro_annuel:      'price_1TNLcA7LHQgZGOp7puAlOy0q'
 };
+
+const SUBSCRIPTION_PRICES = ['price_1TNLZv7LHQgZGOp7Lh3D87KQ', 'price_1TNLbh7LHQgZGOp76lRk5ejx'];
 
 let currentMode = 'mensuel';
 
@@ -264,15 +268,15 @@ function setMode(mode){
       document.getElementById('sub-starter').innerHTML   = '&nbsp;';
       document.getElementById('price-pro').innerHTML     = '49,90€<span style="font-size:16px;font-weight:400;color:#888;">/mois</span>';
       document.getElementById('sub-pro').innerHTML       = '&nbsp;';
-      document.getElementById('btn-starter').onclick = () => lancerPaiement(PRICES.starter_mensuel, 'subscription');
-      document.getElementById('btn-pro').onclick     = () => lancerPaiement(PRICES.pro_mensuel, 'subscription');
+      document.getElementById('btn-starter').onclick = () => lancerPaiement(PRICES.starter_mensuel);
+      document.getElementById('btn-pro').onclick     = () => lancerPaiement(PRICES.pro_mensuel);
     } else {
       document.getElementById('price-starter').innerHTML = '24,90€<span style="font-size:16px;font-weight:400;color:#888;">/mois</span>';
       document.getElementById('sub-starter').textContent = 'facturé 298,90€/an — économisez 59,80€';
       document.getElementById('price-pro').innerHTML     = '41,57€<span style="font-size:16px;font-weight:400;color:#888;">/mois</span>';
       document.getElementById('sub-pro').textContent     = 'facturé 498,90€/an — économisez 99,80€';
-      document.getElementById('btn-starter').onclick = () => lancerPaiement(PRICES.starter_annuel, 'payment');
-      document.getElementById('btn-pro').onclick     = () => lancerPaiement(PRICES.pro_annuel, 'payment');
+      document.getElementById('btn-starter').onclick = () => lancerPaiement(PRICES.starter_annuel);
+      document.getElementById('btn-pro').onclick     = () => lancerPaiement(PRICES.pro_annuel);
     }
     priceEls.forEach(id => document.getElementById(id).classList.remove('fading'));
   }, 200);
@@ -283,7 +287,8 @@ function choisirGratuit(){
   window.location.href = 'index.html';
 }
 
-async function lancerPaiement(priceId, mode){
+async function lancerPaiement(priceId){
+  const mode = SUBSCRIPTION_PRICES.includes(priceId) ? 'subscription' : 'payment';
   const userEmail = localStorage.getItem('user_email') || '';
   try {
     const r = await fetch(BACKEND + '/api/stripe/create-checkout', {
