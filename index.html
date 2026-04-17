@@ -879,7 +879,7 @@ function updateFormLabels(key) {
     if(h)  h.textContent  = '📋 Client & Prestation';
     if(lA) lA.textContent = 'Lieu de la Prestation';
     if(lN) lN.textContent = 'Nature de la Prestation';
-    if(lD) lD.textContent = 'Date / Durée';
+    if(lD) lD.textContent = 'Date de la Prestation';
     if(iA) iA.placeholder = 'Salle des fêtes, 12 rue des Roses, Paris';
     if(iN) iN.placeholder = 'Cocktail mariage 150 pers., buffet dînatoire…';
     if(iD) iD.placeholder = '15 juin 2025 — 18h à minuit';
@@ -2100,7 +2100,7 @@ RÈGLES ABSOLUES: Ne jamais inventer un prix. Utiliser uniquement les prix dict�
       const promptPasse=`Tu es expert devis ${isPrestaGen?'prestataires événementiels et traiteurs':'BTP artisans'} français. Génère un JSON de sections de devis.
 ENTREPRISE: ${entNom}|SIRET:${entSiret}|Tél:${entTel}|${entAdr}|${entEmail}
 CLIENT: ${clientNom}|${clientEmail}|Tél:${clientTel}
-${isPrestaGen?'PRESTATION':'CHANTIER'}: ${chantierAdr}|Nature:${nature}|Délai:${delai}
+${isPrestaGen?'PRESTATION':'CHANTIER'}: ${chantierAdr}|Nature:${nature}|${isPrestaGen?'Date':'Délai'}:${delai}
 TVA: ${tva}% | Numéro: ${num} | Date: ${today}
 ${prixBlock}${_prefsBlock}
 DICTÉE (partie ${i+1}/${passes.length}): ${passes[i]}
@@ -2121,9 +2121,39 @@ ${isPrestaGen
   : `{"sections":[{"metier":"Nom métier","emoji":"🔧","postes":[{"id":${idCounter},"titre":"","description":"","qte":1,"unite":"Forfait","pu_ht":0,"total_ht":0}]}]}`
 }`
 }
-${isPrestaGen ? `RÈGLES TVA TRAITEUR — OBLIGATOIRE sur chaque poste:
-• "tva_pct":10 par défaut sur TOUS les postes (menus, nourriture, service, personnel, location, transport, décoration)
-• "tva_pct":20 UNIQUEMENT si le poste contient: vin, vins, champagne, prosecco, cava, mousseux, pétillant, bière, bières, alcool, alcools, spiritueux, whisky, cognac, rhum, vodka, gin, tequila, calvados, armagnac, porto, sangria, cocktail alcoolisé, open bar, bar alcool, boissons alcoolisées, apéritif alcoolisé, digestif.
+${isPrestaGen ? `TVA TRAITEUR — RÈGLE ABSOLUE — CHAQUE POSTE DOIT AVOIR "tva_pct" DANS LE JSON:
+
+LOI FRANÇAISE: TVA 10% sur nourriture et services. TVA 20% UNIQUEMENT sur boissons alcoolisées.
+
+ALGORITHME À APPLIQUER POSTE PAR POSTE:
+1. Lis le titre ET la description du poste
+2. Si le poste contient UN SEUL mot de la LISTE ALCOOL ci-dessous → "tva_pct":20
+3. Sinon → "tva_pct":10
+4. Ne jamais omettre "tva_pct" — chaque poste DOIT l'avoir
+
+LISTE ALCOOL COMPLÈTE (→ tva_pct:20):
+vins, vin rouge, vin blanc, vin rosé, vin pétillant, champagne, crémant, cava, prosecco, brut, mousseux, pétillant alcoolisé,
+bière, bières, bière pression, craft beer, pinte, demi,
+whisky, whiskey, bourbon, scotch, cognac, armagnac, calvados, rhum, vodka, gin, tequila, mezcal, cachaça,
+liqueur, cointreau, grand marnier, baileys, amaretto, pastis, ricard, anisette, absinthe, chartreuse, limoncello,
+porto, muscat, sauternes, sherry, xérès, vermouth, martini, sangria, punch alcoolisé,
+kir, kir royal, mimosa, spritz, mojito, cosmopolitan, margarita, negroni, sidecar,
+cocktail alcoolisé, open bar, free bar, bar alcool, bar à vins, bar à cocktails, boissons alcoolisées, alcoolisé, alcoolisée,
+apéritif alcoolisé, digestif, cidre alcoolisé, poiré, hydromel, sake, soju, alcool
+
+LISTE NON-ALCOOL (→ tva_pct:10) — TOUT le reste:
+menu, nourriture, repas, plat, entrée, dessert, fromage, buffet, cocktail sans alcool, jus, eau, soft, soda, café, thé,
+service, personnel, maître d'hôtel, chef, aide de cuisine, location, vaisselle, mobilier, décoration, livraison, transport
+
+EXEMPLES CORRECTS OBLIGATOIRES:
+{"titre":"Menu dînatoire 3 services","tva_pct":10}
+{"titre":"Champagne pour le toast","tva_pct":20}
+{"titre":"Bar à vins et spiritueux","tva_pct":20}
+{"titre":"Open bar","tva_pct":20}
+{"titre":"Personnel de service","tva_pct":10}
+{"titre":"Cocktail d'accueil sans alcool","tva_pct":10}
+{"titre":"Bouteilles de vin rouge et blanc","tva_pct":20}
+
 RÈGLES ABSOLUES: Ne jamais inventer un prix. Unité: "pers" par personne, "h" heures, "Forfait" sinon.`
 : `RÈGLES ABSOLUES: Ne jamais inventer un prix. Utiliser uniquement les prix dictés. Pour l'unité: "m²" surfaces, "ml" linéaires, "h" heures, "Forfait" tout le reste. Ne jamais utiliser "ens".`}`;
 
@@ -2411,6 +2441,9 @@ async function envoyerDevis(){
   sauvegarderClientAuto();
   sauvegarderPreferencesAuto();
   const d=devisData;
+  const _ePrestaKeys=['traiteur','restauration','evenementiel','reception'];
+  const _eNorm=s=>(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+  const _eIsPresta=d.sections?.some(s=>_ePrestaKeys.some(k=>_eNorm(s.metier).includes(k)))||false;
 
   let rowsHtml='';
   if(d.sections && d.sections.length){
@@ -2493,7 +2526,7 @@ async function envoyerDevis(){
           <table style="width:100%;font-size:12px;margin-bottom:18px">
             <tr>
               <td style="width:50%;vertical-align:top;padding-right:10px"><strong style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#999">Client</strong><br><br><strong>${d.client.nom}</strong><br>${d.client.email||''}${clientTelEmailHtml}<br>${d.chantier.adresse||''}</td>
-              <td style="width:50%;vertical-align:top;background:#f9f9f9;padding:10px;border-radius:6px"><strong style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#999">Chantier</strong><br><br><strong>${d.chantier.nature}</strong><br>Délai : ${d.chantier.delai}${dateDebutEmailHtml}</td>
+              <td style="width:50%;vertical-align:top;background:#f9f9f9;padding:10px;border-radius:6px"><strong style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#999">${_eIsPresta?'Prestation':'Chantier'}</strong><br><br><strong>${d.chantier.nature}</strong><br>${_eIsPresta?'Date':'Délai'} : ${d.chantier.delai}${dateDebutEmailHtml}</td>
             </tr>
           </table>
           <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:18px">
@@ -2930,6 +2963,9 @@ function genererPdfDevisBase64(d) {
   const entAdr    = d.entreprise?.adresse|| ls('ent-adr')    || '';
   const entEmail  = d.entreprise?.email  || ls('ent-email')  || '';
   const tva       = d.tva_pct            || ls('t-tva')      || '10';
+  const _pdfPrestaKeys=['traiteur','restauration','evenementiel','reception'];
+  const _pdfNorm=s=>(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+  const _pdfIsPresta=d.sections?.some(s=>_pdfPrestaKeys.some(k=>_pdfNorm(s.metier).includes(k)))||false;
   const logoSrc   = d.logo||localStorage.getItem('ent-logo')||'';
   const acc = [255, 69, 0];
   const M = 14, W = 210, CW = W - M * 2;
@@ -2973,7 +3009,7 @@ function genererPdfDevisBase64(d) {
   y = Math.max(y + 4, M + 54);
   pdf.setFillColor(...acc); pdf.rect(M, y, 3, 7, 'F');
   pdf.setFontSize(8.5); pdf.setTextColor(80,80,80); pdf.setFont('helvetica','normal');
-  const chantierInfo = [d.chantier?.nature, d.chantier?.adresse, d.chantier?.delai ? 'Délai : '+d.chantier.delai : ''].filter(Boolean).join('   |   ');
+  const chantierInfo = [d.chantier?.nature, d.chantier?.adresse, d.chantier?.delai ? (_pdfIsPresta?'Date : ':'Délai : ')+d.chantier.delai : ''].filter(Boolean).join('   |   ');
   pdf.text(chantierInfo, M+5, y+4.5);
   y += 12;
 
