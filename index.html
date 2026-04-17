@@ -708,6 +708,11 @@ select option{background:var(--card);color:var(--text);}
 </div>
 
 <script>
+// ── ONBOARDING GUARD ── rediriger si l'onboarding n'a pas été complété
+if(localStorage.getItem('onboarding_complete') !== 'true'){
+  window.location.replace('onboarding.html');
+}
+
 const BACKEND= window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1'
   ? 'http://localhost:8080'
   : 'https://devisvoice-backend-production-9ed2.up.railway.app';
