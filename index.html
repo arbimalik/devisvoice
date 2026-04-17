@@ -971,8 +971,11 @@ function getMentionTVA(tvaPct) {
 }
 
 function buildConditions(acomptePct) {
-  if(acomptePct === 0) return 'Solde à réception et levée des réserves.';
-  return `${acomptePct}% à la commande (${fmt(devisData ? devisData.total_ttc * acomptePct / 100 : 0)} € TTC), solde à réception et levée des réserves.`;
+  const _isPresta = METIERS_PRESTATAIRES.includes(metierCourant);
+  if(acomptePct === 0) return _isPresta ? 'Paiement à réception de facture.' : 'Solde à réception et levée des réserves.';
+  return _isPresta
+    ? `${acomptePct}% à la commande (${fmt(devisData ? devisData.total_ttc * acomptePct / 100 : 0)} € TTC), solde à réception de facture.`
+    : `${acomptePct}% à la commande (${fmt(devisData ? devisData.total_ttc * acomptePct / 100 : 0)} € TTC), solde à réception et levée des réserves.`;
 }
 
 // ===== PRESTATIONS PAR MÉTIER =====
@@ -2170,9 +2173,11 @@ RÈGLES ABSOLUES: Ne jamais inventer un prix. Unité: "pers" par personne, "h" h
           ? Math.round(parsed.total_ttc * acomptePct / 100 * 100) / 100
           : 0;
         if(acomptePct > 0) {
-          parsed.conditions = `${acomptePct}% à la commande (${fmt(parsed.acompte_montant)} € TTC), solde à réception et levée des réserves`;
+          parsed.conditions = isPrestaGen
+            ? `${acomptePct}% à la commande (${fmt(parsed.acompte_montant)} € TTC), solde à réception de facture`
+            : `${acomptePct}% à la commande (${fmt(parsed.acompte_montant)} € TTC), solde à réception et levée des réserves`;
         } else {
-          parsed.conditions = 'Solde à réception et levée des réserves';
+          parsed.conditions = isPrestaGen ? 'Paiement à réception de facture' : 'Solde à réception et levée des réserves';
         }
 
         parsed.observations = ''; // réservé à l'artisan — jamais rempli par l'IA
