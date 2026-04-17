@@ -2403,14 +2403,16 @@ function renderDevis(d){
     ? `&nbsp;&nbsp;|&nbsp;&nbsp;<strong>Début :</strong> ${d.date_debut}`
     : '';
 
-  const clientTelHtml = d.client.tel
+  const clientTelHtml = d.client?.tel
     ? `<br>📞 ${d.client.tel}` : '';
+  const ent = d.entreprise || {};
+  const chantier = d.chantier || {};
 
   document.getElementById('devis-preview').innerHTML=`
-  <div style="padding:16px 18px 0;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+  <div class="devis-preview">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
       <div>
-        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--accent);">DEVIS N° ${d.numero}</div>
+        <h1>DEVIS N° ${d.numero}</h1>
         <div style="font-size:11px;color:var(--text2);margin-top:2px;">${d.date} &nbsp;·&nbsp; Validité : ${d.validite}${dateDebutHtml}</div>
       </div>
       <div style="text-align:right;">
@@ -2419,18 +2421,30 @@ function renderDevis(d){
         ${acomptePct > 0 ? `<div style="font-size:11px;color:var(--text2);">Acompte ${acomptePct}% : ${fmt(acompteMontant)} €</div>` : ''}
       </div>
     </div>
-    <div style="display:flex;gap:10px;margin-bottom:12px;padding:10px 12px;background:var(--bg3);border-radius:8px;font-size:12px;">
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:3px;">Client</div>
-        <div style="font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.client.nom}</div>
-        ${d.chantier.nature ? `<div style="color:var(--text2);font-size:11px;margin-top:1px;">${d.chantier.nature}</div>` : ''}
+    <h2>Intervenants</h2>
+    <div class="hgrid">
+      <div class="iblk">
+        <p>ENTREPRISE</p>
+        <strong>${ent.nom||'—'}</strong>
+        ${ent.siret ? `<br>SIRET : ${ent.siret}` : ''}
+        ${ent.tel ? `<br>📞 ${ent.tel}` : ''}
+        ${ent.adresse ? `<br>${ent.adresse}` : ''}
+        ${ent.email ? `<br>✉️ ${ent.email}` : ''}
       </div>
-      <div style="flex:1;min-width:0;text-align:right;">
-        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:3px;">Montants</div>
-        <div style="color:var(--text);font-size:11px;">HT : ${fmt(d.total_ht)} €</div>
-        ${(()=>{const bd=d.tva_breakdown?Object.fromEntries(Object.entries(d.tva_breakdown).filter(([k])=>!isNaN(Number(k))&&Number(k)>0)):null;return bd&&Object.keys(bd).length>1?Object.entries(bd).sort(([a],[b])=>Number(a)-Number(b)).map(([r,m])=>`<div style="color:var(--text);font-size:11px;">TVA ${r}% : ${fmt(m)} €</div>`).join(''):`<div style="color:var(--text);font-size:11px;">TVA ${d.tva_pct||10}% : ${fmt(d.tva_montant)} €</div>`;})()}
+      <div class="iblk">
+        <p>CLIENT</p>
+        <strong>${d.client?.nom||'—'}</strong>
+        ${d.client?.email ? `<br>✉️ ${d.client.email}` : ''}
+        ${d.client?.tel ? `<br>📞 ${d.client.tel}` : ''}
+        ${chantier.adresse ? `<br>📍 ${chantier.adresse}` : ''}
       </div>
     </div>
+    ${(chantier.nature||chantier.delai||d.date_debut) ? `<div class="iblk" style="margin-bottom:14px;">
+      ${chantier.nature ? `<strong>Nature :</strong> ${chantier.nature}` : ''}
+      ${chantier.delai ? `${chantier.nature?'<br>':''}<strong>Délai :</strong> ${chantier.delai}` : ''}
+      ${d.date_debut ? `<br><strong>Début :</strong> ${d.date_debut}` : ''}
+    </div>` : ''}
+    <h2>Prestations / Ouvrages</h2>
   </div>
   ${isMobile
     ? `<div style="padding:0 18px 14px;">${sectionsHtml}</div>`
