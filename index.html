@@ -2463,6 +2463,16 @@ function renderDevis(d){
       </div>`
   }
   <div style="padding:0 18px 14px;">
+    <div class="totaux-box">
+      <div class="trow"><span>Total HT</span><span>${fmt(d.total_ht)} €</span></div>
+      ${(()=>{const bd=d.tva_breakdown?Object.fromEntries(Object.entries(d.tva_breakdown).filter(([k])=>!isNaN(Number(k))&&Number(k)>0)):null;return bd&&Object.keys(bd).length>1?Object.entries(bd).sort(([a],[b])=>Number(a)-Number(b)).map(([r,m])=>`<div class="trow"><span>TVA ${r}%</span><span>${fmt(m)} €</span></div>`).join(''):`<div class="trow"><span>TVA ${d.tva_pct||10}%</span><span>${fmt(d.tva_montant)} €</span></div>`;})()}
+      <div class="trow"><span>TOTAL TTC</span><span>${fmt(d.total_ttc)} €</span></div>
+      ${acomptePct > 0 ? `<div class="trow" style="color:var(--accent);font-size:13px;font-weight:600;padding:5px 0"><span>Acompte ${acomptePct}%</span><span>${fmt(acompteMontant)} €</span></div>` : ''}
+    </div>
+    ${d.conditions ? `<div class="cond-box"><strong>Conditions :</strong> ${d.conditions}</div>` : ''}
+    ${d.mentions ? `<div class="validite-txt">${d.mentions}</div>` : ''}
+  </div>
+  <div style="padding:0 18px 14px;">
     <div style="background:var(--bg3);border:1.5px dashed var(--border);border-radius:8px;padding:12px 14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);">📝 Observations / Notes pour le client</span>
