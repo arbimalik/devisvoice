@@ -708,12 +708,43 @@ select option{background:var(--card);color:var(--text);}
 </div>
 
 <script>
-// ── ONBOARDING GUARD ── rediriger si l'onboarding n'a pas été complété
+// ── ONBOARDING GUARD ── rediriger selon état auth
 const urlParams = new URLSearchParams(window.location.search);
 const isDevMode = urlParams.get('dev') === 'true';
 
-if (!isDevMode && localStorage.getItem('onboarding_complete') !== 'true') {
-  window.location.href = 'onboarding.html';
+if (!isDevMode) {
+  const token = localStorage.getItem('dv_token');
+  const onboardingDone = localStorage.getItem('onboarding_complete') === 'true';
+
+  if (!onboardingDone) {
+    window.location.href = 'onboarding.html';
+  } else if (!token) {
+    window.location.href = 'login.html';
+  } else {
+    fetch('https://devisvoice-backend-production-9ed2.up.railway.app/api/users/verify-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token })
+    }).then(r => r.json()).then(data => {
+      if (!data.valid) {
+        localStorage.removeItem('dv_token');
+        window.location.href = 'login.html';
+      } else {
+        fetch('https://devisvoice-backend-production-9ed2.up.railway.app/api/users/profile', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        }).then(r => r.json()).then(profile => {
+          if (profile && profile.famille) {
+            localStorage.setItem('user_famille',   profile.famille);
+            localStorage.setItem('user_metiers',   JSON.stringify(profile.metiers || []));
+            localStorage.setItem('user_prenom',    profile.prenom || '');
+            localStorage.setItem('user_nom',       profile.nom || '');
+            localStorage.setItem('user_entreprise',profile.entreprise || '');
+            localStorage.setItem('user_telephone', profile.telephone || '');
+          }
+        }).catch(() => {});
+      }
+    }).catch(() => {});
+  }
 }
 
 const BACKEND= window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1'

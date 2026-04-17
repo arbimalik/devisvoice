@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevisVoice — Connexion</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{
+  width:100%;height:100%;
+  background:#0d0d0d;color:#fff;
+  font-family:'Inter',sans-serif;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+}
+
+.card{
+  width:100%;max-width:400px;
+}
+
+.logo{
+  font-family:'Syne',sans-serif;
+  font-size:28px;font-weight:800;
+  text-align:center;margin-bottom:32px;
+}
+.logo span{color:#FF4500;}
+
+h1{
+  font-family:'Syne',sans-serif;
+  font-size:36px;font-weight:800;
+  color:#fff;margin-bottom:6px;
+}
+.subtitle{
+  font-size:16px;color:#888;margin-bottom:32px;
+}
+
+.form-group{margin-bottom:16px;}
+.form-group label{
+  display:block;font-size:11px;font-weight:600;
+  color:#666;margin-bottom:6px;
+  letter-spacing:.8px;text-transform:uppercase;
+}
+.form-group input{
+  width:100%;background:transparent;
+  border:1.5px solid #2a2a2a;border-radius:8px;
+  padding:14px 16px;color:#fff;
+  font-family:'Inter',sans-serif;font-size:15px;
+  outline:none;transition:border-color .2s;
+}
+.form-group input:focus{border-color:#FF4500;}
+.form-group input::placeholder{color:#444;}
+
+.btn-login{
+  width:100%;height:52px;
+  background:#FF4500;color:#fff;border:none;
+  border-radius:8px;
+  font-family:'Syne',sans-serif;
+  font-size:16px;font-weight:700;
+  cursor:pointer;letter-spacing:.3px;
+  transition:opacity .2s,transform .1s;
+  margin-top:8px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-login:disabled{opacity:.4;cursor:not-allowed;}
+.btn-login:not(:disabled):hover{opacity:.88;}
+.btn-login:not(:disabled):active{transform:scale(.98);}
+
+@keyframes spin{to{transform:rotate(360deg);}}
+.spinner{
+  width:18px;height:18px;
+  border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+  flex-shrink:0;
+}
+
+.err-msg{
+  display:none;
+  margin-top:12px;
+  font-size:13px;color:#FF4500;
+  text-align:center;
+  min-height:20px;
+}
+
+.footer-link{
+  margin-top:28px;
+  font-size:14px;color:#888;
+  text-align:center;
+}
+.footer-link a{color:#FF4500;text-decoration:none;}
+.footer-link a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div class="logo">Devis<span>Voice</span></div>
+
+  <h1>Bon retour !</h1>
+  <p class="subtitle">Connectez-vous à votre espace</p>
+
+  <div class="form-group">
+    <label>Email professionnel</label>
+    <input type="email" id="l-email" placeholder="jean@dupont.fr"
+           autocomplete="email" required>
+  </div>
+  <div class="form-group">
+    <label>Mot de passe</label>
+    <input type="password" id="l-password" placeholder="••••••••"
+           autocomplete="current-password" required
+           onkeydown="if(event.key==='Enter') login()">
+  </div>
+
+  <button class="btn-login" id="btn-login" onclick="login()">Se connecter</button>
+  <div class="err-msg" id="err-login"></div>
+
+  <p class="footer-link">
+    Première visite ? <a href="onboarding.html">Créer un compte</a>
+  </p>
+
+</div>
+
+<script>
+'use strict';
+
+const BACKEND = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:8080'
+  : 'https://devisvoice-backend-production-9ed2.up.railway.app';
+
+async function login(){
+  const email    = document.getElementById('l-email').value.trim();
+  const password = document.getElementById('l-password').value;
+  const btn      = document.getElementById('btn-login');
+  const errEl    = document.getElementById('err-login');
+
+  if(!email || !password){
+    errEl.style.display = 'block';
+    errEl.textContent   = 'Veuillez remplir tous les champs';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Connexion...';
+  errEl.style.display = 'none';
+
+  try {
+    const resp = await fetch(BACKEND + '/api/users/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, mot_de_passe: password })
+    });
+    const data = await resp.json();
+
+    if (!data.success) {
+      btn.disabled = false;
+      btn.innerHTML = 'Se connecter';
+      errEl.style.display = 'block';
+      errEl.textContent   = data.error || 'Email ou mot de passe incorrect';
+      return;
+    }
+
+    // Succès
+    localStorage.setItem('dv_token',         data.token);
+    localStorage.setItem('user_email',       data.email);
+    localStorage.setItem('user_prenom',      data.prenom || '');
+    localStorage.setItem('user_nom',         data.nom || '');
+    localStorage.setItem('user_entreprise',  data.entreprise || '');
+    localStorage.setItem('user_telephone',   data.telephone || '');
+    localStorage.setItem('user_famille',     data.famille || '');
+    localStorage.setItem('user_metiers',     JSON.stringify(data.metiers || []));
+    localStorage.setItem('onboarding_complete', 'true');
+    if(data.entreprise) localStorage.setItem('ent-nom',   data.entreprise);
+    if(data.email)      localStorage.setItem('ent-email', data.email);
+    if(data.telephone)  localStorage.setItem('ent-tel',   data.telephone);
+
+    window.location.href = 'index.html';
+
+  } catch(e) {
+    btn.disabled = false;
+    btn.innerHTML = 'Se connecter';
+    errEl.style.display = 'block';
+    errEl.textContent   = 'Erreur réseau — réessayez';
+  }
+}
+</script>
+</body>
+</html>

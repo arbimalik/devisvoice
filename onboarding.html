@@ -117,6 +117,8 @@ html,body{width:100%;height:100%;background:#0d0d0d;color:#fff;font-family:'Inte
 .btn-primary:not(:disabled):hover{opacity:.88;}
 .btn-primary:not(:disabled):active{transform:scale(.98);}
 
+@keyframes spin { to { transform: rotate(360deg); } }
+
 @media(max-width:480px){
   .families-grid{gap:10px;}
   .family-card{padding:20px 14px;}
@@ -195,7 +197,8 @@ html,body{width:100%;height:100%;background:#0d0d0d;color:#fff;font-family:'Inte
       <input type="password" id="f-password" placeholder="••••••••" autocomplete="new-password">
       <div class="hint-txt">Optionnel — connexion par email possible</div>
     </div>
-    <button class="btn-primary" onclick="creerCompte()">Créer mon compte →</button>
+    <button class="btn-primary" id="btn-creer" onclick="creerCompte()">Créer mon compte →</button>
+    <div id="err-register" style="display:none;margin-top:10px;font-size:13px;color:#FF4500;text-align:center;"></div>
   </div>
 </div>
 
@@ -209,6 +212,11 @@ html,body{width:100%;height:100%;background:#0d0d0d;color:#fff;font-family:'Inte
 
 <script>
 'use strict';
+
+// ─── BACKEND ─────────────────────────────────────────────────────────────────
+const BACKEND = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:8080'
+  : 'https://devisvoice-backend-production-9ed2.up.railway.app';
 
 // ─── TRANSITIONS ─────────────────────────────────────────────────────────────
 function goToScreen(n){
@@ -590,12 +598,15 @@ function initDots(){
 }
 
 // ─── ÉCRAN 4 — CRÉER COMPTE ──────────────────────────────────────────────────
-function creerCompte(){
+async function creerCompte(){
   const prenom     = document.getElementById('f-prenom').value.trim();
   const nom        = document.getElementById('f-nom').value.trim();
   const entreprise = document.getElementById('f-entreprise').value.trim();
   const email      = document.getElementById('f-email').value.trim();
   const tel        = document.getElementById('f-tel').value.trim();
+  const password   = document.getElementById('f-password').value;
+  const errEl      = document.getElementById('err-register');
+  const btn        = document.getElementById('btn-creer');
 
   if(!email){
     const el = document.getElementById('f-email');
@@ -604,24 +615,62 @@ function creerCompte(){
     return;
   }
 
-  // Données onboarding
-  localStorage.setItem('user_famille',        selectedFamily || '');
-  localStorage.setItem('user_metiers',        JSON.stringify(selectedMetiers));
-  localStorage.setItem('user_nom',            (prenom + ' ' + nom).trim());
-  localStorage.setItem('user_email',          email);
-  localStorage.setItem('user_tel',            tel);
-  localStorage.setItem('user_entreprise',     entreprise);
-  localStorage.setItem('user_document_type',  selectedFamily === 'transport' ? 'bon_de_commande' : 'devis');
-  localStorage.setItem('onboarding_complete', 'true');
+  const famille      = localStorage.getItem('user_famille') || selectedFamily || '';
+  const metiers      = JSON.parse(localStorage.getItem('user_metiers') || '[]');
+  const document_type = famille === 'transport' ? 'bon_de_commande' : 'devis';
 
-  // Pré-remplir les clés utilisées par index.html
-  if(entreprise) localStorage.setItem('ent-nom',   entreprise);
-  if(email)      localStorage.setItem('ent-email', email);
-  if(tel)        localStorage.setItem('ent-tel',   tel);
+  // Spinner + désactivation bouton
+  btn.disabled = true;
+  btn.innerHTML = '<span style="display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px;"></span>Création en cours...';
+  errEl.style.display = 'none';
 
-  if(_dotsAnimId){ cancelAnimationFrame(_dotsAnimId); _dotsAnimId = null; }
-  goToScreen(5);
-  setTimeout(startLoading, 450);
+  try {
+    const resp = await fetch(BACKEND + '/api/users/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, prenom, nom, entreprise, telephone: tel,
+        mot_de_passe: password || undefined, famille, metiers, document_type })
+    });
+    const data = await resp.json();
+
+    if (!data.success) {
+      btn.disabled = false;
+      btn.innerHTML = 'Créer mon compte →';
+      errEl.style.display = 'block';
+      if (data.error && data.error.includes('unique') || data.error && data.error.includes('already')) {
+        errEl.innerHTML = "Cet email est déjà utilisé. <a href='login.html' style='color:#FF4500'>Se connecter</a>";
+      } else {
+        errEl.textContent = data.error || 'Une erreur est survenue';
+      }
+      return;
+    }
+
+    // Succès — sauvegarde localStorage
+    localStorage.setItem('dv_token',         data.token);
+    localStorage.setItem('user_email',       data.email);
+    localStorage.setItem('user_prenom',      data.prenom || '');
+    localStorage.setItem('user_nom',         data.nom || '');
+    localStorage.setItem('user_entreprise',  data.entreprise || '');
+    localStorage.setItem('user_telephone',   data.telephone || '');
+    localStorage.setItem('user_famille',     data.famille || famille);
+    localStorage.setItem('user_metiers',     JSON.stringify(data.metiers || metiers));
+    localStorage.setItem('user_document_type', data.document_type || document_type);
+    localStorage.setItem('onboarding_complete', 'true');
+    // Clés utilisées par index.html
+    if(data.entreprise) localStorage.setItem('ent-nom',   data.entreprise);
+    if(data.email)      localStorage.setItem('ent-email', data.email);
+    if(data.telephone)  localStorage.setItem('ent-tel',   data.telephone);
+
+    if(_dotsAnimId){ cancelAnimationFrame(_dotsAnimId); _dotsAnimId = null; }
+    goToScreen(5);
+    setTimeout(startLoading, 450);
+
+  } catch(e) {
+    btn.disabled = false;
+    btn.innerHTML = 'Créer mon compte →';
+    errEl.style.display = 'block';
+    errEl.textContent = 'Erreur réseau — réessayez';
+  }
 }
 
 // ─── ÉCRAN 5 — CHARGEMENT ────────────────────────────────────────────────────
