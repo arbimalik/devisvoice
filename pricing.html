@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevisVoice — Choisissez votre plan</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{
+  width:100%;min-height:100%;
+  background:#0d0d0d;color:#fff;
+  font-family:'Inter',sans-serif;
+}
+
+.page{
+  max-width:960px;margin:0 auto;
+  padding:48px 24px 80px;
+}
+
+/* ── HEADER ── */
+.logo{
+  font-family:'Syne',sans-serif;
+  font-size:28px;font-weight:800;
+  text-align:center;margin-bottom:40px;
+}
+.logo span{color:#FF4500;}
+
+h1{
+  font-family:'Syne',sans-serif;
+  font-size:42px;font-weight:800;
+  color:#fff;text-align:center;
+  margin-bottom:12px;
+  line-height:1.15;
+}
+.subtitle{
+  font-size:16px;color:#888;
+  text-align:center;margin-bottom:40px;
+}
+
+/* ── TOGGLE ── */
+.toggle-wrap{
+  display:flex;justify-content:center;
+  gap:8px;margin-bottom:48px;
+}
+.toggle-btn{
+  padding:10px 20px;border-radius:8px;
+  font-family:'Syne',sans-serif;
+  font-size:14px;font-weight:700;
+  cursor:pointer;border:1px solid #2a2a2a;
+  transition:all .3s;
+}
+.toggle-btn.active{background:#FF4500;color:#fff;border-color:#FF4500;}
+.toggle-btn:not(.active){background:#1a1a1a;color:#888;}
+.toggle-btn:not(.active):hover{border-color:#FF4500;color:#FF4500;}
+
+/* ── GRILLE CARTES ── */
+.plans-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+@media(max-width:700px){
+  h1{font-size:28px;}
+  .plans-grid{grid-template-columns:1fr;}
+}
+
+/* ── CARTE ── */
+.plan-card{
+  background:#161616;
+  border:1.5px solid #2a2a2a;
+  border-radius:16px;
+  padding:32px;
+  position:relative;
+  display:flex;flex-direction:column;
+  transition:transform .2s;
+}
+.plan-card:hover{transform:translateY(-2px);}
+.plan-card.featured{
+  border:2px solid #FF4500;
+  box-shadow:0 0 30px rgba(255,69,0,.15);
+}
+
+.badge{
+  position:absolute;top:-14px;left:50%;
+  transform:translateX(-50%);
+  background:#FF4500;color:#fff;
+  border-radius:20px;padding:4px 16px;
+  font-size:11px;font-family:'Syne',sans-serif;
+  font-weight:700;white-space:nowrap;
+}
+
+.plan-name{
+  font-family:'Syne',sans-serif;
+  font-size:28px;font-weight:800;
+  color:#fff;margin-bottom:16px;
+}
+
+.plan-price{
+  font-family:'Syne',sans-serif;
+  font-size:32px;font-weight:800;
+  color:#fff;line-height:1;
+  transition:opacity .2s;
+}
+.plan-price-sub{
+  font-size:12px;color:#666;
+  margin-top:4px;margin-bottom:16px;
+  min-height:32px;
+  transition:opacity .2s;
+}
+.plan-price.fading,.plan-price-sub.fading{opacity:0;}
+
+.sep{
+  height:1px;background:#2a2a2a;
+  margin-bottom:20px;
+}
+.sep.orange{background:rgba(255,69,0,.3);}
+
+.features{
+  list-style:none;
+  flex:1;margin-bottom:24px;
+}
+.features li{
+  font-size:14px;color:#aaa;
+  padding:6px 0;
+  display:flex;align-items:flex-start;gap:8px;
+}
+.features li::before{
+  content:'✓';
+  color:#FF4500;font-weight:700;
+  flex-shrink:0;margin-top:1px;
+}
+
+.plan-btn{
+  width:100%;height:48px;
+  border-radius:8px;
+  font-family:'Syne',sans-serif;
+  font-size:15px;font-weight:700;
+  cursor:pointer;
+  transition:opacity .2s,transform .1s;
+  border:none;
+}
+.plan-btn:hover{opacity:.88;}
+.plan-btn:active{transform:scale(.98);}
+.plan-btn.primary{background:#FF4500;color:#fff;}
+.plan-btn.secondary{background:#2a2a2a;color:#fff;}
+.plan-btn.outline{background:transparent;border:1px solid #FF4500;color:#FF4500;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="logo">Devis<span>Voice</span></div>
+
+  <h1>Choisissez votre plan</h1>
+  <p class="subtitle">14 jours d'essai gratuit sur tous les plans payants — sans CB requise</p>
+
+  <div class="toggle-wrap">
+    <button class="toggle-btn active" id="btn-mensuel" onclick="setMode('mensuel')">Mensuel</button>
+    <button class="toggle-btn"        id="btn-annuel"  onclick="setMode('annuel')">Annuel — 2 mois offerts 🎁</button>
+  </div>
+
+  <div class="plans-grid">
+
+    <!-- GRATUIT -->
+    <div class="plan-card">
+      <div class="plan-name">Gratuit</div>
+      <div class="plan-price" id="price-gratuit">0€</div>
+      <div class="plan-price-sub" id="sub-gratuit">Pour toujours</div>
+      <div class="sep"></div>
+      <ul class="features">
+        <li>5 devis par mois</li>
+        <li>Dictée vocale IA</li>
+        <li>Téléchargement PDF</li>
+        <li>Sans carte bancaire</li>
+      </ul>
+      <button class="plan-btn secondary" onclick="choisirGratuit()">Commencer gratuitement</button>
+    </div>
+
+    <!-- STARTER -->
+    <div class="plan-card featured">
+      <div class="badge">Populaire ⭐</div>
+      <div class="plan-name">Starter</div>
+      <div class="plan-price" id="price-starter">29,90€<span style="font-size:16px;font-weight:400;color:#888;">/mois</span></div>
+      <div class="plan-price-sub" id="sub-starter">&nbsp;</div>
+      <div class="sep orange"></div>
+      <ul class="features">
+        <li>Devis illimités</li>
+        <li>20 factures par mois</li>
+        <li>Envoi au nom de votre entreprise</li>
+        <li>Copie automatique comptable</li>
+        <li>Dictée vocale IA avancée</li>
+        <li>Support par email</li>
+      </ul>
+      <button class="plan-btn primary" id="btn-starter" onclick="lancerPaiement(PRICES.starter_mensuel,'subscription')">Essayer 14 jours gratuit</button>
+    </div>
+
+    <!-- PRO -->
+    <div class="plan-card">
+      <div class="plan-name">Pro</div>
+      <div class="plan-price" id="price-pro">49,90€<span style="font-size:16px;font-weight:400;color:#888;">/mois</span></div>
+      <div class="plan-price-sub" id="sub-pro">&nbsp;</div>
+      <div class="sep"></div>
+      <ul class="features">
+        <li>Tout le plan Starter inclus</li>
+        <li>Factures illimitées</li>
+        <li>Facturation électronique (Factur-X 2027)</li>
+        <li>Multi-utilisateurs (3 comptes)</li>
+        <li>Support prioritaire</li>
+      </ul>
+      <button class="plan-btn primary" id="btn-pro" onclick="lancerPaiement(PRICES.pro_mensuel,'subscription')">Essayer 14 jours gratuit</button>
+    </div>
+
+    <!-- SUR-MESURE -->
+    <div class="plan-card">
+      <div class="plan-name">Sur-mesure</div>
+      <div class="plan-price" id="price-custom">Sur devis</div>
+      <div class="plan-price-sub" id="sub-custom">Pour les grandes structures</div>
+      <div class="sep"></div>
+      <ul class="features">
+        <li>Tout le plan Pro inclus</li>
+        <li>Utilisateurs illimités</li>
+        <li>Intégrations personnalisées</li>
+        <li>Account manager dédié</li>
+        <li>SLA garanti</li>
+      </ul>
+      <button class="plan-btn outline" onclick="window.location.href='mailto:contact@devisvoice.fr'">Nous contacter</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const BACKEND = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:8080'
+  : 'https://devisvoice-backend-production-9ed2.up.railway.app';
+
+const PRICES = {
+  starter_mensuel: 'STRIPE_PRICE_ID_A_REMPLACER',
+  starter_annuel:  'STRIPE_PRICE_ID_A_REMPLACER',
+  pro_mensuel:     'STRIPE_PRICE_ID_A_REMPLACER',
+  pro_annuel:      'STRIPE_PRICE_ID_A_REMPLACER'
+};
+
+let currentMode = 'mensuel';
+
+function setMode(mode){
+  currentMode = mode;
+  document.getElementById('btn-mensuel').classList.toggle('active', mode === 'mensuel');
+  document.getElementById('btn-annuel').classList.toggle('active',  mode === 'annuel');
+
+  const priceEls = ['price-starter','price-pro','sub-starter','sub-pro'];
+  priceEls.forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.add('fading');
+  });
+
+  setTimeout(() => {
+    if(mode === 'mensuel'){
+      document.getElementById('price-starter').innerHTML = '29,90€<span style="font-size:16px;font-weight:400;color:#888;">/mois</span>';
+      document.getElementById('sub-starter').innerHTML   = '&nbsp;';
+      document.getElementById('price-pro').innerHTML     = '49,90€<span style="font-size:16px;font-weight:400;color:#888;">/mois</span>';
+      document.getElementById('sub-pro').innerHTML       = '&nbsp;';
+      document.getElementById('btn-starter').onclick = () => lancerPaiement(PRICES.starter_mensuel, 'subscription');
+      document.getElementById('btn-pro').onclick     = () => lancerPaiement(PRICES.pro_mensuel, 'subscription');
+    } else {
+      document.getElementById('price-starter').innerHTML = '24,90€<span style="font-size:16px;font-weight:400;color:#888;">/mois</span>';
+      document.getElementById('sub-starter').textContent = 'facturé 298,90€/an — économisez 59,80€';
+      document.getElementById('price-pro').innerHTML     = '41,57€<span style="font-size:16px;font-weight:400;color:#888;">/mois</span>';
+      document.getElementById('sub-pro').textContent     = 'facturé 498,90€/an — économisez 99,80€';
+      document.getElementById('btn-starter').onclick = () => lancerPaiement(PRICES.starter_annuel, 'payment');
+      document.getElementById('btn-pro').onclick     = () => lancerPaiement(PRICES.pro_annuel, 'payment');
+    }
+    priceEls.forEach(id => document.getElementById(id).classList.remove('fading'));
+  }, 200);
+}
+
+function choisirGratuit(){
+  localStorage.setItem('user_plan', 'gratuit');
+  window.location.href = 'index.html';
+}
+
+async function lancerPaiement(priceId, mode){
+  const userEmail = localStorage.getItem('user_email') || '';
+  try {
+    const r = await fetch(BACKEND + '/api/stripe/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ priceId, userEmail, mode })
+    });
+    const data = await r.json();
+    if(data.url) window.location.href = data.url;
+    else alert('Erreur lors de la redirection vers le paiement.');
+  } catch(e) {
+    alert('Erreur réseau — réessayez.');
+  }
+}
+</script>
+</body>
+</html>

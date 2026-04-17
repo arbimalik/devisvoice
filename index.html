@@ -289,6 +289,7 @@ select option{background:var(--card);color:var(--text);}
       <button class="tbtn" onclick="setTheme('light-green',this)" title="Noir / Beige" style="color:#c9a96e"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 2a6 6 0 0 0-5.81 7.54l-7.1 7.1a1.5 1.5 0 0 0 0 2.12l2.12 2.12a1.5 1.5 0 0 0 2.12 0l7.1-7.1A6 6 0 1 0 16 2zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"/></svg></button>
     </div>
     <button class="btn-agent">Agent Bâtiment</button>
+    <button onclick="deconnecter()" style="background:transparent;border:1px solid #FF4500;color:#FF4500;border-radius:20px;padding:7px 14px;font-size:11px;font-weight:700;text-transform:uppercase;font-family:'Syne',sans-serif;cursor:pointer;letter-spacing:.5px;margin-left:6px;">Déconnexion</button>
   </div>
 </nav>
 
@@ -745,6 +746,13 @@ if (!isDevMode) {
       }
     }).catch(() => {});
   }
+}
+
+function deconnecter(){
+  ['dv_token','user_email','user_prenom','user_nom','user_entreprise',
+   'user_telephone','user_famille','user_metiers','onboarding_complete',
+   'user_document_type'].forEach(k => localStorage.removeItem(k));
+  window.location.href = 'login.html';
 }
 
 const BACKEND= window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1'

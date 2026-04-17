@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevisVoice — Paiement réussi</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Inter:wght@400;500&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{
+  width:100%;height:100%;
+  background:#0d0d0d;color:#fff;
+  font-family:'Inter',sans-serif;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+}
+
+.card{
+  max-width:420px;width:100%;
+  text-align:center;
+}
+
+/* Checkmark animé */
+.checkmark-wrap{
+  width:90px;height:90px;
+  border-radius:50%;
+  background:rgba(34,197,94,.12);
+  border:2px solid #22c55e;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 28px;
+  animation:pop .5s cubic-bezier(.175,.885,.32,1.275) both;
+}
+@keyframes pop{
+  from{transform:scale(0);opacity:0;}
+  to{transform:scale(1);opacity:1;}
+}
+.checkmark{
+  font-size:42px;
+  animation:fadein .4s .3s both;
+}
+@keyframes fadein{from{opacity:0;}to{opacity:1;}}
+
+h1{
+  font-family:'Syne',sans-serif;
+  font-size:36px;font-weight:800;
+  color:#fff;margin-bottom:12px;
+}
+.sub{
+  font-size:16px;color:#888;
+  margin-bottom:36px;
+  line-height:1.5;
+}
+.sub strong{color:#FF4500;}
+
+.btn{
+  display:inline-block;
+  background:#FF4500;color:#fff;
+  border:none;border-radius:8px;
+  padding:16px 40px;
+  font-family:'Syne',sans-serif;
+  font-size:16px;font-weight:700;
+  cursor:pointer;text-decoration:none;
+  transition:opacity .2s,transform .1s;
+}
+.btn:hover{opacity:.88;}
+.btn:active{transform:scale(.98);}
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div class="checkmark-wrap">
+    <span class="checkmark">✓</span>
+  </div>
+
+  <h1>Paiement réussi !</h1>
+  <p class="sub" id="welcome-msg">Bienvenue dans DevisVoice.</p>
+
+  <a href="index.html" class="btn">Accéder à mon espace →</a>
+
+</div>
+
+<script>
+'use strict';
+
+const planLabels = {
+  starter_mensuel: 'Starter',
+  starter_annuel:  'Starter (annuel)',
+  pro_mensuel:     'Pro',
+  pro_annuel:      'Pro (annuel)'
+};
+
+const plan = localStorage.getItem('user_plan') || '';
+const label = planLabels[plan] || '';
+
+const msg = document.getElementById('welcome-msg');
+if(label){
+  msg.innerHTML = `Bienvenue dans DevisVoice <strong>${label}</strong>.<br>Votre essai de 14 jours commence maintenant.`;
+} else {
+  msg.textContent = 'Votre abonnement est actif. Bonne création !';
+}
+
+// Récupère le session_id depuis l'URL pour mettre à jour le plan
+const params = new URLSearchParams(window.location.search);
+const sessionId = params.get('session');
+// Le webhook Stripe mettra à jour le plan côté base de données.
+</script>
+</body>
+</html>
