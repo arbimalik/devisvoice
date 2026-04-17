@@ -709,8 +709,11 @@ select option{background:var(--card);color:var(--text);}
 
 <script>
 // ── ONBOARDING GUARD ── rediriger si l'onboarding n'a pas été complété
-if(localStorage.getItem('onboarding_complete') !== 'true'){
-  window.location.replace('onboarding.html');
+const urlParams = new URLSearchParams(window.location.search);
+const isDevMode = urlParams.get('dev') === 'true';
+
+if (!isDevMode && localStorage.getItem('onboarding_complete') !== 'true') {
+  window.location.href = 'onboarding.html';
 }
 
 const BACKEND= window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1'
