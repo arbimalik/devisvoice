@@ -288,7 +288,7 @@ select option{background:var(--card);color:var(--text);}
       <button class="tbtn" onclick="setTheme('light-blue',this)" title="Beige / Bleu" style="color:#3a8eff"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2 10c2-3 4-4 6-4s4 2 6 2 4-2 6-2v3c-2 0-4 2-6 2s-4-2-6-2-4 2-6 2v-3zm0 6c2-3 4-4 6-4s4 2 6 2 4-2 6-2v3c-2 0-4 2-6 2s-4-2-6-2-4 2-6 2v-3z"/></svg></button>
       <button class="tbtn" onclick="setTheme('light-green',this)" title="Noir / Beige" style="color:#c9a96e"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 2a6 6 0 0 0-5.81 7.54l-7.1 7.1a1.5 1.5 0 0 0 0 2.12l2.12 2.12a1.5 1.5 0 0 0 2.12 0l7.1-7.1A6 6 0 1 0 16 2zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"/></svg></button>
     </div>
-    <button class="btn-agent">Agent Bâtiment</button>
+    <button class="btn-agent">Assistant</button>
     <button onclick="deconnecter()" style="background:transparent;border:1px solid #FF4500;color:#FF4500;border-radius:20px;padding:7px 14px;font-size:11px;font-weight:700;text-transform:uppercase;font-family:'Syne',sans-serif;cursor:pointer;letter-spacing:.5px;margin-left:6px;">Déconnexion</button>
   </div>
 </nav>
@@ -297,7 +297,7 @@ select option{background:var(--card);color:var(--text);}
   <button class="tab active" onclick="showTab('devis',this)">Devis</button>
   <button class="tab" onclick="showTab('chantiers',this)">🏗 Chantiers</button>
   <button class="tab" onclick="showTab('profil',this)">Mon Profil</button>
-  <button class="tab" onclick="showTab('tarifs',this)">Mes Tarifs</button>
+  <button class="tab" onclick="showTab('tarifs',this)">Facturation</button>
 </div>
 
 <!-- DEVIS -->
@@ -372,27 +372,62 @@ select option{background:var(--card);color:var(--text);}
     </div>
     <div id="metiers-body" class="card-body">
       <div class="metiers-grid" id="metiers-grid">
-        <div class="metiers-famille">🏗 BTP &amp; Bâtiment</div>
-        <div class="mc" onclick="selMetier(this,'carrelage')" data-m="Carrelage / Sols">🪨 Carreleur</div>
-        <div class="mc" onclick="selMetier(this,'plomberie')" data-m="Plomberie / Sanitaire">🚿 Plombier</div>
-        <div class="mc" onclick="selMetier(this,'electricite')" data-m="Électricité">⚡ Électricien</div>
-        <div class="mc" onclick="selMetier(this,'peinture')" data-m="Peinture / Revêtements">🎨 Peintre</div>
-        <div class="mc" onclick="selMetier(this,'maconnerie')" data-m="Maçonnerie / Gros œuvre">🧱 Maçon</div>
-        <div class="mc" onclick="selMetier(this,'menuiserie')" data-m="Menuiserie intérieure / extérieure">🪵 Menuisier</div>
-        <div class="mc" onclick="selMetier(this,'plaquiste')" data-m="Plâtrerie / Cloisons / Faux-plafonds">🏗️ Plaquiste</div>
-        <div class="mc" onclick="selMetier(this,'charpentier')" data-m="Charpente / Ossature bois">🪚 Charpentier</div>
-        <div class="mc" onclick="selMetier(this,'facadier')" data-m="Façade / Ravalement / ITE">🏚️ Façadier</div>
-        <div class="mc" onclick="selMetier(this,'chauffage')" data-m="Plomberie / Chauffage / CVC">🔥 Plombier/Chauffagiste</div>
-        <div class="mc" onclick="selMetier(this,'couverture')" data-m="Couverture / Zinguerie / Étanchéité">☔ Couvreur/Zingeur</div>
-        <div class="mc" onclick="selMetier(this,'serrurerie')" data-m="Serrurerie / Métallerie">🔒 Serrurier</div>
-        <div class="mc" onclick="selMetier(this,'terrassement')" data-m="Terrassement / VRD / Gros œuvre">🚜 Terrassier</div>
-        <div class="mc" onclick="selMetier(this,'cuisiniste')" data-m="Cuisine / Agencement">📐 Cuisiniste</div>
-        <div class="mc" onclick="selMetier(this,'pisciniste')" data-m="Piscine / Spa / Bassin">🏊 Pisciniste</div>
-        <div class="mc" onclick="selMetier(this,'etancheur')" data-m="Étanchéité / Toiture terrasse">🛡️ Étancheur</div>
-        <div class="mc" onclick="selMetier(this,'paysagiste')" data-m="Paysagisme / Espaces verts">🌿 Paysagiste</div>
-        <div class="mc" onclick="selMetier(this,'tous')" data-m="Multi-corps d'état / Rénovation globale">🏠 Tous corps d'état</div>
-        <div class="metiers-famille">🍽 Restauration &amp; Traiteur</div>
-        <div class="mc" onclick="selMetier(this,'traiteur')" data-m="Traiteur / Réception">🥂 Traiteur</div>
+        <!-- BTP -->
+        <div class="metiers-section" data-famille="btp">
+          <div class="metiers-famille">🏗 BTP &amp; Bâtiment</div>
+          <div class="mc" onclick="selMetier(this,'carrelage')" data-m="Carrelage / Sols">🪨 Carreleur</div>
+          <div class="mc" onclick="selMetier(this,'plomberie')" data-m="Plomberie / Sanitaire">🚿 Plombier</div>
+          <div class="mc" onclick="selMetier(this,'electricite')" data-m="Électricité">⚡ Électricien</div>
+          <div class="mc" onclick="selMetier(this,'peinture')" data-m="Peinture / Revêtements">🎨 Peintre</div>
+          <div class="mc" onclick="selMetier(this,'maconnerie')" data-m="Maçonnerie / Gros œuvre">🧱 Maçon</div>
+          <div class="mc" onclick="selMetier(this,'menuiserie')" data-m="Menuiserie intérieure / extérieure">🪵 Menuisier</div>
+          <div class="mc" onclick="selMetier(this,'plaquiste')" data-m="Plâtrerie / Cloisons / Faux-plafonds">🏗️ Plaquiste</div>
+          <div class="mc" onclick="selMetier(this,'charpentier')" data-m="Charpente / Ossature bois">🪚 Charpentier</div>
+          <div class="mc" onclick="selMetier(this,'facadier')" data-m="Façade / Ravalement / ITE">🏚️ Façadier</div>
+          <div class="mc" onclick="selMetier(this,'chauffage')" data-m="Plomberie / Chauffage / CVC">🔥 Plombier/Chauffagiste</div>
+          <div class="mc" onclick="selMetier(this,'couverture')" data-m="Couverture / Zinguerie / Étanchéité">☔ Couvreur/Zingeur</div>
+          <div class="mc" onclick="selMetier(this,'serrurerie')" data-m="Serrurerie / Métallerie">🔒 Serrurier</div>
+          <div class="mc" onclick="selMetier(this,'terrassement')" data-m="Terrassement / VRD / Gros œuvre">🚜 Terrassier</div>
+          <div class="mc" onclick="selMetier(this,'cuisiniste')" data-m="Cuisine / Agencement">📐 Cuisiniste</div>
+          <div class="mc" onclick="selMetier(this,'pisciniste')" data-m="Piscine / Spa / Bassin">🏊 Pisciniste</div>
+          <div class="mc" onclick="selMetier(this,'etancheur')" data-m="Étanchéité / Toiture terrasse">🛡️ Étancheur</div>
+          <div class="mc" onclick="selMetier(this,'paysagiste')" data-m="Paysagisme / Espaces verts">🌿 Paysagiste</div>
+          <div class="mc" onclick="selMetier(this,'tous')" data-m="Multi-corps d'état / Rénovation globale">🏠 Tous corps d'état</div>
+        </div>
+        <!-- RESTAURATION -->
+        <div class="metiers-section" data-famille="restauration">
+          <div class="metiers-famille">🍽 Restauration &amp; Traiteur</div>
+          <div class="mc" onclick="selMetier(this,'traiteur')" data-m="Traiteur / Réception">🥂 Traiteur</div>
+          <div class="mc" onclick="selMetier(this,'traiteur')" data-m="Restaurateur">🍴 Restaurateur</div>
+        </div>
+        <!-- AUTO -->
+        <div class="metiers-section" data-famille="auto">
+          <div class="metiers-famille">🚗 Automobile</div>
+          <div class="mc" onclick="selMetier(this,'mecanicien')" data-m="Mécanique / Entretien">🔧 Mécanicien</div>
+          <div class="mc" onclick="selMetier(this,'carrossier')" data-m="Carrosserie / Peinture">🚙 Carrossier</div>
+          <div class="mc" onclick="selMetier(this,'detailing')" data-m="Détailing / Nettoyage auto">✨ Détailing</div>
+        </div>
+        <!-- SERVICES -->
+        <div class="metiers-section" data-famille="services">
+          <div class="metiers-famille">🧹 Services</div>
+          <div class="mc" onclick="selMetier(this,'nettoyage')" data-m="Nettoyage / Entretien">🧹 Nettoyage</div>
+          <div class="mc" onclick="selMetier(this,'demenagement')" data-m="Déménagement / Manutention">📦 Déménagement</div>
+          <div class="mc" onclick="selMetier(this,'securite')" data-m="Sécurité / Gardiennage">🛡️ Sécurité</div>
+        </div>
+        <!-- CREATION -->
+        <div class="metiers-section" data-famille="creation">
+          <div class="metiers-famille">🎨 Création</div>
+          <div class="mc" onclick="selMetier(this,'archi-interieur')" data-m="Architecture d'intérieur">🏠 Architecture intérieur</div>
+          <div class="mc" onclick="selMetier(this,'prestataire-it')" data-m="Prestataire IT / Dev">💻 Prestataire IT</div>
+          <div class="mc" onclick="selMetier(this,'photographe')" data-m="Photographie / Vidéo">📷 Photographe</div>
+        </div>
+        <!-- TRANSPORT -->
+        <div class="metiers-section" data-famille="transport">
+          <div class="metiers-famille">🚐 Transport</div>
+          <div class="mc" onclick="selMetier(this,'vtc')" data-m="Chauffeur VTC / Taxi">🚖 Chauffeur VTC</div>
+          <div class="mc" onclick="selMetier(this,'demenageur')" data-m="Déménageur / Transport">🚚 Déménageur</div>
+          <div class="mc" onclick="selMetier(this,'coursier')" data-m="Coursier / Livraison">🛵 Coursier</div>
+        </div>
       </div>
       <div id="prestations-zone" style="display:none;margin-top:14px;"></div>
     </div>
@@ -699,12 +734,7 @@ select option{background:var(--card);color:var(--text);}
     </div>
   </div>
   <div style="margin-top:6px">
-    <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Plans DevisVoice</div>
-    <div class="tcard-grid">
-      <div class="tcard"><div class="tname">Solo</div><div class="tprice">29€<span>/mois</span></div><div class="tusers">1 utilisateur</div><ul class="tfeats"><li>Devis illimités</li><li>Dictée vocale</li><li>PDF auto</li><li>Envoi email</li></ul></div>
-      <div class="tcard feat"><div class="tbadge">Populaire</div><div class="tname">Équipe</div><div class="tprice">49€<span>/mois</span></div><div class="tusers">Jusqu'à 3 utilisateurs</div><ul class="tfeats"><li>Tout Solo inclus</li><li>3 comptes artisans</li><li>Historique devis</li><li>Support prioritaire</li></ul></div>
-      <div class="tcard"><div class="tname">Pro</div><div class="tprice">99€<span>/mois</span></div><div class="tusers">Jusqu'à 10 utilisateurs</div><ul class="tfeats"><li>Tout Équipe inclus</li><li>10 comptes artisans</li><li>Logo personnalisé</li><li>API &amp; intégrations</li></ul></div>
-    </div>
+    <a href="pricing.html" style="color:#FF4500;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;text-decoration:none;">Gérer mon abonnement →</a>
   </div>
 </div>
 
@@ -734,17 +764,93 @@ if (!isDevMode) {
         fetch('https://devisvoice-backend-production-9ed2.up.railway.app/api/users/profile', {
           headers: { 'Authorization': 'Bearer ' + token }
         }).then(r => r.json()).then(profile => {
-          if (profile && profile.famille) {
-            localStorage.setItem('user_famille',   profile.famille);
+          if (profile && profile.email) {
+            localStorage.setItem('user_famille',   profile.famille || '');
+            localStorage.setItem('user_metier',    profile.metier  || '');
             localStorage.setItem('user_metiers',   JSON.stringify(profile.metiers || []));
-            localStorage.setItem('user_prenom',    profile.prenom || '');
-            localStorage.setItem('user_nom',       profile.nom || '');
+            localStorage.setItem('user_prenom',    profile.prenom  || '');
+            localStorage.setItem('user_nom',       profile.nom     || '');
             localStorage.setItem('user_entreprise',profile.entreprise || '');
-            localStorage.setItem('user_telephone', profile.telephone || '');
+            localStorage.setItem('user_telephone', profile.telephone  || '');
+            localStorage.setItem('user_plan',      profile.plan    || 'gratuit');
+            // Pré-remplir les champs profil si vides
+            const setIfEmpty = (id, val) => { const el = document.getElementById(id); if(el && !el.value && val) el.value = val; };
+            setIfEmpty('ent-prenom',      profile.prenom);
+            setIfEmpty('ent-nom-artisan', profile.nom);
+            setIfEmpty('ent-nom',         profile.entreprise);
+            setIfEmpty('ent-email',       profile.email);
+            setIfEmpty('ent-tel',         profile.telephone);
+            // Filtrer les corps de métier selon la famille
+            filtrerFamille(profile.famille || localStorage.getItem('user_famille') || 'btp');
+            // Adapter l'exemple de dictée selon le métier
+            adapterExempleDictee(profile.metier || localStorage.getItem('user_metier') || '');
+            // Verrouiller email comptable si plan gratuit
+            verifierPlanComptable(profile.plan || 'gratuit');
           }
         }).catch(() => {});
       }
     }).catch(() => {});
+  }
+}
+
+// Appliquer immédiatement depuis localStorage (avant le retour de l'API)
+(function(){
+  const f = localStorage.getItem('user_famille');
+  const m = localStorage.getItem('user_metier');
+  const p = localStorage.getItem('user_plan');
+  if(f) filtrerFamille(f);
+  if(m) adapterExempleDictee(m);
+  verifierPlanComptable(p || 'gratuit');
+})();
+
+// ── FILTRE FAMILLE ────────────────────────────────────────────────────────────
+function filtrerFamille(famille){
+  const f = (famille || 'btp').toLowerCase();
+  document.querySelectorAll('.metiers-section').forEach(sec => {
+    sec.style.display = (sec.dataset.famille === f) ? '' : 'none';
+  });
+}
+
+// ── EXEMPLE DICTÉE ADAPTÉ ─────────────────────────────────────────────────────
+function adapterExempleDictee(metier){
+  const m = (metier || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const exemples = {
+    carrelage:    'Dépose carrelage 20€/m², ragréage 15€/m², pose grès cérame 60x60 fourni posé 48€/m², joint époxy forfait 250€',
+    plomberie:    'Dépose ancien chauffe-eau, fourniture et pose chauffe-eau thermodynamique 200L, raccordements eau froide chaude électrique, groupe sécurité, évacuation condensats',
+    electricite:  'Mise aux normes tableau électrique, remplacement 12 disjoncteurs, câblage 3 circuits lumière, pose 8 spots encastrés forfait',
+    peinture:     'Préparation support lessivage rebouchage, sous-couche, peinture 2 couches salon 40m², couloir 15m², peinture plafond blanc',
+    traiteur:     'Cocktail dînatoire 80 personnes, mise en place 14h, service 19h-23h, verrines 6 variétés, pièces chaudes 4 variétés, desserts',
+  };
+  const defaut = 'Décrivez vos prestations avec les quantités et prix si connus...';
+  const key = Object.keys(exemples).find(k => m.includes(k));
+  const ex = document.querySelector('.ex-box p');
+  if(ex) ex.textContent = key ? exemples[key] : defaut;
+}
+
+// ── VERROUILLAGE EMAIL COMPTABLE ──────────────────────────────────────────────
+function verifierPlanComptable(plan){
+  const el = document.getElementById('ent-comptable');
+  if(!el) return;
+  const gratuit = !plan || plan === 'gratuit';
+  if(gratuit){
+    el.disabled = true;
+    el.style.opacity = '0.5';
+    el.title = 'Passez au plan Starter pour activer la copie comptable automatique.';
+    el.onclick = () => alert('Passez au plan Starter pour activer la copie comptable automatique.');
+    if(!document.getElementById('comptable-lock-msg')){
+      const msg = document.createElement('div');
+      msg.id = 'comptable-lock-msg';
+      msg.style.cssText = 'font-size:11px;color:#FF4500;margin-top:5px;';
+      msg.textContent = '🔒 Disponible à partir du plan Starter';
+      el.parentNode.insertBefore(msg, el.nextSibling);
+    }
+  } else {
+    el.disabled = false;
+    el.style.opacity = '';
+    el.title = '';
+    el.onclick = null;
+    const msg = document.getElementById('comptable-lock-msg');
+    if(msg) msg.remove();
   }
 }
 
