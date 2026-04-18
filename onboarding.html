@@ -851,6 +851,7 @@ async function creerCompte(){
 
   const famille      = localStorage.getItem('user_famille') || selectedFamily || '';
   const metiers      = JSON.parse(localStorage.getItem('user_metiers') || '[]');
+  const metier       = localStorage.getItem('user_metier') || metiers[0] || '';
   const document_type = famille === 'transport' ? 'bon_de_commande' : 'devis';
 
   // Spinner + désactivation bouton
@@ -863,7 +864,7 @@ async function creerCompte(){
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, prenom, nom, entreprise, telephone: tel,
-        mot_de_passe: password || undefined, famille, metiers, document_type })
+        mot_de_passe: password || undefined, famille, metier, metiers, document_type })
     });
     const data = await resp.json();
 
