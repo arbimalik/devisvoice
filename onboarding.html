@@ -828,6 +828,10 @@ function toggleMetier(el){
 
 // ─── SCREEN 3 → 4 ────────────────────────────────────────────────────────────
 function goScreen4(){
+  // Sauvegarder famille et métiers avant d'aller à l'écran 4
+  localStorage.setItem('user_famille',  selectedFamily  || '');
+  localStorage.setItem('user_metiers',  JSON.stringify(selectedMetiers));
+  localStorage.setItem('user_metier',   selectedMetiers[0] || '');
   goToScreen(4);
 }
 
@@ -888,6 +892,7 @@ async function creerCompte(){
     localStorage.setItem('user_entreprise',  data.entreprise || '');
     localStorage.setItem('user_telephone',   data.telephone || '');
     localStorage.setItem('user_famille',     data.famille || famille);
+    localStorage.setItem('user_metier',      data.metier  || metier);
     localStorage.setItem('user_metiers',     JSON.stringify(data.metiers || metiers));
     localStorage.setItem('user_document_type', data.document_type || document_type);
     localStorage.setItem('onboarding_complete', 'true');
