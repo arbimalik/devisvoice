@@ -386,7 +386,7 @@ async function lancerPaiement(priceId){
     });
     const data = await r.json();
     if(data.url) window.location.href = data.url;
-    else alert('Erreur lors de la redirection vers le paiement.');
+    else { console.log('Stripe error:', JSON.stringify(data)); alert('Erreur lors de la redirection vers le paiement.'); }
   } catch(e) {
     alert('Erreur réseau — réessayez.');
   }
