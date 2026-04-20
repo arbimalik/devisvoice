@@ -484,8 +484,10 @@ html,body{width:100%;height:100%;background:#0d0d0d;color:#fff;font-family:'Inte
 <script>
 'use strict';
 
-// Utilisateur déjà connecté → app directement
-if(localStorage.getItem('dv_token') && localStorage.getItem('onboarding_complete') === 'true'){
+// Utilisateur déjà connecté → app directement (sauf si on vient du flow loading)
+const _params = new URLSearchParams(window.location.search);
+if(!_params.has('loading') && !_params.has('s5') &&
+   localStorage.getItem('dv_token') && localStorage.getItem('onboarding_complete') === 'true'){
   window.location.replace('index.html');
 }
 
@@ -506,14 +508,15 @@ function goToScreen(n){
   }, 420);
 }
 
-// ─── DEV PREVIEW ─────────────────────────────────────────────────────────────
+// ─── DEV PREVIEW / LOADING ENTRY ─────────────────────────────────────────────
 (function devPreview(){
   const p = new URLSearchParams(window.location.search);
-  if(p.get('s5') !== null){
+  if(p.get('s5') !== null || p.get('loading') !== null){
     document.getElementById('screen-1').classList.remove('active');
     const s5 = document.getElementById('screen-5');
     s5.classList.add('active');
     s5.style.pointerEvents = '';
+    setTimeout(startLoading, 100);
   }
 })();
 
@@ -937,10 +940,9 @@ function startLoading(){
     }, 400);
   }, 1050);
 
-  // Redirection vers pricing.html après 3 s
   setTimeout(()=>{
     clearInterval(msgInt);
-    window.location.href = 'pricing.html';
+    window.location.href = 'index.html';
   }, 3000);
 }
 </script>
