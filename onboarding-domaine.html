@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevisVoice — Votre domaine</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;background:#0d0d0d;color:#fff;font-family:'Inter',sans-serif;overflow:hidden;}
+
+.screen{
+  position:fixed;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:24px;
+  opacity:0;pointer-events:none;
+  transition:opacity .4s ease;
+  overflow-y:auto;
+}
+.screen.active{opacity:1;pointer-events:all;}
+
+/* ── SCREEN DOMAINE ── */
+.families-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:14px;width:100%;max-width:560px;margin-top:8px;
+}
+.family-card{
+  background:#161616;border:1.5px solid #2a2a2a;
+  border-radius:16px;padding:28px 20px;
+  cursor:pointer;text-align:center;
+  transition:border-color .2s,box-shadow .2s,transform .15s;
+}
+.family-card:hover{
+  border-color:#FF4500;
+  box-shadow:0 0 20px rgba(255,69,0,.18);
+  transform:translateY(-2px);
+}
+.family-card .emoji{font-size:34px;margin-bottom:10px;display:block;}
+.family-card .label{font-size:13px;font-weight:600;color:#f0f0f0;line-height:1.35;}
+
+/* ── SCREEN METIERS ── */
+.metiers-grid{
+  display:flex;flex-wrap:wrap;gap:10px;
+  max-width:560px;justify-content:center;
+  max-height:48vh;overflow-y:auto;padding:4px 2px;
+}
+.metier-chip{
+  background:#161616;border:1.5px solid #2a2a2a;
+  border-radius:999px;padding:9px 18px;
+  font-size:13px;color:#aaa;cursor:pointer;
+  transition:all .15s;user-select:none;white-space:nowrap;
+}
+.metier-chip:hover{border-color:#FF4500;color:#FF4500;}
+.metier-chip.selected{
+  background:rgba(255,69,0,.1);
+  border-color:#FF4500;color:#FF4500;
+}
+
+/* ── SHARED ── */
+.screen-title{
+  font-family:'Syne',sans-serif;
+  font-size:24px;font-weight:800;color:#fff;
+  text-align:center;margin-bottom:6px;
+}
+.screen-sub{
+  font-size:13px;color:#555;
+  text-align:center;margin-bottom:24px;
+  min-height:20px;transition:color .2s;
+}
+.btn-primary{
+  background:#FF4500;color:#fff;border:none;
+  border-radius:8px;padding:14px;
+  font-family:'Inter',sans-serif;
+  font-size:15px;font-weight:700;cursor:pointer;
+  width:100%;letter-spacing:.3px;
+  transition:opacity .2s,transform .1s;margin-top:8px;
+}
+.btn-primary:disabled{opacity:.3;cursor:not-allowed;}
+.btn-primary:not(:disabled):hover{opacity:.88;}
+.btn-primary:not(:disabled):active{transform:scale(.98);}
+
+@keyframes spin{to{transform:rotate(360deg);}}
+
+@media(max-width:480px){
+  .families-grid{gap:10px;}
+  .family-card{padding:20px 14px;}
+  .family-card .emoji{font-size:28px;}
+  .family-card .label{font-size:12px;}
+  .screen-title{font-size:20px;}
+  .metiers-grid{max-height:42vh;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+     ÉCRAN 1 — DOMAINE D'ACTIVITÉ (orbital)
+════════════════════════════════════════════════════ -->
+<div id="screen-1" class="screen active">
+  <div style="position:absolute;top:0;left:0;right:0;z-index:2;text-align:center;padding-top:60px;pointer-events:none;">
+    <div class="screen-title">Quel est votre domaine d'activité ?</div>
+    <div class="screen-sub">Sélectionnez votre famille de métiers</div>
+  </div>
+  <canvas id="canvas-orbital" style="position:absolute;inset:0;"></canvas>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     ÉCRAN 2 — CHOIX MÉTIERS
+════════════════════════════════════════════════════ -->
+<div id="screen-2" class="screen">
+  <div class="screen-title">Choisissez votre métier</div>
+  <div class="screen-sub" id="sub-2">Vous pouvez en sélectionner jusqu'à 3</div>
+  <div class="metiers-grid" id="metiers-grid"></div>
+  <div style="width:100%;max-width:560px;margin-top:20px;">
+    <button class="btn-primary" id="btn-continuer" disabled onclick="terminer()">Accéder à mon espace →</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const _h = window.location.hostname;
+const BACKEND = (!_h || _h === 'localhost' || _h === '127.0.0.1')
+  ? 'http://localhost:8080'
+  : 'https://devisvoice-backend-production-9ed2.up.railway.app';
+
+function goToScreen(n){
+  const cur = document.querySelector('.screen.active');
+  if(cur){ cur.classList.remove('active'); cur.style.pointerEvents='none'; }
+  setTimeout(()=>{
+    const nxt = document.getElementById('screen-'+n);
+    nxt.style.pointerEvents = '';
+    nxt.classList.add('active');
+  }, 420);
+}
+
+let selectedFamily  = null;
+let selectedMetiers = [];
+let _orbitalAnimId  = null;
+
+const METIERS_MAP = {
+  batiment:     ['Carreleur','Plombier','Électricien','Peintre','Maçon','Menuisier',
+                 'Plaquiste','Charpentier','Façadier','Plombier / Chauffagiste',
+                 'Couvreur','Serrurier','Terrassier','Cuisiniste','Pisciniste',
+                 'Étancheur','Paysagiste','Tous corps d\'état'],
+  restauration: ['Traiteur','Restaurateur','Chef à domicile'],
+  automobile:   ['Mécanicien','Carrossier','Détailing'],
+  services:     ['Déménageur','Nettoyage / Entretien','Sécurité / Gardiennage',
+                 'Informatique / Dépannage'],
+  creation:     ['Architecte d\'intérieur','Décorateur d\'intérieur','Graphiste / Designer',
+                 'Photographe / Vidéaste','Développeur web / IT','Consultant / Formateur'],
+  transport:    ['VTC','Taxi','Transporteur de marchandises','Coursier / Livraison']
+};
+
+const FAMILIES = [
+  { key:'batiment',     emoji:'🏗', lines:['Bâtiment &','Construction'] },
+  { key:'restauration', emoji:'🍽', lines:['Restauration','& Traiteur'] },
+  { key:'automobile',   emoji:'🔧', lines:['Automobile'] },
+  { key:'services',     emoji:'📋', lines:['Services'] },
+  { key:'creation',     emoji:'🎨', lines:['Création &','Design'] },
+  { key:'transport',    emoji:'🚗', lines:['Transport &','Mobilité'] }
+];
+
+function initOrbital(){
+  const canvas = document.getElementById('canvas-orbital');
+  if(!canvas) return;
+  if(_orbitalAnimId){ cancelAnimationFrame(_orbitalAnimId); _orbitalAnimId = null; }
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const cx  = canvas.width  / 2;
+  const cy  = canvas.height / 2 + 40;
+  const RADIUS = Math.min(220, canvas.width * 0.38, canvas.height * 0.30);
+  const NODE_R  = 30;
+  const NODE_ANGLES = FAMILIES.map((_, i) => (i / FAMILIES.length) * Math.PI * 2 - Math.PI / 2);
+
+  let hoveredIdx = -1;
+  let selectedIdx = -1;
+  let haloT      = 0;
+  const scales   = FAMILIES.map(() => 1);
+  const tScales  = FAMILIES.map(() => 1);
+  let mouseX = -9999, mouseY = -9999;
+
+  canvas.onmousemove = e => {
+    const r = canvas.getBoundingClientRect();
+    mouseX = e.clientX - r.left; mouseY = e.clientY - r.top;
+  };
+  canvas.onmouseleave = () => { mouseX = -9999; mouseY = -9999; };
+  canvas.onclick = e => {
+    const r = canvas.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    for(let i = 0; i < FAMILIES.length; i++){
+      const nx = cx + Math.cos(NODE_ANGLES[i]) * RADIUS;
+      const ny = cy + Math.sin(NODE_ANGLES[i]) * RADIUS;
+      if(Math.hypot(mx - nx, my - ny) <= NODE_R + 12){
+        selectedIdx = i; tScales[i] = 1.2;
+        setTimeout(() => selectFamily(FAMILIES[i].key), 300);
+        return;
+      }
+    }
+  };
+  canvas.addEventListener('touchend', e => {
+    e.preventDefault();
+    const t = e.changedTouches[0];
+    const r = canvas.getBoundingClientRect();
+    const mx = t.clientX - r.left, my = t.clientY - r.top;
+    for(let i = 0; i < FAMILIES.length; i++){
+      const nx = cx + Math.cos(NODE_ANGLES[i]) * RADIUS;
+      const ny = cy + Math.sin(NODE_ANGLES[i]) * RADIUS;
+      if(Math.hypot(mx - nx, my - ny) <= NODE_R + 18){
+        selectedIdx = i; tScales[i] = 1.2;
+        setTimeout(() => selectFamily(FAMILIES[i].key), 300);
+        return;
+      }
+    }
+  }, { passive: false });
+
+  function draw(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    haloT += 0.05;
+    for(let i = 0; i < FAMILIES.length; i++) scales[i] += (tScales[i] - scales[i]) * 0.15;
+
+    let newH = -1;
+    for(let i = 0; i < FAMILIES.length; i++){
+      const nx = cx + Math.cos(NODE_ANGLES[i]) * RADIUS, ny = cy + Math.sin(NODE_ANGLES[i]) * RADIUS;
+      if(Math.hypot(mouseX - nx, mouseY - ny) <= NODE_R + 12){ newH = i; break; }
+    }
+    if(newH !== hoveredIdx){
+      if(hoveredIdx !== -1 && hoveredIdx !== selectedIdx) tScales[hoveredIdx] = 1;
+      if(newH !== -1 && newH !== selectedIdx) tScales[newH] = 1.1;
+      hoveredIdx = newH;
+      canvas.style.cursor = newH !== -1 ? 'pointer' : 'default';
+    }
+
+    for(let i = 0; i < FAMILIES.length; i++){
+      const nx = cx + Math.cos(NODE_ANGLES[i]) * RADIUS, ny = cy + Math.sin(NODE_ANGLES[i]) * RADIUS;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(nx, ny);
+      ctx.strokeStyle = (i === hoveredIdx || i === selectedIdx) ? '#FF4500' : '#2a2a2a';
+      ctx.lineWidth = 1; ctx.stroke();
+    }
+
+    const hR = 28 + Math.sin(haloT) * 6;
+    const hA = 0.18 + Math.sin(haloT) * 0.08;
+    const g  = ctx.createRadialGradient(cx, cy, 8, cx, cy, hR);
+    g.addColorStop(0, `rgba(255,69,0,${hA + 0.1})`);
+    g.addColorStop(1, 'rgba(255,69,0,0)');
+    ctx.beginPath(); ctx.arc(cx, cy, hR, 0, Math.PI * 2);
+    ctx.fillStyle = g; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff'; ctx.fill();
+
+    for(let i = 0; i < FAMILIES.length; i++){
+      const nx = cx + Math.cos(NODE_ANGLES[i]) * RADIUS, ny = cy + Math.sin(NODE_ANGLES[i]) * RADIUS;
+      const isHov = i === hoveredIdx, isSel = i === selectedIdx;
+      ctx.save(); ctx.translate(nx, ny); ctx.scale(scales[i], scales[i]);
+      if(isHov || isSel){ ctx.shadowColor = '#FF4500'; ctx.shadowBlur = 18; }
+      ctx.beginPath(); ctx.arc(0, 0, NODE_R, 0, Math.PI * 2);
+      ctx.fillStyle = '#1e1e1e'; ctx.fill();
+      ctx.strokeStyle = (isHov || isSel) ? '#FF4500' : '#444444';
+      ctx.lineWidth = 2; ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.font = '36px "Apple Color Emoji","Segoe UI Emoji",serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(FAMILIES[i].emoji, 0, 0);
+      ctx.font = `600 13px 'Syne', sans-serif`;
+      ctx.fillStyle = '#ffffff'; ctx.textBaseline = 'top';
+      FAMILIES[i].lines.forEach((line, li) => {
+        ctx.fillText(line, 0, NODE_R + 7 + li * 13);
+      });
+      ctx.restore();
+    }
+    _orbitalAnimId = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function selectFamily(key){
+  if(_orbitalAnimId){ cancelAnimationFrame(_orbitalAnimId); _orbitalAnimId = null; }
+  selectedFamily  = key;
+  selectedMetiers = [];
+  const list = METIERS_MAP[key] || [];
+  document.getElementById('metiers-grid').innerHTML =
+    list.map(m => `<div class="metier-chip" data-m="${m.replace(/"/g,'&quot;')}" onclick="toggleMetier(this)">${m}</div>`).join('');
+  document.getElementById('btn-continuer').disabled = true;
+  document.getElementById('sub-2').style.color = '';
+  document.getElementById('sub-2').textContent = 'Vous pouvez en sélectionner jusqu\'à 3';
+  goToScreen(2);
+}
+
+function toggleMetier(el){
+  const name = el.dataset.m;
+  if(el.classList.contains('selected')){
+    el.classList.remove('selected');
+    selectedMetiers = selectedMetiers.filter(m => m !== name);
+  } else {
+    if(selectedMetiers.length >= 3){
+      const sub = document.getElementById('sub-2');
+      sub.style.color  = '#FF4500';
+      sub.textContent  = '⚠ Maximum 3 métiers sélectionnés';
+      setTimeout(()=>{
+        sub.style.color = '';
+        sub.textContent = 'Vous pouvez en sélectionner jusqu\'à 3';
+      }, 2000);
+      return;
+    }
+    el.classList.add('selected');
+    selectedMetiers.push(name);
+  }
+  document.getElementById('btn-continuer').disabled = (selectedMetiers.length === 0);
+}
+
+async function terminer(){
+  const btn = document.getElementById('btn-continuer');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;margin-right:8px;vertical-align:middle;"></span>Configuration...';
+
+  const famille = selectedFamily || '';
+  const metier  = selectedMetiers[0] || '';
+  const metiers = selectedMetiers;
+  const document_type = famille === 'transport' ? 'bon_de_commande' : 'devis';
+
+  localStorage.setItem('user_famille',      famille);
+  localStorage.setItem('user_metier',       metier);
+  localStorage.setItem('user_metiers',      JSON.stringify(metiers));
+  localStorage.setItem('user_document_type', document_type);
+  localStorage.setItem('onboarding_complete', 'true');
+
+  // Mettre à jour le profil si un token existe
+  const email = localStorage.getItem('user_email');
+  if(email){
+    try {
+      await fetch(BACKEND + '/api/users/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, famille, metier, metiers, document_type })
+      });
+    } catch(e) { /* non bloquant */ }
+  }
+
+  window.location.href = 'index.html';
+}
+
+// Lancer l'animation orbitale au chargement
+initOrbital();
+window.addEventListener('resize', () => {
+  if(document.getElementById('screen-1').classList.contains('active')) initOrbital();
+});
+</script>
+</body>
+</html>

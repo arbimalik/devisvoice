@@ -168,7 +168,7 @@ h1{
   <div class="logo">Devis<span>Voice</span></div>
 
   <h1>Choisissez votre plan</h1>
-  <p class="subtitle">14 jours d'essai gratuit sur tous les plans payants — sans CB requise</p>
+  <p class="subtitle">30 jours d'essai gratuit sur tous les plans payants — annulable avant facturation</p>
 
   <div class="toggle-wrap">
     <button class="toggle-btn active" id="btn-mensuel" onclick="togglePricing('mensuel')">Mensuel</button>
@@ -182,7 +182,7 @@ h1{
       <div class="plan-name">Gratuit</div>
       <div class="plan-price" id="price-gratuit">0€</div>
       <div class="plan-price-sub" id="sub-gratuit">Pour toujours</div>
-      <div style="font-size:12px;color:#FF4500;margin-top:-6px;margin-bottom:10px;line-height:1.4;">Inclut 14 jours d'essai Starter offerts</div>
+      <div style="font-size:12px;color:#FF4500;margin-top:-6px;margin-bottom:10px;line-height:1.4;">Inclut 30 jours d'essai Starter offerts</div>
       <div class="sep"></div>
       <ul class="features">
         <li>5 devis par mois</li>
@@ -208,7 +208,7 @@ h1{
         <li>Dictée vocale IA avancée</li>
         <li>Support par email</li>
       </ul>
-      <button class="plan-btn primary" id="btn-starter" onclick="lancerPaiement(PRICES.starter_mensuel)">Essayer 14 jours gratuit</button>
+      <button class="plan-btn primary" id="btn-starter" onclick="lancerPaiement(PRICES.starter_mensuel)">Essayer 30 jours gratuit</button>
     </div>
 
     <!-- PRO -->
@@ -224,7 +224,7 @@ h1{
         <li>Multi-utilisateurs (3 comptes)</li>
         <li>Support prioritaire</li>
       </ul>
-      <button class="plan-btn primary" id="btn-pro" onclick="lancerPaiement(PRICES.pro_mensuel)">Essayer 14 jours gratuit</button>
+      <button class="plan-btn primary" id="btn-pro" onclick="lancerPaiement(PRICES.pro_mensuel)">Essayer 30 jours gratuit</button>
     </div>
 
     <!-- SUR-MESURE -->
@@ -372,24 +372,11 @@ function togglePricing(mode){
 
 function choisirGratuit(){
   localStorage.setItem('user_plan', 'gratuit');
-  window.location.href = 'index.html';
+  window.location.href = 'onboarding-domaine.html';
 }
 
-async function lancerPaiement(priceId){
-  const mode = SUBSCRIPTION_PRICES.includes(priceId) ? 'subscription' : 'payment';
-  const userEmail = localStorage.getItem('user_email') || '';
-  try {
-    const r = await fetch(BACKEND + '/api/stripe/create-checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ priceId, userEmail, mode })
-    });
-    const data = await r.json();
-    if(data.url) window.location.href = data.url;
-    else { console.log('Stripe error:', JSON.stringify(data)); alert('Erreur lors de la redirection vers le paiement.'); }
-  } catch(e) {
-    alert('Erreur réseau — réessayez.');
-  }
+function lancerPaiement(priceId){
+  window.location.href = 'inscription.html?plan=' + encodeURIComponent(priceId);
 }
 </script>
 </body>

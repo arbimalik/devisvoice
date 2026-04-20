@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevisVoice — Créer mon compte</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{
+  width:100%;min-height:100%;
+  background:#000;color:#fff;
+  font-family:'Inter',sans-serif;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+}
+
+#canvas-bg{
+  position:fixed;inset:0;
+  width:100%;height:100%;
+  z-index:0;pointer-events:none;
+}
+
+.card{
+  position:relative;z-index:1;
+  width:100%;max-width:420px;
+  background:rgba(18,18,18,0.90);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border:1px solid rgba(255,69,0,0.18);
+  border-radius:20px;
+  padding:36px 32px 28px;
+  box-shadow:0 0 60px rgba(255,69,0,0.12),0 0 120px rgba(255,69,0,0.06);
+}
+
+.logo{
+  font-family:'Syne',sans-serif;
+  font-size:22px;font-weight:800;
+  text-align:center;margin-bottom:28px;
+}
+.logo span{color:#FF4500;}
+
+.card-title{
+  font-family:'Syne',sans-serif;
+  font-size:22px;font-weight:800;
+  color:#fff;margin-bottom:4px;
+}
+.card-sub{
+  font-size:13px;color:#555;
+  margin-bottom:24px;
+}
+
+.plan-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,69,0,.1);border:1px solid rgba(255,69,0,.3);
+  border-radius:20px;padding:4px 12px;
+  font-size:12px;color:#FF4500;font-weight:600;
+  margin-bottom:20px;
+}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-group{margin-bottom:14px;}
+.form-group label{
+  display:block;font-size:11px;font-weight:600;
+  color:#666;margin-bottom:6px;
+  letter-spacing:.8px;text-transform:uppercase;
+}
+.form-group input{
+  width:100%;background:transparent;
+  border:1.5px solid #2a2a2a;border-radius:8px;
+  padding:12px 14px;color:#fff;
+  font-family:'Inter',sans-serif;font-size:14px;
+  outline:none;transition:border-color .2s;
+}
+.form-group input:focus{border-color:#FF4500;}
+.form-group input::placeholder{color:#444;}
+.form-group input.error{border-color:#FF4500;}
+.field-error{
+  font-size:11px;color:#FF4500;
+  margin-top:4px;display:none;
+}
+
+.btn-submit{
+  width:100%;height:46px;
+  background:#FF4500;color:#fff;border:none;
+  border-radius:8px;
+  font-family:'Syne',sans-serif;
+  font-size:14px;font-weight:700;
+  cursor:pointer;margin-top:8px;
+  transition:opacity .2s,transform .1s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-submit:hover:not(:disabled){opacity:.88;}
+.btn-submit:active:not(:disabled){transform:scale(.98);}
+.btn-submit:disabled{opacity:.4;cursor:not-allowed;}
+
+.hint{font-size:10px;color:#444;margin-top:5px;}
+
+.err-global{
+  display:none;margin-top:12px;
+  font-size:13px;color:#FF4500;text-align:center;
+}
+
+.back-link{
+  display:block;text-align:center;
+  margin-top:18px;font-size:12px;color:#555;
+}
+.back-link a{color:#FF4500;text-decoration:none;font-weight:600;}
+
+@keyframes spin{to{transform:rotate(360deg);}}
+
+@media(max-width:480px){
+  .form-row{grid-template-columns:1fr;}
+  .card{padding:28px 20px 24px;}
+}
+</style>
+</head>
+<body>
+<canvas id="canvas-bg"></canvas>
+
+<div class="card">
+  <div class="logo">Devis<span>Voice</span></div>
+
+  <div class="card-title">Créez votre compte</div>
+  <div class="card-sub">Vos informations professionnelles</div>
+
+  <div class="plan-badge" id="plan-badge">⚡ Plan sélectionné</div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Prénom</label>
+      <input type="text" id="f-prenom" placeholder="Jean" autocomplete="given-name">
+    </div>
+    <div class="form-group">
+      <label>Nom</label>
+      <input type="text" id="f-nom" placeholder="Dupont" autocomplete="family-name">
+    </div>
+  </div>
+  <div class="form-group">
+    <label>Nom de l'entreprise</label>
+    <input type="text" id="f-entreprise" placeholder="Plomberie Dupont" autocomplete="organization">
+  </div>
+  <div class="form-group">
+    <label>Email professionnel</label>
+    <input type="email" id="f-email" placeholder="jean@dupont.fr" autocomplete="email">
+    <div class="field-error" id="err-email">Adresse email invalide</div>
+  </div>
+  <div class="form-group">
+    <label>Téléphone</label>
+    <input type="tel" id="f-tel" placeholder="06 12 34 56 78" autocomplete="tel">
+  </div>
+  <div class="form-group">
+    <label>Mot de passe</label>
+    <input type="password" id="f-password" placeholder="••••••••" autocomplete="new-password">
+    <div class="hint">Optionnel — connexion par email possible</div>
+  </div>
+
+  <button class="btn-submit" id="btn-submit" onclick="soumettre()">
+    Créer mon compte →
+  </button>
+
+  <div class="err-global" id="err-global"></div>
+
+  <div class="back-link">
+    Déjà un compte ? <a href="login.html">Se connecter</a> ·
+    <a href="pricing.html">Changer de plan</a>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const _h = window.location.hostname;
+const BACKEND = (!_h || _h === 'localhost' || _h === '127.0.0.1')
+  ? 'http://localhost:8080'
+  : 'https://devisvoice-backend-production-9ed2.up.railway.app';
+
+const PLAN_LABELS = {
+  'price_1TNaVs7LHQgZGOp76yslWd3O': 'Starter Mensuel',
+  'price_1TNaWo7LHQgZGOp7vTLsMTLI': 'Starter Annuel',
+  'price_1TNaXu7LHQgZGOp7Ouzq7yHc': 'Pro Mensuel',
+  'price_1TNaXL7LHQgZGOp7HjJjdpfb': 'Pro Annuel'
+};
+
+const planId = new URLSearchParams(window.location.search).get('plan') || '';
+if(planId) localStorage.setItem('selected_plan', planId);
+
+const badge = document.getElementById('plan-badge');
+const planLabel = PLAN_LABELS[planId];
+if(planLabel) badge.textContent = '⚡ Plan ' + planLabel;
+else if(!planId) badge.style.display = 'none';
+
+// ─── BACKGROUND WebGL (copie depuis pricing.html) ──────────────────────────
+(function initWebGL(){
+  const canvas = document.getElementById('canvas-bg');
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if(!gl) return;
+  function resize(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; gl.viewport(0,0,canvas.width,canvas.height); }
+  resize(); window.addEventListener('resize', resize);
+  const VS=`attribute vec2 aPos;void main(){gl_Position=vec4(aPos,0.,1.);}`;
+  const FS=`precision mediump float;uniform float uTime;uniform vec2 uRes;void main(){
+    vec2 uv=gl_FragCoord.xy/uRes;float asp=uRes.x/uRes.y;uv.x*=asp;float cx=.5*asp;
+    vec3 col=vec3(0.);
+    vec2 c0=vec2(cx+.38*cos(uTime*.28),.5+.32*sin(uTime*.22));
+    vec2 c1=vec2(cx+.32*cos(uTime*.19+2.1),.5+.28*sin(uTime*.31+1.));
+    vec2 c2=vec2(cx+.28*cos(uTime*.24+4.3),.5+.38*sin(uTime*.17+3.2));
+    float d0=length(uv-c0);col+=vec3(1.,.27,0.)*exp(-d0*d0*3.2)*.55;
+    float d1=length(uv-c1);col+=vec3(.85,.14,0.)*exp(-d1*d1*4.)*.48;
+    float d2=length(uv-c2);col+=vec3(1.,.42,.1)*exp(-d2*d2*5.)*.38;
+    col=clamp(col*.38,0.,1.);gl_FragColor=vec4(col,1.);}`;
+  function mkShader(t,s){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh;}
+  const prog=gl.createProgram();
+  gl.attachShader(prog,mkShader(gl.VERTEX_SHADER,VS));
+  gl.attachShader(prog,mkShader(gl.FRAGMENT_SHADER,FS));
+  gl.linkProgram(prog);
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  const aPos=gl.getAttribLocation(prog,'aPos');
+  const uTime=gl.getUniformLocation(prog,'uTime');
+  const uRes=gl.getUniformLocation(prog,'uRes');
+  gl.useProgram(prog);gl.enableVertexAttribArray(aPos);
+  gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
+  const t0=performance.now();
+  (function frame(){
+    gl.uniform1f(uTime,(performance.now()-t0)/1000);
+    gl.uniform2f(uRes,canvas.width,canvas.height);
+    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    requestAnimationFrame(frame);
+  })();
+})();
+
+async function soumettre(){
+  const prenom     = document.getElementById('f-prenom').value.trim();
+  const nom        = document.getElementById('f-nom').value.trim();
+  const entreprise = document.getElementById('f-entreprise').value.trim();
+  const email      = document.getElementById('f-email').value.trim();
+  const tel        = document.getElementById('f-tel').value.trim();
+  const password   = document.getElementById('f-password').value;
+
+  const emailEl  = document.getElementById('f-email');
+  const errEmail = document.getElementById('err-email');
+  const errGlobal = document.getElementById('err-global');
+  const btn = document.getElementById('btn-submit');
+
+  // Réinitialiser erreurs
+  emailEl.classList.remove('error');
+  errEmail.style.display = 'none';
+  errGlobal.style.display = 'none';
+
+  // Validation email
+  if(!email || !email.includes('@') || !email.includes('.')){
+    emailEl.classList.add('error');
+    errEmail.style.display = 'block';
+    emailEl.focus();
+    return;
+  }
+
+  localStorage.setItem('user_email', email);
+
+  // Spinner
+  btn.disabled = true;
+  btn.innerHTML = '<span style="width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;"></span> Création en cours...';
+
+  try {
+    // 1. Inscription
+    const regResp = await fetch(BACKEND + '/api/users/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email, prenom: prenom || null, nom: nom || null,
+        entreprise: entreprise || null, telephone: tel || null,
+        mot_de_passe: password || undefined
+      })
+    });
+    const regData = await regResp.json();
+
+    if(!regData.success){
+      btn.disabled = false;
+      btn.innerHTML = 'Créer mon compte →';
+      errGlobal.style.display = 'block';
+      if(regData.error && (regData.error.includes('unique') || regData.error.includes('already'))){
+        errGlobal.innerHTML = "Cet email est déjà utilisé. <a href='login.html' style='color:#FF4500'>Se connecter</a>";
+      } else {
+        errGlobal.textContent = regData.error || 'Une erreur est survenue';
+      }
+      return;
+    }
+
+    // Sauvegarder le token et infos utilisateur
+    localStorage.setItem('dv_token',        regData.token);
+    localStorage.setItem('user_email',      regData.email || email);
+    localStorage.setItem('user_prenom',     regData.prenom || prenom || '');
+    localStorage.setItem('user_nom',        regData.nom || nom || '');
+    localStorage.setItem('user_entreprise', regData.entreprise || entreprise || '');
+    localStorage.setItem('user_telephone',  regData.telephone || tel || '');
+    if(regData.entreprise) localStorage.setItem('ent-nom',   regData.entreprise);
+    if(regData.email)      localStorage.setItem('ent-email', regData.email);
+    if(regData.telephone)  localStorage.setItem('ent-tel',   regData.telephone);
+
+    // 2. Stripe Checkout
+    if(!planId){
+      window.location.href = 'onboarding-domaine.html';
+      return;
+    }
+
+    const stripeResp = await fetch(BACKEND + '/api/stripe/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ priceId: planId, userEmail: email })
+    });
+    const stripeData = await stripeResp.json();
+
+    if(stripeData.url){
+      window.location.href = stripeData.url;
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = 'Créer mon compte →';
+      errGlobal.style.display = 'block';
+      errGlobal.textContent = stripeData.error || 'Erreur lors de la redirection vers le paiement.';
+    }
+
+  } catch(e) {
+    btn.disabled = false;
+    btn.innerHTML = 'Créer mon compte →';
+    errGlobal.style.display = 'block';
+    errGlobal.textContent = 'Erreur réseau — réessayez.';
+  }
+}
+</script>
+</body>
+</html>
