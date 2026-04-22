@@ -739,6 +739,32 @@ select option{background:var(--card);color:var(--text);}
 </div>
 
 <script>
+// ── ISOLATION localStorage PAR COMPTE ────────────────────────────────────────
+const _userEmail = localStorage.getItem('user_email') || '';
+const USER_KEY   = _userEmail ? btoa(_userEmail).replace(/=/g,'') : '';
+
+function lsGet(key){ return localStorage.getItem(USER_KEY ? USER_KEY+'_'+key : key) || ''; }
+function lsSet(key, val){ localStorage.setItem(USER_KEY ? USER_KEY+'_'+key : key, val); }
+function lsRemove(key){ localStorage.removeItem(USER_KEY ? USER_KEY+'_'+key : key); }
+
+// Migration one-shot : copier les clés non-préfixées existantes vers les clés préfixées
+if(USER_KEY && !localStorage.getItem('_migr_'+USER_KEY)){
+  ['user_famille','user_metier','user_metiers','user_prenom','user_nom','user_entreprise',
+   'user_telephone','user_plan','user_document_type','ent-nom','ent-email','ent-tel',
+   'ent-adr','ent-siret','ent-prenom','ent-nom-artisan','ent-logo','ent-banque','ent-iban',
+   'ent-bic','ent-titulaire','ent-comptable','ent-decennale-compagnie','ent-decennale-numero',
+   'mentions','t-mo','t-tva','theme'].forEach(k => {
+    const old = localStorage.getItem(k);
+    if(old !== null && !localStorage.getItem(USER_KEY+'_'+k))
+      localStorage.setItem(USER_KEY+'_'+k, old);
+  });
+  Object.keys(localStorage).forEach(k => {
+    if((k.startsWith('prest_') || k.startsWith('facture-statut-')) && !localStorage.getItem(USER_KEY+'_'+k))
+      localStorage.setItem(USER_KEY+'_'+k, localStorage.getItem(k));
+  });
+  localStorage.setItem('_migr_'+USER_KEY, '1');
+}
+
 // ── ONBOARDING GUARD ── rediriger selon état auth
 const urlParams = new URLSearchParams(window.location.search);
 const isDevMode = urlParams.get('dev') === 'true';
@@ -765,14 +791,16 @@ if (!isDevMode) {
           headers: { 'Authorization': 'Bearer ' + token }
         }).then(r => r.json()).then(profile => {
           if (profile && profile.email) {
-            localStorage.setItem('user_famille',   profile.famille || '');
-            localStorage.setItem('user_metier',    profile.metier  || '');
-            localStorage.setItem('user_metiers',   JSON.stringify(profile.metiers || []));
-            localStorage.setItem('user_prenom',    profile.prenom  || '');
-            localStorage.setItem('user_nom',       profile.nom     || '');
-            localStorage.setItem('user_entreprise',profile.entreprise || '');
-            localStorage.setItem('user_telephone', profile.telephone  || '');
-            localStorage.setItem('user_plan',      profile.plan    || 'gratuit');
+            lsSet('user_famille',   profile.famille || '');
+            lsSet('user_metier',    profile.metier  || '');
+            lsSet('user_metiers',   JSON.stringify(profile.metiers || []));
+            lsSet('user_prenom',    profile.prenom  || '');
+            lsSet('user_nom',       profile.nom     || '');
+            lsSet('user_entreprise',profile.entreprise || '');
+            lsSet('user_telephone', profile.telephone  || '');
+            lsSet('user_plan',      profile.plan    || 'gratuit');
+            console.log('famille lue:', lsGet('user_famille'));
+            console.log('metier lu:', lsGet('user_metier'));
             // Pré-remplir les champs profil si vides
             const setIfEmpty = (id, val) => { const el = document.getElementById(id); if(el && !el.value && val) el.value = val; };
             setIfEmpty('ent-prenom',      profile.prenom);
@@ -781,9 +809,9 @@ if (!isDevMode) {
             setIfEmpty('ent-email',       profile.email);
             setIfEmpty('ent-tel',         profile.telephone);
             // Filtrer les corps de métier selon la famille
-            filtrerFamille(profile.famille || localStorage.getItem('user_famille') || 'btp');
+            filtrerFamille(profile.famille || lsGet('user_famille') || 'btp');
             // Adapter l'exemple de dictée selon le métier
-            adapterExempleDictee(profile.metier || localStorage.getItem('user_metier') || '');
+            adapterExempleDictee(profile.metier || lsGet('user_metier') || '');
             // Verrouiller email comptable si plan gratuit
             verifierPlanComptable(profile.plan || 'gratuit');
           }
@@ -795,9 +823,9 @@ if (!isDevMode) {
 
 // Appliquer immédiatement depuis localStorage (avant le retour de l'API)
 (function(){
-  const f = localStorage.getItem('user_famille');
-  const m = localStorage.getItem('user_metier');
-  const p = localStorage.getItem('user_plan');
+  const f = lsGet('user_famille');
+  const m = lsGet('user_metier');
+  const p = lsGet('user_plan');
   if(f) filtrerFamille(f);
   if(m) adapterExempleDictee(m);
   verifierPlanComptable(p || 'gratuit');
@@ -805,7 +833,9 @@ if (!isDevMode) {
 
 // ── FILTRE FAMILLE ────────────────────────────────────────────────────────────
 function filtrerFamille(famille){
-  const f = (famille || 'btp').toLowerCase();
+  const aliases = { batiment:'btp', automobile:'auto' };
+  const raw = (famille || 'btp').toLowerCase();
+  const f = aliases[raw] || raw;
   document.querySelectorAll('.metiers-section').forEach(sec => {
     sec.style.display = (sec.dataset.famille === f) ? '' : 'none';
   });
@@ -855,9 +885,9 @@ function verifierPlanComptable(plan){
 }
 
 function deconnecter(){
-  ['dv_token','user_email','user_prenom','user_nom','user_entreprise',
-   'user_telephone','user_famille','user_metiers','onboarding_complete',
-   'user_document_type'].forEach(k => localStorage.removeItem(k));
+  localStorage.removeItem('dv_token');
+  localStorage.removeItem('user_email');
+  localStorage.removeItem('onboarding_complete');
   window.location.href = 'login.html';
 }
 
@@ -873,10 +903,10 @@ function setTheme(t, btn) {
   document.documentElement.setAttribute('data-theme', t);
   document.querySelectorAll('.tbtn').forEach(b => b.classList.remove('active'));
   if(btn) btn.classList.add('active');
-  localStorage.setItem('theme', t);
+  lsSet('theme', t);
 }
 (()=>{
-  const t = localStorage.getItem('theme') || 'light-orange';
+  const t = lsGet('theme') || 'light-orange';
   document.documentElement.setAttribute('data-theme', t);
   const idx = THEMES.indexOf(t);
   const btns = document.querySelectorAll('.tbtn');
@@ -898,7 +928,7 @@ function varBadge(actuel, precedent, isPercent){
 }
 
 async function loadStats(){
-  const email = localStorage.getItem('ent-email');
+  const email = lsGet('ent-email');
   if(!email){ document.getElementById('stat-derniers').textContent='Renseignez votre email pro dans "Votre Entreprise".'; return; }
   try{
     const r=await fetch(BACKEND+'/api/stats?email='+encodeURIComponent(email));
@@ -1346,7 +1376,7 @@ function afficherPrestations(key) {
   const zone = document.getElementById('prestations-zone');
   const list = PRESTATIONS[key] || [];
   if(!prestationsActives[key]) {
-    const saved = localStorage.getItem('prest_'+key);
+    const saved = lsGet('prest_'+key);
     prestationsActives[key] = saved ? JSON.parse(saved) : list.map(p=>({nom:p,actif:true,prix:'',unite:getDefaultUnite(key,p)}));
     list.forEach(p => {
       if(!prestationsActives[key].find(x=>x.nom===p)) prestationsActives[key].push({nom:p,actif:true,prix:'',unite:getDefaultUnite(key,p)});
@@ -1491,7 +1521,7 @@ Réponds UNIQUEMENT avec le JSON brut, sans markdown, sans explication, sans tex
     catch(parseErr) { await genererDevis(); return; }
     // Préserver les champs meta que Claude ne retourne pas
     updated.date          = updated.date          || devisData.date;
-    updated.logo          = updated.logo          || devisData.logo          || localStorage.getItem('ent-logo') || '';
+    updated.logo          = updated.logo          || devisData.logo          || lsGet('ent-logo') || '';
     updated.iban          = updated.iban          || devisData.iban;
     updated.bic           = updated.bic           || devisData.bic;
     updated.banque        = updated.banque        || devisData.banque;
@@ -1585,7 +1615,7 @@ function majTitrePoste(sIdx, pIdx, val){
 }
 
 function majTvaDevis(val){
-  localStorage.setItem('t-tva', val);
+  lsSet('t-tva', val);
   if(!devisData) return;
   devisData.tva_pct = Number(val);
   devisData.mentions = getMentionTVA(val);
@@ -1648,7 +1678,7 @@ function setPrix(key, idx, val) { if(prestationsActives[key]) prestationsActives
 function setUnite(key, idx, val) { if(prestationsActives[key]) prestationsActives[key][idx].unite = val; }
 function toutCocher(key, val) { if(prestationsActives[key]){prestationsActives[key].forEach(p=>p.actif=val);afficherPrestations(key);} }
 function savePrestations(key) {
-  localStorage.setItem('prest_'+key, JSON.stringify(prestationsActives[key]));
+  lsSet('prest_'+key, JSON.stringify(prestationsActives[key]));
   const btn = document.querySelector('#prestations-zone button');
   if(btn){btn.textContent='✓ Sauvé!';setTimeout(()=>btn.textContent='💾 Sauver',1500);}
 }
@@ -1660,7 +1690,8 @@ function getPrestationsActives() {
       if(p.actif && p.prix) res.push(p.nom + ' — '+p.prix+'€/'+p.unite);
     }));
   } else {
-    const cles = Object.keys(localStorage).filter(k=>k.startsWith('prest_'));
+    const _pfx = USER_KEY ? USER_KEY+'_' : '';
+    const cles = Object.keys(localStorage).filter(k=>k.startsWith(_pfx+'prest_'));
     cles.forEach(cle=>{
       try{
         const arr=JSON.parse(localStorage.getItem(cle));
@@ -2424,7 +2455,7 @@ RÈGLES ABSOLUES: Ne jamais inventer un prix. Unité: "pers" par personne, "h" h
         parsed.titulaire = ls('ent-titulaire')||'';
         parsed.decennale_compagnie = ls('ent-decennale-compagnie')||'';
         parsed.decennale_numero    = ls('ent-decennale-numero')||'';
-        parsed.logo      = localStorage.getItem('ent-logo')||'';
+        parsed.logo      = lsGet('ent-logo')||'';
         fetch(BACKEND+'/api/devis/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
           id:parsed.numero,data:parsed,
           artisanEmail:ls('ent-email')||'',
@@ -2938,7 +2969,7 @@ function rognerBordsBlancs(canvas){
 
 function validerLogo(){
   if(!logoEnAttente) return;
-  localStorage.setItem('ent-logo', logoEnAttente);
+  lsSet('ent-logo', logoEnAttente);
   afficherLogoPreview(logoEnAttente);
   document.getElementById('logo-modal').style.display = 'none';
   logoEnAttente = null;
@@ -2951,7 +2982,7 @@ function annulerLogo(){
 }
 
 function supprimerLogo(){
-  localStorage.removeItem('ent-logo');
+  lsRemove('ent-logo');
   afficherLogoPreview(null);
   flash('p-badge');
 }
@@ -2970,11 +3001,11 @@ function afficherLogoPreview(b64){
 }
 
 function saveProfil(){
-  ['ent-prenom','ent-nom-artisan','ent-nom','ent-siret','ent-tel','ent-adr','ent-email','mentions','ent-decennale-compagnie','ent-decennale-numero','ent-banque','ent-iban','ent-bic','ent-titulaire','ent-comptable'].forEach(id=>{const el=document.getElementById(id);if(el)localStorage.setItem(id,el.value);});
+  ['ent-prenom','ent-nom-artisan','ent-nom','ent-siret','ent-tel','ent-adr','ent-email','mentions','ent-decennale-compagnie','ent-decennale-numero','ent-banque','ent-iban','ent-bic','ent-titulaire','ent-comptable'].forEach(id=>{const el=document.getElementById(id);if(el)lsSet(id,el.value);});
   flash('p-badge');
 }
 function saveTarifs(){
-  ['t-mo','t-tva'].forEach(id=>{const el=document.getElementById(id);if(el)localStorage.setItem(id,el.value);});
+  ['t-mo','t-tva'].forEach(id=>{const el=document.getElementById(id);if(el)lsSet(id,el.value);});
   const tva=document.getElementById('t-tva').value;
   const mentionsAuto={
     '10':'TVA à taux réduit 10% applicable — Art. 279 du CGI',
@@ -2985,7 +3016,7 @@ function saveTarifs(){
   const mentionsEl=document.getElementById('mentions');
   if(mentionsEl && mentionsAuto[tva]){
     mentionsEl.value=mentionsAuto[tva];
-    localStorage.setItem('mentions',mentionsAuto[tva]);
+    lsSet('mentions',mentionsAuto[tva]);
   }
   flash('t-badge');
 }
@@ -3195,7 +3226,7 @@ function genererPdfDevisBase64(d) {
   const _pdfPrestaKeys=['traiteur','restauration','evenementiel','reception'];
   const _pdfNorm=s=>(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
   const _pdfIsPresta=d.sections?.some(s=>_pdfPrestaKeys.some(k=>_pdfNorm(s.metier).includes(k)))||false;
-  const logoSrc   = d.logo||localStorage.getItem('ent-logo')||'';
+  const logoSrc   = d.logo||lsGet('ent-logo')||'';
   const acc = [255, 69, 0];
   const M = 14, W = 210, CW = W - M * 2;
   let y = M;
@@ -3365,7 +3396,7 @@ function genererPdfFactureBase64(d) {
   const factureNum = 'F-' + d.numero + '-' + new Date().getFullYear();
   const today = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
   const acc = getAccentRgb();
-  const logoSrc = d.logo||localStorage.getItem('ent-logo')||'';
+  const logoSrc = d.logo||lsGet('ent-logo')||'';
   const M = 14, W = 210, CW = W - M * 2;
   let y = M;
 
@@ -3662,7 +3693,7 @@ function majAffichageChantiers(){
 function renderChantiersList(chantiers, container){
   const statutMap = {};
   container.innerHTML = chantiers.map(d=>{
-    const st = statutMap[d.id] || localStorage.getItem('facture-statut-'+d.id) || 'non_envoyee';
+    const st = statutMap[d.id] || lsGet('facture-statut-'+d.id) || 'non_envoyee';
     const badge = st==='payee' ? 'background:rgba(0,180,80,.12);color:#00b450'
       : st==='en_attente' ? 'background:rgba(255,165,0,.12);color:#e08000'
       : st==='envoyee'   ? 'background:rgba(100,160,255,.12);color:#4a90d9'
@@ -3725,7 +3756,7 @@ async function loadChantiers(){
     const tousDevis = devisRes.ok ? await devisRes.json() : [];
     const facturesList = facturesRes.ok ? await facturesRes.json() : [];
 
-    facturesList.forEach(f => { localStorage.setItem('facture-statut-'+f.devis_id, f.statut); });
+    facturesList.forEach(f => { lsSet('facture-statut-'+f.devis_id, f.statut); });
     const chantiers = tousDevis.filter(d => d.accepted && d.statut !== 'fusionné');
     if(!chantiers.length){
       container.innerHTML='<div style="text-align:center;padding:30px;color:var(--text2);font-size:13px;">Aucun chantier en cours.<br><span style="font-size:11px;">Les devis acceptés apparaîtront ici.</span></div>';
@@ -3823,7 +3854,7 @@ async function ouvrirFacture(devisId){
     const r = await fetch(BACKEND+'/api/devis/'+encodeURIComponent(devisId));
     const row = await r.json();
     const d = typeof row.data==='string'?JSON.parse(row.data):row.data;
-    if(!d.logo) d.logo = localStorage.getItem('ent-logo')||'';
+    if(!d.logo) d.logo = lsGet('ent-logo')||'';
     factureEnCours = {devis:d, row};
     // Enregistrer la facture en BDD si elle n'existe pas encore
     const factureId = 'F-'+devisId;
@@ -3844,10 +3875,10 @@ async function ouvrirFacture(devisId){
 }
 
 function getStatutFacture(devisId){
-  return localStorage.getItem('facture-statut-'+devisId)||'non_envoyee';
+  return lsGet('facture-statut-'+devisId)||'non_envoyee';
 }
 async function setStatutFacture(devisId, statut){
-  localStorage.setItem('facture-statut-'+devisId, statut);
+  lsSet('facture-statut-'+devisId, statut);
   const factureId = 'F-'+devisId;
   try{
     await fetch(BACKEND+'/api/factures/'+encodeURIComponent(factureId)+'/statut', {
@@ -3859,7 +3890,7 @@ async function setStatutFacture(devisId, statut){
 
 function renderFacture(d){
   const content = document.getElementById('facture-content');
-  const logoSrc = d.logo||localStorage.getItem('ent-logo')||'';
+  const logoSrc = d.logo||lsGet('ent-logo')||'';
   const entNom = d.entreprise?.nom||ls('ent-nom')||'';
   const entSiret = d.entreprise?.siret||ls('ent-siret')||'';
   const entTel = d.entreprise?.tel||ls('ent-tel')||'';
@@ -4095,22 +4126,23 @@ async function marquerPayee(){
 
 function loadAll(){
   const map={'ent-prenom':'ent-prenom','ent-nom-artisan':'ent-nom-artisan','ent-nom':'ent-nom','ent-siret':'ent-siret','ent-tel':'ent-tel','ent-adr':'ent-adr','ent-email':'ent-email','mentions':'mentions','ent-decennale-compagnie':'ent-decennale-compagnie','ent-decennale-numero':'ent-decennale-numero','ent-banque':'ent-banque','ent-iban':'ent-iban','ent-bic':'ent-bic','ent-titulaire':'ent-titulaire','ent-comptable':'ent-comptable','t-mo':'t-mo','t-tva':'t-tva'};
-  Object.keys(map).forEach(k=>{const v=localStorage.getItem(k);const el=document.getElementById(map[k]);if(v&&el){el.value=v;}});
-  const tvaSaved=localStorage.getItem('t-tva');
+  Object.keys(map).forEach(k=>{const v=lsGet(k);const el=document.getElementById(map[k]);if(v&&el){el.value=v;}});
+  const tvaSaved=lsGet('t-tva');
   if(tvaSaved) majTvaDevis(tvaSaved);
-  const logoSaved = localStorage.getItem('ent-logo');
+  const logoSaved = lsGet('ent-logo');
   if(logoSaved) afficherLogoPreview(logoSaved);
-  const cles=Object.keys(localStorage).filter(k=>k.startsWith('prest_'));
+  const _pfx = USER_KEY ? USER_KEY+'_' : '';
+  const cles=Object.keys(localStorage).filter(k=>k.startsWith(_pfx+'prest_'));
   cles.forEach(cle=>{
     try{
-      const key=cle.replace('prest_','');
+      const key=cle.replace(_pfx+'prest_','');
       const data=JSON.parse(localStorage.getItem(cle));
       if(data && data.length) prestationsActives[key]=data;
     }catch(e){}
   });
 }
 
-function ls(k){return localStorage.getItem(k)||'';}
+function ls(k){return lsGet(k);}
 function showS(t,m){const s=document.getElementById('sbar');s.className='sbar '+t;s.innerHTML=t==='loading'?`<div class="spin"></div><span>${m}</span>`:m;}
 function showES(t,m){const s=document.getElementById('email-sbar');s.className='sbar '+t;s.style.display='flex';s.innerHTML=t==='loading'?`<div class="spin"></div><span>${m}</span>`:m;}
 
@@ -4118,24 +4150,25 @@ loadAll();
 // Lance l'orbe idle au démarrage
 setTimeout(()=>{ if(!isRec) drawOrb(); }, 300);
 
-// ===== DONNÉES DE TEST PAR DÉFAUT =====
+// ===== DONNÉES DE TEST PAR DÉFAUT (compte dev uniquement) =====
 (function(){
+  if(_userEmail !== 'arbi.malik@gmail.com') return;
   const defaults={'ent-nom':'Arbi Construction','ent-email':'arbi.malik@gmail.com'};
   Object.keys(defaults).forEach(k=>{
-    if(!localStorage.getItem(k)){localStorage.setItem(k,defaults[k]);const el=document.getElementById(k);if(el)el.value=defaults[k];}
+    if(!lsGet(k)){lsSet(k,defaults[k]);const el=document.getElementById(k);if(el)el.value=defaults[k];}
   });
   const testFields={'client-prenom':'Malik','client-nom':'Arbi','client-email':'arbi.malik@gmail.com','client-tel':'0765695448','chantier-adresse':'2 Place de la Soule','nature-travaux':'Rénovation salle de bain','delai-execution':'12 jours environs'};
   Object.keys(testFields).forEach(k=>{const el=document.getElementById(k);if(el&&!el.value)el.value=testFields[k];});
 })();
-// ===== DONNÉES DE TEST PAR DÉFAUT =====
 (function(){
+  if(_userEmail !== 'arbi.malik@gmail.com') return;
   const defaults={
     'ent-nom':'Arbi Construction',
     'ent-email':'arbi.malik@gmail.com'
   };
   Object.keys(defaults).forEach(k=>{
-    if(!localStorage.getItem(k)){
-      localStorage.setItem(k,defaults[k]);
+    if(!lsGet(k)){
+      lsSet(k,defaults[k]);
       const el=document.getElementById(k);
       if(el) el.value=defaults[k];
     }

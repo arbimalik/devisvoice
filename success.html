@@ -79,13 +79,32 @@ h1{
 <script>
 'use strict';
 
-// Récupère session_id pour les webhooks Stripe éventuels
+const _h = window.location.hostname;
+const BACKEND = (!_h || _h === 'localhost' || _h === '127.0.0.1')
+  ? 'http://localhost:8080'
+  : 'https://devisvoice-backend-production-9ed2.up.railway.app';
+
+const _ue = localStorage.getItem('user_email') || '';
+const _uk = _ue ? btoa(_ue).replace(/=/g,'') : '';
+function lsSet(key, val){ localStorage.setItem(_uk ? _uk+'_'+key : key, val); }
+
 const sessionId = new URLSearchParams(window.location.search).get('session_id');
 if(sessionId) localStorage.setItem('stripe_session_id', sessionId);
 
-setTimeout(function(){
-  window.location.href = 'onboarding-domaine.html';
-}, 2000);
+async function init(){
+  if(sessionId){
+    try {
+      const r = await fetch(BACKEND + '/api/stripe/session/' + sessionId);
+      const data = await r.json();
+      if(data.plan) lsSet('user_plan', data.plan);
+    } catch(e) { /* non bloquant */ }
+  }
+  setTimeout(function(){
+    window.location.href = 'onboarding-domaine.html';
+  }, 2000);
+}
+
+init();
 </script>
 </body>
 </html>

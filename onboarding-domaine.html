@@ -126,6 +126,10 @@ const BACKEND = (!_h || _h === 'localhost' || _h === '127.0.0.1')
   ? 'http://localhost:8080'
   : 'https://devisvoice-backend-production-9ed2.up.railway.app';
 
+const _ue = localStorage.getItem('user_email') || '';
+const _uk = _ue ? btoa(_ue).replace(/=/g,'') : '';
+function lsSet(key, val){ localStorage.setItem(_uk ? _uk+'_'+key : key, val); }
+
 function goToScreen(n){
   const cur = document.querySelector('.screen.active');
   if(cur){ cur.classList.remove('active'); cur.style.pointerEvents='none'; }
@@ -321,10 +325,10 @@ async function terminer(){
   const metiers = selectedMetiers;
   const document_type = famille === 'transport' ? 'bon_de_commande' : 'devis';
 
-  localStorage.setItem('user_famille',      famille);
-  localStorage.setItem('user_metier',       metier);
-  localStorage.setItem('user_metiers',      JSON.stringify(metiers));
-  localStorage.setItem('user_document_type', document_type);
+  lsSet('user_famille',      famille);
+  lsSet('user_metier',       metier);
+  lsSet('user_metiers',      JSON.stringify(metiers));
+  lsSet('user_document_type', document_type);
   localStorage.setItem('onboarding_complete', 'true');
 
   // Mettre à jour le profil si un token existe
