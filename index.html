@@ -79,11 +79,12 @@ input::placeholder,textarea::placeholder{color:var(--text2);opacity:.55;}
 textarea{min-height:90px;resize:vertical;line-height:1.6;}
 select option{background:var(--card);color:var(--text);}
 
-.metiers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:4px;}
-.metiers-famille{grid-column:1/-1;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);padding:8px 0 2px;border-top:1px solid var(--border);margin-top:4px;}
+.metiers-grid{margin-bottom:4px;}
+.metiers-section{display:flex;flex-wrap:wrap;gap:7px;}
+.metiers-famille{width:100%;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);padding:8px 0 2px;border-top:1px solid var(--border);margin-top:4px;}
 .metiers-famille:first-child{border-top:none;margin-top:0;padding-top:2px;}
-@media(max-width:460px){.metiers-grid{grid-template-columns:repeat(2,1fr);}}
-.mc{background:var(--bg3);border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:11px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mc{background:var(--bg3);border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:11px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:calc(33.333% - 5px);}
+@media(max-width:460px){.mc{width:calc(50% - 4px);font-size:10px;padding:7px 8px;}}
 .mc:hover,.mc.sel{border-color:var(--accent);color:var(--accent);background:var(--accent-bg);}
 
 /* ========= VOICE ORB ========= */
@@ -237,9 +238,6 @@ select option{background:var(--card);color:var(--text);}
   .tcard-grid{grid-template-columns:1fr;}
   .tprice{font-size:24px;}
 
-  /* Metiers grid */
-  .metiers-grid{grid-template-columns:repeat(2,1fr);}
-  .mc{font-size:10px;padding:7px 8px;}
 
   /* Exemple box */
   .ex-box p{font-size:11px;}
