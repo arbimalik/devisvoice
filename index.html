@@ -105,9 +105,14 @@ select option{background:var(--card);color:var(--text);}
 .mic-main:active{transform:scale(.94);}
 .mic-main svg{width:32px;height:32px;fill:var(--accent);}
 .mic-main svg.ico-stop{display:none;}
+.mic-main svg.ico-pause{display:none;}
 .mic-main.rec svg{fill:#cc0000;}
 .mic-main.rec svg.ico-mic{display:none;}
 .mic-main.rec svg.ico-stop{display:block;}
+.mic-main.paused svg{fill:#e08000;}
+.mic-main.paused svg.ico-mic{display:none;}
+.mic-main.paused svg.ico-stop{display:none;}
+.mic-main.paused svg.ico-pause{display:block;}
 @keyframes mbeat{
   from{box-shadow:0 0 0 10px rgba(255,30,30,.15),0 0 0 22px rgba(255,30,30,.07),0 8px 32px rgba(255,30,30,.5),0 2px 10px rgba(0,0,0,.4);}
   to{box-shadow:0 0 0 16px rgba(255,30,30,.2),0 0 0 32px rgba(255,30,30,.08),0 14px 44px rgba(255,30,30,.6),0 2px 10px rgba(0,0,0,.4);transform:scale(1.07);}
@@ -447,6 +452,10 @@ select option{background:var(--card);color:var(--text);}
             </svg>
             <svg class="ico-stop" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <rect x="5" y="5" width="14" height="14" rx="2"/>
+            </svg>
+            <svg class="ico-pause" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <rect x="6" y="4" width="4" height="16" rx="1"/>
+              <rect x="14" y="4" width="4" height="16" rx="1"/>
             </svg>
           </button>
         </div>
@@ -1701,11 +1710,14 @@ function getPrestationsActives() {
 }
 
 // ===== MICRO WEB AUDIO =====
-let recog=null,isRec=false,audioCtx=null,analyser=null,micStream=null,animFrame=null;
+let recog=null,isRec=false,micState='idle',audioCtx=null,analyser=null,micStream=null,animFrame=null;
+// micState: 'idle' | 'recording' | 'paused'
 
 function toggleMic(){
   if(!('webkitSpeechRecognition'in window)&&!('SpeechRecognition'in window)){setLbl('❌ Non supporté sur ce navigateur',false);return;}
-  if(isRec){stopMic();}else{setLbl('⏳ Initialisation…',false);setTimeout(()=>startMic(),100);}
+  if(micState==='idle'){setLbl('⏳ Initialisation…',false);setTimeout(()=>startMic(),100);}
+  else if(micState==='recording'){pauseMic();}
+  else if(micState==='paused'){setLbl('⏳ Reprise…',false);setTimeout(()=>startMic(),100);}
 }
 
 function startMic(){
@@ -1717,8 +1729,9 @@ function startMic(){
   const el=document.getElementById('dictee-text');
   let base=el.innerText.trim();if(base)base+=' ';
   recog.onstart=()=>{
-    isRec=true;
-    document.getElementById('mic-btn').classList.add('rec');
+    isRec=true; micState='recording';
+    const btn=document.getElementById('mic-btn');
+    btn.classList.remove('paused'); btn.classList.add('rec');
     document.getElementById('mic-wrap').classList.add('recording');
     setLbl('🔴 Parlez maintenant…',true);
     startAudioViz();
@@ -1737,25 +1750,30 @@ function startMic(){
     stopMic();
   };
   recog.onend=()=>{
-    if(!isRec)return;
-    setTimeout(()=>{if(isRec)startMic();},150);
+    if(micState!=='recording')return;
+    setTimeout(()=>{if(micState==='recording')startMic();},150);
   };
   try{recog.start();}catch(e){setLbl('❌ Micro indisponible — rechargez',false);}
 }
 
-function stopMic(){
-  isRec=false;
+function pauseMic(){
+  micState='paused'; isRec=false;
   if(recog){try{recog.stop();}catch(e){} try{recog.abort();}catch(e){} recog=null;}
   stopAudioViz();
-  document.getElementById('mic-btn').classList.remove('rec');
+  const btn=document.getElementById('mic-btn');
+  btn.classList.remove('rec'); btn.classList.add('paused');
   document.getElementById('mic-wrap').classList.remove('recording');
-  const dictee = document.getElementById('dictee-text').innerText.trim();
-  if(dictee){
-    setLbl('⚡ Génération automatique…', true);
-    setTimeout(()=>actionDevis(), 600);
-  } else {
-    setLbl('Appuyez pour dicter', false);
-  }
+  setLbl('⏸ En pause — appuyez pour reprendre', false);
+}
+
+function stopMic(){
+  micState='idle'; isRec=false;
+  if(recog){try{recog.stop();}catch(e){} try{recog.abort();}catch(e){} recog=null;}
+  stopAudioViz();
+  const btn=document.getElementById('mic-btn');
+  btn.classList.remove('rec'); btn.classList.remove('paused');
+  document.getElementById('mic-wrap').classList.remove('recording');
+  setLbl('Appuyez pour dicter', false);
 }
 
 function startAudioViz(){
@@ -1820,7 +1838,7 @@ function drawOrb(){
 
   // Boucle active (micro ON)
   function loop(){
-    if(!isRec){ stopAudioViz(); return; }
+    if(micState!=='recording'){ stopAudioViz(); return; }
     animFrame=requestAnimationFrame(loop);
     phase+=0.05;
     if(data && analyser){
@@ -1833,14 +1851,14 @@ function drawOrb(){
     ctx.clearRect(0,0,W,H);
 
     // Contour extérieur (halo)
-    const outer=buildBlob(R+8+force*16, (angle,i)=>{
+    const outer=buildBlob(Math.min(R+8+force*16, R+20), (angle,i)=>{
       const freq=data?data[Math.floor(i/POINTS*data.length/2)]:0;
       return Math.sin(angle*4+phase)*5+Math.sin(angle*6-phase*1.2)*3+(freq/255)*12;
     });
     drawBlobStroke(outer, accent, 3+force*5, 0.35+force*0.3, 18+force*22);
 
     // Contour intérieur (plus fin)
-    const inner=buildBlob(R+force*8, (angle)=>
+    const inner=buildBlob(Math.min(R+force*8, R+12), (angle)=>
       Math.sin(angle*5+phase*1.4)*3+Math.sin(angle*3-phase)*2
     );
     drawBlobStroke(inner, accent, 1.5, 0.6+force*0.3, 8);
@@ -1935,7 +1953,7 @@ function fusionnerSections(sections) {
 }
 
 function actionDevis(){
-  if(isRec) stopMic();
+  if(micState!=='idle') stopMic();
   if(devisData) mettreAJourDevis();
   else genererDevis();
 }
