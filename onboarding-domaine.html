@@ -110,6 +110,7 @@ html,body{width:100%;height:100%;background:#0d0d0d;color:#fff;font-family:'Inte
      ÉCRAN 2 — CHOIX MÉTIERS
 ════════════════════════════════════════════════════ -->
 <div id="screen-2" class="screen">
+  <button onclick="goToScreen(1)" style="position:absolute;top:16px;left:16px;background:none;border:none;cursor:pointer;font-size:22px;color:var(--text2);line-height:1;padding:4px 8px;z-index:10;">←</button>
   <div class="screen-title">Choisissez votre métier</div>
   <div class="screen-sub" id="sub-2">Vous pouvez en sélectionner jusqu'à 3</div>
   <div class="metiers-grid" id="metiers-grid"></div>
@@ -137,6 +138,7 @@ function goToScreen(n){
     const nxt = document.getElementById('screen-'+n);
     nxt.style.pointerEvents = '';
     nxt.classList.add('active');
+    if(n === 1) initOrbital();
   }, 420);
 }
 
@@ -277,6 +279,11 @@ function initOrbital(){
     }
     _orbitalAnimId = requestAnimationFrame(draw);
   }
+  window._resetOrbitalSelection = () => {
+    selectedIdx = -1;
+    hoveredIdx  = -1;
+    for(let i = 0; i < tScales.length; i++) tScales[i] = 1;
+  };
   draw();
 }
 
