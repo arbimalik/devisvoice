@@ -298,7 +298,7 @@ select option{background:var(--card);color:var(--text);}
 
 <div class="tabs">
   <button class="tab active" onclick="showTab('devis',this)">Devis</button>
-  <button class="tab" onclick="showTab('chantiers',this)">🏗 Chantiers</button>
+  <button class="tab" id="tab-btn-chantiers" onclick="showTab('chantiers',this)">🏗 Chantiers</button>
   <button class="tab" onclick="showTab('profil',this)">Mon Profil</button>
   <button class="tab" onclick="showTab('tarifs',this)">Facturation</button>
 </div>
@@ -343,7 +343,7 @@ select option{background:var(--card);color:var(--text);}
       </div>
       <div class="form-row-3">
         <div>
-          <label>Date de début des travaux</label>
+          <label id="lbl-date-debut">Date de début des travaux</label>
           <input type="date" id="date-debut" oninput="majDevisTempsReel()">
         </div>
         <div>
@@ -494,7 +494,7 @@ select option{background:var(--card);color:var(--text);}
   <div id="subtab-cours">
     <div class="card">
       <div class="card-header ch-orange" style="display:flex;justify-content:space-between;align-items:center;">
-        <span>🏗 Chantiers en cours</span>
+        <span id="span-chantiers-en-cours">🏗 Chantiers en cours</span>
         <button id="btn-mode-fusion" onclick="toggleModeFusion()" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.3px;">⚡ Fusionner</button>
       </div>
       <!-- Barre d'action fusion (visible en mode sélection) -->
@@ -817,6 +817,7 @@ if (!isDevMode) {
             setIfEmpty('ent-tel',         profile.telephone);
             // Filtrer les corps de métier selon la famille
             filtrerFamille(profile.famille || lsGet('user_famille') || 'btp');
+            appliquerLabels(profile.famille || lsGet('user_famille') || 'btp');
             // Adapter l'exemple de dictée selon le métier
             adapterExempleDictee(profile.metier || lsGet('user_metier') || '');
             // Verrouiller email comptable si plan gratuit
@@ -834,7 +835,7 @@ if (!isDevMode) {
   const f = _urlFamille || lsGet('user_famille');
   const m = lsGet('user_metier');
   const p = lsGet('user_plan');
-  if(f) filtrerFamille(f);
+  if(f){ filtrerFamille(f); appliquerLabels(f); }
   if(m){ adapterExempleDictee(m); autoSelectionnerMetier(m); }
   verifierPlanComptable(p || 'gratuit');
 })();
@@ -847,6 +848,56 @@ function filtrerFamille(famille){
   document.querySelectorAll('.metiers-section').forEach(sec => {
     sec.style.display = (sec.dataset.famille === f) ? '' : 'none';
   });
+}
+
+function getLabels(famille){
+  const f = (famille || 'btp').toLowerCase();
+  if(f === 'btp') return {
+    sectionHeader : "MAÎTRE D'OUVRAGE & CHANTIER",
+    adresse       : "ADRESSE DU CHANTIER",
+    natureTravaux : "NATURE DES TRAVAUX",
+    dateDebut     : "DATE DE DÉBUT DES TRAVAUX",
+    delai         : "DÉLAI D'EXÉCUTION",
+    onglet        : "Chantiers",
+  };
+  if(f === 'auto') return {
+    sectionHeader : "CLIENT & VÉHICULE",
+    adresse       : "ADRESSE DU CLIENT",
+    natureTravaux : "NATURE DE L'INTERVENTION",
+    dateDebut     : "DATE DE L'INTERVENTION",
+    delai         : "DÉLAI DE REMISE",
+    onglet        : "Interventions",
+  };
+  if(f === 'transport') return {
+    sectionHeader : "CLIENT & COURSE",
+    adresse       : "ADRESSE DE PRISE EN CHARGE",
+    natureTravaux : "NATURE DE LA COURSE",
+    dateDebut     : "DATE DE LA COURSE",
+    delai         : "DURÉE ESTIMÉE",
+    onglet        : "Courses",
+  };
+  return {
+    sectionHeader : "CLIENT & PRESTATION",
+    adresse       : "LIEU DE LA PRESTATION",
+    natureTravaux : "NATURE DE LA PRESTATION",
+    dateDebut     : "DATE DE LA PRESTATION",
+    delai         : "DURÉE DE LA PRESTATION",
+    onglet        : "Prestations",
+  };
+}
+
+function appliquerLabels(famille){
+  const L = getLabels(famille);
+  const el = id => document.getElementById(id);
+  const set = (id, txt) => { const e = el(id); if(e) e.textContent = txt; };
+  set('card-header-client',      '📋 ' + L.sectionHeader);
+  set('lbl-chantier-adresse',    L.adresse);
+  set('lbl-nature-travaux',      L.natureTravaux);
+  set('lbl-delai-execution',     L.delai);
+  set('lbl-date-debut',          L.dateDebut);
+  set('tab-btn-chantiers',       '🏗 ' + L.onglet);
+  set('subtab-btn-cours',        '🏗 ' + L.onglet);
+  set('span-chantiers-en-cours', '🏗 ' + L.onglet + ' en cours');
 }
 
 // ── EXEMPLE DICTÉE ADAPTÉ ─────────────────────────────────────────────────────
@@ -1058,31 +1109,7 @@ let metierCourant = '';
 const METIERS_PRESTATAIRES = ['traiteur'];
 
 function updateFormLabels(key) {
-  const isP = METIERS_PRESTATAIRES.includes(key);
-  const h = document.getElementById('card-header-client');
-  const lA = document.getElementById('lbl-chantier-adresse');
-  const lN = document.getElementById('lbl-nature-travaux');
-  const lD = document.getElementById('lbl-delai-execution');
-  const iA = document.getElementById('chantier-adresse');
-  const iN = document.getElementById('nature-travaux');
-  const iD = document.getElementById('delai-execution');
-  if (isP) {
-    if(h)  h.textContent  = '📋 Client & Prestation';
-    if(lA) lA.textContent = 'Lieu de la Prestation';
-    if(lN) lN.textContent = 'Nature de la Prestation';
-    if(lD) lD.textContent = 'Date de la Prestation';
-    if(iA) iA.placeholder = 'Salle des fêtes, 12 rue des Roses, Paris';
-    if(iN) iN.placeholder = 'Cocktail mariage 150 pers., buffet dînatoire…';
-    if(iD) iD.placeholder = '15 juin 2025 — 18h à minuit';
-  } else {
-    if(h)  h.textContent  = "📋 Maître d'Ouvrage & Chantier";
-    if(lA) lA.textContent = 'Adresse du Chantier';
-    if(lN) lN.textContent = 'Nature des Travaux';
-    if(lD) lD.textContent = "Délai d'Exécution";
-    if(iA) iA.placeholder = '12 rue des Lilas, 75011 Paris';
-    if(iN) iN.placeholder = 'Rénovation salle de bain';
-    if(iD) iD.placeholder = '3 semaines';
-  }
+  appliquerLabels(lsGet('user_famille') || 'btp');
 }
 
 function selMetier(el, key) {
