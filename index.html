@@ -851,7 +851,9 @@ function filtrerFamille(famille){
 }
 
 function getLabels(famille){
-  const f = (famille || 'btp').toLowerCase();
+  const aliases = { batiment:'btp', automobile:'auto' };
+  const raw = (famille || 'btp').toLowerCase();
+  const f = aliases[raw] || raw;
   if(f === 'btp') return {
     sectionHeader : "MAÎTRE D'OUVRAGE & CHANTIER",
     adresse       : "ADRESSE DU CHANTIER",
