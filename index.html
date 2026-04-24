@@ -718,6 +718,23 @@ select option{background:var(--card);color:var(--text);}
       <div style="font-size:12px;color:var(--text2);text-align:center;padding:12px 0;">Chargement…</div>
     </div>
   </div>
+  <div class="card" id="bloc-dev-famille" style="display:none;">
+    <div class="card-header ch-dark">🧪 Mode test — Changer de famille</div>
+    <div class="card-body">
+      <div class="form-group">
+        <label>Famille active</label>
+        <select id="dev-famille-select" onchange="devChangerFamille(this.value)" style="width:100%;padding:10px;border-radius:var(--rsm);border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-size:14px;">
+          <option value="btp">btp — Bâtiment &amp; Construction</option>
+          <option value="restauration">restauration — Restauration &amp; Traiteur</option>
+          <option value="auto">auto — Automobile</option>
+          <option value="transport">transport — Transport &amp; Mobilité</option>
+          <option value="services">services — Services</option>
+          <option value="creation">creation — Création &amp; Design</option>
+        </select>
+      </div>
+      <div id="dev-famille-msg" style="font-size:12px;color:var(--accent);margin-top:6px;min-height:16px;"></div>
+    </div>
+  </div>
 </div>
 
 <!-- TARIFS -->
@@ -818,6 +835,7 @@ if (!isDevMode) {
             // Filtrer les corps de métier selon la famille
             filtrerFamille(profile.famille || lsGet('user_famille') || 'btp');
             appliquerLabels(profile.famille || lsGet('user_famille') || 'btp');
+            initBlocDevFamille();
             // Adapter l'exemple de dictée selon le métier
             adapterExempleDictee(profile.metier || lsGet('user_metier') || '');
             // Verrouiller email comptable si plan gratuit
@@ -3069,6 +3087,40 @@ function afficherLogoPreview(b64){
 function saveProfil(){
   ['ent-prenom','ent-nom-artisan','ent-nom','ent-siret','ent-tel','ent-adr','ent-email','mentions','ent-decennale-compagnie','ent-decennale-numero','ent-banque','ent-iban','ent-bic','ent-titulaire','ent-comptable'].forEach(id=>{const el=document.getElementById(id);if(el)lsSet(id,el.value);});
   flash('p-badge');
+}
+
+function initBlocDevFamille(){
+  const email = lsGet('ent-email') || lsGet('user_email') || '';
+  const bloc = document.getElementById('bloc-dev-famille');
+  if(!bloc) return;
+  if(email === 'malik.arbi@hotmail.com'){
+    bloc.style.display = '';
+    const sel = document.getElementById('dev-famille-select');
+    if(sel) sel.value = lsGet('user_famille') || 'btp';
+  }
+}
+
+async function devChangerFamille(famille){
+  const token = localStorage.getItem('dv_token');
+  const msg = document.getElementById('dev-famille-msg');
+  try {
+    const r = await fetch(BACKEND + '/api/users/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'malik.arbi@hotmail.com', famille })
+    });
+    const data = await r.json();
+    if(data.success || data.famille){
+      lsSet('user_famille', famille);
+      filtrerFamille(famille);
+      appliquerLabels(famille);
+      if(msg) msg.textContent = 'Famille changée : ' + famille;
+    } else {
+      if(msg) msg.textContent = 'Erreur : ' + (data.error || 'inconnue');
+    }
+  } catch(e) {
+    if(msg) msg.textContent = 'Erreur réseau';
+  }
 }
 function saveTarifs(){
   ['t-mo','t-tva'].forEach(id=>{const el=document.getElementById(id);if(el)lsSet(id,el.value);});
