@@ -854,7 +854,7 @@ if (!isDevMode) {
   const m = lsGet('user_metier');
   const p = lsGet('user_plan');
   if(f){ filtrerFamille(f); appliquerLabels(f); }
-  if(m){ adapterExempleDictee(m); autoSelectionnerMetier(m); }
+  if(m) adapterExempleDictee(m);
   verifierPlanComptable(p || 'gratuit');
 })();
 
