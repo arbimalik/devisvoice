@@ -1034,7 +1034,7 @@ function evaluerVisibiliteBdc(){
   const m = (lsGet('user_metier') ||'').toLowerCase();
   let ms = [];
   try { ms = JSON.parse(lsGet('user_metiers')||'[]') || []; } catch(_){}
-  const isVtc = f === 'transport' && (m === 'vtc' || ms.includes('vtc'));
+  const isVtc = f === 'transport' && (m === 'vtc' || ms.some(x => (x||'').toLowerCase() === 'vtc'));
   const subtabs = document.getElementById('devis-subtabs');
   if(subtabs) subtabs.style.display = isVtc ? 'flex' : 'none';
   if(!isVtc){
