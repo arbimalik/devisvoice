@@ -165,8 +165,10 @@ function renderHtml(d){
   const _PRESTATAIRES = ['traiteur','restauration','evenementiel','reception'];
   function _normKey(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,''); }
   const isPresta = d.sections?.some(s => _PRESTATAIRES.some(k => _normKey(s.metier).includes(k))) || false;
-  const lblMO        = isPresta ? 'Client'                       : "Maître d'Ouvrage";
-  const lblOuvrages  = isPresta ? 'Descriptif des Prestations'   : 'Descriptif des Ouvrages';
+  const _famille = (d.famille || localStorage.getItem('user_famille') || '').toLowerCase();
+  const _isBtp   = !_famille || _famille === 'btp' || _famille === 'batiment';
+  const lblMO        = _isBtp ? "Maître d'Ouvrage"         : 'Client';
+  const lblOuvrages  = _isBtp ? 'Descriptif des Ouvrages'   : 'Descriptif des Prestations';
   const lblNature    = isPresta ? 'Nature de la prestation'       : 'Nature des travaux';
   const lblDelai     = isPresta ? 'Date'                          : 'Délai';
   const lblDebut     = isPresta ? 'Date'                          : 'Début';
