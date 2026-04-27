@@ -1248,13 +1248,17 @@ function genererBdcPdf(bdc){
     y += 9; doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(0,0,0);
   };
 
-  // Helper row (label + valeur, retour à la ligne auto)
+  // Valeurs alignées à droite sur un x fixe identique pour toutes les lignes
+  const VAL_X = R - 2;
+  const VAL_W = 110;
+
+  // Helper row (label à gauche, valeur alignée à droite, retour à la ligne auto)
   const row = (label, value) => {
     doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(90,90,90);
     doc.text(label, L+2, y);
     doc.setFont('helvetica','normal'); doc.setTextColor(0,0,0);
-    const lines = doc.splitTextToSize(safe(value), 100);
-    doc.text(lines, L+60, y);
+    const lines = doc.splitTextToSize(safe(value), VAL_W);
+    doc.text(lines, VAL_X, y, {align:'right'});
     y += Math.max(lines.length*5, 5) + 2;
   };
 
@@ -1278,9 +1282,9 @@ function genererBdcPdf(bdc){
 
   section('TARIF');
   doc.setFont('helvetica','bold'); doc.setFontSize(18);
-  doc.text(fmtM(bdc.montant_ttc), L+2, y+2);
+  doc.text(fmtM(bdc.montant_ttc), VAL_X, y+2, {align:'right'});
   doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(100,100,100);
-  doc.text('TVA 10% incluse', L+2, y+9);
+  doc.text('TVA 10% incluse', VAL_X, y+9, {align:'right'});
   doc.setTextColor(0,0,0); y += 16;
 
   section('MENTIONS LEGALES');
