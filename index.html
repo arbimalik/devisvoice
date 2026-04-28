@@ -219,7 +219,8 @@ select option{background:var(--card);color:var(--text);}
 
   /* Micro / dictée */
   .mic-zone{padding:20px 0 14px;}
-  .mic-wrap{width:110px;height:110px;margin-bottom:14px;}
+  .mic-wrap{width:110px;height:110px;margin-bottom:14px;overflow:hidden;}
+  .orb-canvas{width:110px;height:110px;}
   .mic-main{width:76px;height:76px;}
   .mic-main svg{width:30px;height:30px;}
   .rpl-1,.rpl-2,.rpl-3{width:110px;height:110px;}
@@ -2658,7 +2659,7 @@ function drawOrb(){
   const canvas=document.getElementById('orb-canvas');
   if(!canvas) return;
   const ctx=canvas.getContext('2d');
-  const W=140, H=140, CX=W/2, CY=H/2, R=54;
+  const W=canvas.width, H=canvas.height, CX=W/2, CY=H/2, R=canvas.width/2-16;
   const data=analyser ? new Uint8Array(analyser.frequencyBinCount) : null;
   const POINTS=180;
   let volLisse=0, phase=0;
