@@ -3881,9 +3881,11 @@ function saveProfil(){
 
 function initBlocDevFamille(){
   const email = lsGet('ent-email') || lsGet('user_email') || '';
+  const isOwner = email === 'malik.arbi@hotmail.com';
+  console.log('[initBlocDevFamille] email lu:', JSON.stringify(email), '| match malik.arbi@hotmail.com:', isOwner);
   const bloc = document.getElementById('bloc-dev-famille');
   if(!bloc) return;
-  if(email === 'malik.arbi@hotmail.com'){
+  if(isOwner){
     bloc.style.display = '';
     const sel = document.getElementById('dev-famille-select');
     if(sel) sel.value = lsGet('user_famille') || 'btp';
