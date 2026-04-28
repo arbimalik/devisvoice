@@ -301,6 +301,7 @@ select option{background:var(--card);color:var(--text);}
   <button class="tab" id="tab-btn-chantiers" onclick="showTab('chantiers',this)">🏗 Chantiers</button>
   <button class="tab" onclick="showTab('profil',this)">Mon Profil</button>
   <button class="tab" onclick="showTab('tarifs',this)">Facturation</button>
+  <button class="tab" onclick="showTab('parametres',this)">⚙️ Paramètres</button>
 </div>
 
 <!-- DEVIS -->
@@ -884,9 +885,62 @@ select option{background:var(--card);color:var(--text);}
       <div class="savebadge" id="t-badge">✓ Tarifs sauvegardés</div>
     </div>
   </div>
-  <div style="margin-top:6px">
-    <a href="pricing.html" style="color:#FF4500;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;text-decoration:none;">Gérer mon abonnement →</a>
+</div>
+
+<!-- PARAMÈTRES -->
+<div id="tab-parametres" class="content">
+
+  <!-- 1. MON COMPTE -->
+  <div class="card">
+    <div class="card-header ch-dark">👤 Mon Compte</div>
+    <div class="card-body">
+      <div class="form-group"><label>Email</label><input type="email" id="acc-email" placeholder="vous@exemple.fr"></div>
+      <div class="form-group"><label>Nouveau mot de passe</label><input type="password" id="acc-pwd" placeholder="Laisser vide pour ne pas changer" autocomplete="new-password"></div>
+      <div class="form-group"><label>Confirmer le mot de passe</label><input type="password" id="acc-pwd2" placeholder="Confirmer" autocomplete="new-password"></div>
+      <button class="btn-primary" onclick="sauvegarderCompte()">💾 Sauvegarder les modifications</button>
+      <div class="sbar" id="acc-sbar"></div>
+    </div>
   </div>
+
+  <!-- 2. MON ABONNEMENT -->
+  <div class="card" style="margin-top:14px;">
+    <div class="card-header ch-dark">💳 Mon Abonnement</div>
+    <div class="card-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;font-weight:600;">Plan actuel</div>
+          <div id="abo-plan-label" style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:var(--accent);margin-top:4px;">—</div>
+        </div>
+        <a id="abo-cta" href="pricing.html" style="background:var(--accent);color:#fff;border:none;border-radius:20px;padding:10px 18px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;text-decoration:none;text-transform:uppercase;letter-spacing:.5px;">Passer au Pro →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. DONNÉES & CONFIDENTIALITÉ -->
+  <div class="card" style="margin-top:14px;">
+    <div class="card-header ch-dark">🔐 Données & Confidentialité</div>
+    <div class="card-body">
+      <button class="btn-primary" onclick="exporterMesDonnees()" style="background:var(--card);color:var(--text);border:1.5px solid var(--border);">📥 Exporter mes données</button>
+      <button onclick="ouvrirModalSuppression()" style="width:100%;background:rgba(220,50,50,.10);color:#e04040;border:1.5px solid rgba(220,50,50,.3);padding:15px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;border-radius:var(--radius);cursor:pointer;margin-top:10px;">🗑 Supprimer mon compte</button>
+      <div class="sbar" id="dp-sbar"></div>
+    </div>
+  </div>
+
+  <!-- Modale confirmation suppression -->
+  <div id="suppression-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:700;overflow-y:auto;padding:20px;align-items:center;justify-content:center;">
+    <div style="background:var(--card);border-radius:var(--radius);max-width:440px;margin:60px auto;padding:24px;border:1px solid var(--border);">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:#e04040;margin-bottom:12px;">⚠️ Supprimer mon compte</div>
+      <p style="font-size:13px;color:var(--text);line-height:1.5;margin-bottom:14px;">Cette action est <strong>irréversible</strong>. Tous vos devis, factures et bons de commande seront définitivement supprimés.</p>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:8px;">Tapez <strong style="color:#e04040;">SUPPRIMER</strong> pour confirmer :</p>
+      <input type="text" id="suppr-confirm" placeholder="SUPPRIMER" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:var(--rsm);background:var(--input-bg);color:var(--text);font-size:14px;margin-bottom:14px;">
+      <div style="display:flex;gap:10px;">
+        <button onclick="fermerModalSuppression()" style="flex:1;background:none;border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:11px;font-size:13px;cursor:pointer;">Annuler</button>
+        <button onclick="confirmerSuppressionCompte()" style="flex:1;background:#e04040;color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;">Supprimer définitivement</button>
+      </div>
+      <div class="sbar" id="suppr-sbar" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -1450,6 +1504,121 @@ function deconnecter(){
   window.location.href = 'login.html';
 }
 
+// ── PARAMÈTRES — MON COMPTE / ABONNEMENT / CONFIDENTIALITÉ ─────────────────────
+const PLAN_LABELS = {
+  gratuit:'Gratuit', starter:'Starter', pro:'Pro', equipe:'Équipe', solo:'Solo'
+};
+
+function chargerParametres(){
+  const emailEl = document.getElementById('acc-email');
+  if(emailEl) emailEl.value = lsGet('user_email') || lsGet('ent-email') || '';
+  const plan = (lsGet('user_plan') || 'gratuit').toLowerCase();
+  const planLabel = document.getElementById('abo-plan-label');
+  if(planLabel) planLabel.textContent = PLAN_LABELS[plan] || plan;
+  const cta = document.getElementById('abo-cta');
+  if(cta){
+    if(plan === 'gratuit'){ cta.textContent = 'Passer au Pro →'; cta.style.display=''; }
+    else { cta.textContent = 'Gérer mon abonnement →'; cta.style.display=''; }
+  }
+}
+
+function showSbar(id, type, msg){
+  const s = document.getElementById(id); if(!s) return;
+  s.className = 'sbar ' + type; s.style.display='flex';
+  s.innerHTML = type==='loading' ? `<div class="spin"></div><span>${msg}</span>` : msg;
+}
+
+async function sauvegarderCompte(){
+  const email = (document.getElementById('acc-email').value || '').trim();
+  const pwd   = document.getElementById('acc-pwd').value || '';
+  const pwd2  = document.getElementById('acc-pwd2').value || '';
+  const token = localStorage.getItem('dv_token');
+  if(!token){ showSbar('acc-sbar','error','Session expirée. Reconnectez-vous.'); return; }
+  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    showSbar('acc-sbar','error','Email invalide.'); return;
+  }
+  if(pwd || pwd2){
+    if(pwd.length < 6){ showSbar('acc-sbar','error','Mot de passe trop court (min. 6 caractères).'); return; }
+    if(pwd !== pwd2){ showSbar('acc-sbar','error','Les mots de passe ne correspondent pas.'); return; }
+  }
+  showSbar('acc-sbar','loading','Sauvegarde…');
+  try{
+    const body = { email };
+    if(pwd) body.mot_de_passe = pwd;
+    const r = await fetch(BACKEND+'/api/users/account', {
+      method:'PUT',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if(!r.ok || !d.success){
+      showSbar('acc-sbar','error', d.error || 'Erreur lors de la sauvegarde.');
+      return;
+    }
+    lsSet('user_email', email);
+    localStorage.setItem('user_email', email);
+    document.getElementById('acc-pwd').value = '';
+    document.getElementById('acc-pwd2').value = '';
+    showSbar('acc-sbar','success','✓ Modifications sauvegardées.');
+  }catch(e){
+    showSbar('acc-sbar','error','Erreur réseau.');
+  }
+}
+
+async function exporterMesDonnees(){
+  const token = localStorage.getItem('dv_token');
+  if(!token){ showSbar('dp-sbar','error','Session expirée. Reconnectez-vous.'); return; }
+  showSbar('dp-sbar','loading','Préparation de l\'export…');
+  try{
+    const r = await fetch(BACKEND+'/api/users/export', {
+      headers:{'Authorization':'Bearer '+token}
+    });
+    if(!r.ok){ showSbar('dp-sbar','error','Erreur lors de l\'export.'); return; }
+    const data = await r.json();
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'devisvoice-export-'+(new Date().toISOString().slice(0,10))+'.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    showSbar('dp-sbar','success','✓ Export téléchargé.');
+  }catch(e){
+    showSbar('dp-sbar','error','Erreur réseau.');
+  }
+}
+
+function ouvrirModalSuppression(){
+  document.getElementById('suppr-confirm').value = '';
+  const sb = document.getElementById('suppr-sbar'); if(sb){ sb.style.display='none'; sb.innerHTML=''; }
+  const modal = document.getElementById('suppression-modal');
+  modal.style.display = 'flex';
+}
+function fermerModalSuppression(){
+  document.getElementById('suppression-modal').style.display = 'none';
+}
+async function confirmerSuppressionCompte(){
+  const v = (document.getElementById('suppr-confirm').value || '').trim();
+  if(v !== 'SUPPRIMER'){ showSbar('suppr-sbar','error','Veuillez taper SUPPRIMER pour confirmer.'); return; }
+  const token = localStorage.getItem('dv_token');
+  if(!token){ showSbar('suppr-sbar','error','Session expirée.'); return; }
+  showSbar('suppr-sbar','loading','Suppression en cours…');
+  try{
+    const r = await fetch(BACKEND+'/api/users/account', {
+      method:'DELETE',
+      headers:{'Authorization':'Bearer '+token}
+    });
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok || !d.success){
+      showSbar('suppr-sbar','error', d.error || 'Erreur lors de la suppression.');
+      return;
+    }
+    localStorage.clear();
+    window.location.href = 'login.html';
+  }catch(e){
+    showSbar('suppr-sbar','error','Erreur réseau.');
+  }
+}
+
 const BACKEND= window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1'
   ? 'http://localhost:8080'
   : 'https://devisvoice-backend-production-9ed2.up.railway.app';
@@ -1551,6 +1720,7 @@ function showTab(n,el){
   document.getElementById('tab-'+n).classList.add('active');
   el.classList.add('active');
   if(n==='profil'){loadStats();loadHabitudes();}
+  if(n==='parametres'){chargerParametres();}
   if(n==='chantiers'){
     const _f=(lsGet('user_famille')||'').toLowerCase();
     const _m=(lsGet('user_metier')||'').toLowerCase();
