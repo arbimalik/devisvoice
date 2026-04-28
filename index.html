@@ -3350,16 +3350,9 @@ function renderDevis(d){
 
   document.getElementById('devis-preview').innerHTML=`
   <div class="devis-preview">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div>
-        <h1>DEVIS N° ${d.numero}</h1>
-        <div style="font-size:11px;color:var(--text2);margin-top:2px;">${d.date} &nbsp;·&nbsp; Validité : ${d.validite}${dateDebutHtml}</div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-size:11px;color:var(--text2);">TOTAL TTC</div>
-        <div style="font-size:20px;font-weight:800;color:var(--accent);">${fmt(d.total_ttc)} €</div>
-        ${acomptePct > 0 ? `<div style="font-size:11px;color:var(--text2);">Acompte ${acomptePct}% : ${fmt(acompteMontant)} €</div>` : ''}
-      </div>
+    <div style="margin-bottom:12px;">
+      <h1>DEVIS N° ${d.numero}</h1>
+      <div style="font-size:11px;color:var(--text2);margin-top:2px;">${d.date} &nbsp;·&nbsp; Validité : ${d.validite}${dateDebutHtml}</div>
     </div>
     <h2>Intervenants</h2>
     <div class="hgrid">
@@ -3384,7 +3377,7 @@ function renderDevis(d){
       ${chantier.delai ? `${chantier.nature?'<br>':''}<strong>Délai :</strong> ${chantier.delai}` : ''}
       ${d.date_debut ? `<br><strong>Début :</strong> ${d.date_debut}` : ''}
     </div>` : ''}
-    <h2>Prestations / Ouvrages</h2>
+    <h2>${(()=>{const f=(lsGet('user_famille')||'').toLowerCase();return (f==='btp'||f==='batiment')?'DESCRIPTIF DES OUVRAGES':'PRESTATIONS';})()}</h2>
   </div>
   ${isMobile
     ? `<div style="padding:0 18px 14px;">${sectionsHtml}</div>`
