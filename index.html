@@ -698,6 +698,22 @@ select option{background:var(--card);color:var(--text);}
   </div>
 </div>
 
+<!-- MODAL DÉTAIL DEVIS -->
+<div id="detail-devis-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:600;overflow-y:auto;padding:20px;">
+  <div style="background:var(--card);border-radius:var(--radius);max-width:480px;margin:60px auto;border:1px solid var(--border);overflow:hidden;">
+    <div style="background:var(--bg2);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);">
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;">📋 Détail du devis</div>
+      <button onclick="fermerDetailDevis()" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;line-height:1;padding:2px 8px;">×</button>
+    </div>
+    <div id="detail-devis-body" style="padding:16px 18px 14px;font-size:13px;color:var(--text);">Chargement…</div>
+    <div style="padding:12px 18px 16px;background:var(--bg3);border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn-primary" id="detail-devis-btn-pdf" onclick="telechargerDevisDetailPdf()" style="flex:1;min-width:140px;">📄 Télécharger le PDF</button>
+      <button class="btn-sec" id="detail-devis-btn-mail" onclick="envoyerDevisDetail()" style="flex:1;min-width:140px;">📧 Envoyer par email</button>
+    </div>
+    <div class="sbar" id="detail-devis-sbar" style="margin:0 18px 14px;"></div>
+  </div>
+</div>
+
 <!-- PROFIL -->
 <div id="tab-profil" class="content">
   <div class="card">
@@ -1716,7 +1732,7 @@ async function loadStats(){
     // Derniers devis
     if(s.derniers&&s.derniers.length){
       document.getElementById('stat-derniers').innerHTML=s.derniers.map(d=>`
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">
+        <div onclick="ouvrirDetailDevis('${d.id}')" style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer;">
           <div>
             <span style="font-weight:600;color:var(--text);font-size:12px">${d.id}</span>
             <span style="color:var(--text2);margin-left:6px;font-size:11px">${d.client||'—'}</span>
@@ -1730,6 +1746,96 @@ async function loadStats(){
       document.getElementById('stat-derniers').textContent='Aucun devis pour le moment.';
     }
   }catch(e){ document.getElementById('stat-derniers').textContent='Impossible de charger les stats.'; }
+}
+
+// ── DÉTAIL DEVIS (modale depuis "Derniers devis") ─────────────────────────────
+let _detailDevisCourant = null;
+
+async function ouvrirDetailDevis(id){
+  const modal = document.getElementById('detail-devis-modal');
+  const body  = document.getElementById('detail-devis-body');
+  const sbar  = document.getElementById('detail-devis-sbar');
+  if(sbar){ sbar.style.display='none'; sbar.className='sbar'; sbar.textContent=''; }
+  body.innerHTML = '<div style="text-align:center;padding:14px 0;color:var(--text2);"><div class="spin" style="display:inline-block;margin-right:8px;vertical-align:middle;"></div>Chargement…</div>';
+  modal.style.display = 'block';
+  _detailDevisCourant = null;
+  try{
+    const r = await fetch(BACKEND+'/api/devis/'+encodeURIComponent(id));
+    if(!r.ok) throw new Error('Devis introuvable');
+    const row = await r.json();
+    const d = row.data || {};
+    _detailDevisCourant = d;
+    const date = row.created_at ? new Date(row.created_at).toLocaleDateString('fr-FR') : (d.date||'—');
+    const statut = row.accepted
+      ? '<span style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;background:rgba(0,180,80,.12);color:#00b450;">✓ Accepté</span>'
+      : '<span style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;background:var(--accent-bg);color:var(--accent);">En attente</span>';
+    body.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--text2);">Numéro</span><span style="font-weight:700;">${row.id}</span></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--text2);">Client</span><span style="font-weight:600;">${d.client?.nom||'—'}</span></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--text2);">Montant TTC</span><span style="font-weight:700;color:var(--accent);">${d.total_ttc?fmt(parseFloat(d.total_ttc))+' €':'—'}</span></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--text2);">Date</span><span>${date}</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:var(--text2);">Statut</span>${statut}</div>
+      </div>`;
+  }catch(e){
+    body.innerHTML = '<div style="color:#e04040;text-align:center;padding:14px 0;">Impossible de charger le devis.</div>';
+  }
+}
+
+function fermerDetailDevis(){
+  document.getElementById('detail-devis-modal').style.display = 'none';
+  _detailDevisCourant = null;
+}
+
+function telechargerDevisDetailPdf(){
+  if(!_detailDevisCourant){ return; }
+  try{
+    const b64 = genererPdfDevisBase64(_detailDevisCourant);
+    const link = document.createElement('a');
+    link.href = 'data:application/pdf;base64,'+b64;
+    link.download = 'Devis-'+(_detailDevisCourant.numero||'devis')+'.pdf';
+    document.body.appendChild(link); link.click(); link.remove();
+  }catch(e){
+    showSbar('detail-devis-sbar','error','Erreur lors de la génération du PDF.');
+  }
+}
+
+async function envoyerDevisDetail(){
+  if(!_detailDevisCourant){ return; }
+  const d = _detailDevisCourant;
+  const ce = (d.client?.email || prompt('Email du client :','') || '').trim();
+  if(!ce){ return; }
+  const artisanEmail = ls('ent-email')||'';
+  const artisanNom   = ls('ent-nom')||'Votre artisan';
+  const montantTTC   = fmt(parseFloat(d.total_ttc)||0)+' €';
+  const accentColor  = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#FF4500';
+  const html = `<div style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;color:#222;">
+    <div style="background:${accentColor};padding:22px 28px;border-radius:10px 10px 0 0;">
+      <div style="color:#fff;font-size:19px;font-weight:800;">${artisanNom}</div>
+      <div style="color:rgba(255,255,255,.75);font-size:12px;margin-top:3px;">Devis N° ${d.numero||''} · ${d.date||''}</div>
+    </div>
+    <div style="background:#fff;padding:28px;border:1px solid #eee;border-top:none;border-radius:0 0 10px 10px;">
+      <p style="font-size:15px;margin:0 0 6px;">Bonjour ${d.client?.nom||''},</p>
+      <p style="font-size:14px;color:#444;margin:0 0 20px;line-height:1.7;">Veuillez trouver ci-joint votre devis <strong>${d.numero||''}</strong> d'un montant de <strong style="color:${accentColor};">${montantTTC}</strong>.</p>
+      <p style="margin-top:20px;font-size:10px;color:#ccc;text-align:center;">Généré avec DevisVoice</p>
+    </div>
+  </div>`;
+  showSbar('detail-devis-sbar','loading','Envoi en cours…');
+  try{
+    const b64 = genererPdfDevisBase64(d);
+    const r = await fetch(BACKEND+'/api/send-devis',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ artisanNom, artisanEmail, clientEmail:ce,
+        subject:'Devis '+(d.numero||'')+' - '+artisanNom, html,
+        attachments:[{ filename:'Devis-'+(d.numero||'devis')+'.pdf', content:b64 }]
+      })
+    });
+    const res = await r.json();
+    if(!r.ok || !res.success) throw new Error(res.error||'Erreur envoi');
+    showSbar('detail-devis-sbar','success','✓ Devis envoyé à '+ce);
+  }catch(e){
+    showSbar('detail-devis-sbar','error','Erreur lors de l\'envoi.');
+  }
 }
 
 function showTab(n,el){
