@@ -192,18 +192,21 @@ select option{background:var(--card);color:var(--text);}
 @media(max-width:480px){
 
   /* Navigation */
-  nav{padding:0 12px;height:50px;}
-  .logo{font-size:18px;}
-  .btn-agent{font-size:10px;padding:6px 10px;}
-  .theme-sw{gap:1px;padding:2px;}
-  .tbtn{width:24px;height:24px;}
+  nav{padding:0 10px;height:50px;}
+  .logo{font-size:16px;}
+  .nav-right{gap:5px;}
+  .btn-agent{font-size:9px;padding:5px 9px;letter-spacing:.3px;}
+  .theme-sw{gap:0;padding:2px;}
+  .tbtn{width:22px;height:22px;}
+  #btn-deconnexion-header{display:none;}
 
-  /* Tabs */
-  .tabs{padding:0 8px;}
-  .tab{font-size:12px;padding:11px 10px 9px;}
+  /* Tabs — scroll horizontal pour éviter chevauchement */
+  .tabs{padding:0 8px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{font-size:12px;padding:11px 10px 9px;white-space:nowrap;flex-shrink:0;}
 
   /* Contenu */
-  .content{padding:12px 10px 80px;}
+  .content{padding:12px 14px 80px;}
 
   /* Cards */
   .card-body{padding:12px 14px;}
@@ -292,7 +295,7 @@ select option{background:var(--card);color:var(--text);}
       <button class="tbtn" onclick="setTheme('light-green',this)" title="Noir / Beige" style="color:#c9a96e"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 2a6 6 0 0 0-5.81 7.54l-7.1 7.1a1.5 1.5 0 0 0 0 2.12l2.12 2.12a1.5 1.5 0 0 0 2.12 0l7.1-7.1A6 6 0 1 0 16 2zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"/></svg></button>
     </div>
     <button class="btn-agent">Assistant</button>
-    <button onclick="deconnecter()" style="background:transparent;border:1px solid #FF4500;color:#FF4500;border-radius:20px;padding:7px 14px;font-size:11px;font-weight:700;text-transform:uppercase;font-family:'Syne',sans-serif;cursor:pointer;letter-spacing:.5px;margin-left:6px;">Déconnexion</button>
+    <button id="btn-deconnexion-header" onclick="deconnecter()" style="background:transparent;border:1px solid #FF4500;color:#FF4500;border-radius:20px;padding:7px 14px;font-size:11px;font-weight:700;text-transform:uppercase;font-family:'Syne',sans-serif;cursor:pointer;letter-spacing:.5px;margin-left:6px;">Déconnexion</button>
   </div>
 </nav>
 
@@ -898,6 +901,7 @@ select option{background:var(--card);color:var(--text);}
       <div class="form-group"><label>Nouveau mot de passe</label><input type="password" id="acc-pwd" placeholder="Laisser vide pour ne pas changer" autocomplete="new-password"></div>
       <div class="form-group"><label>Confirmer le mot de passe</label><input type="password" id="acc-pwd2" placeholder="Confirmer" autocomplete="new-password"></div>
       <button class="btn-primary" onclick="sauvegarderCompte()">💾 Sauvegarder les modifications</button>
+      <button onclick="deconnecter()" style="width:100%;background:transparent;border:1px solid #FF4500;color:#FF4500;border-radius:20px;padding:11px;font-size:13px;font-weight:700;text-transform:uppercase;font-family:'Syne',sans-serif;cursor:pointer;letter-spacing:.5px;margin-top:10px;">🚪 Se déconnecter</button>
       <div class="sbar" id="acc-sbar"></div>
     </div>
   </div>
