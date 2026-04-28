@@ -1020,6 +1020,7 @@ if (!isDevMode) {
           headers: { 'Authorization': 'Bearer ' + token }
         }).then(r => r.json()).then(profile => {
           if (profile && profile.email) {
+            window._currentUser = profile;
             lsSet('user_famille',   profile.famille || '');
             lsSet('user_metier',    profile.metier  || '');
             lsSet('user_metiers',   JSON.stringify(profile.metiers || []));
@@ -3880,12 +3881,15 @@ function saveProfil(){
 }
 
 function initBlocDevFamille(){
-  const email = lsGet('ent-email') || lsGet('user_email') || '';
-  const isOwner = email === 'malik.arbi@hotmail.com';
-  console.log('[initBlocDevFamille] email lu:', JSON.stringify(email), '| match malik.arbi@hotmail.com:', isOwner);
+  const _entEl = document.getElementById('ent-email');
+  const email = lsGet('ent-email')
+    || lsGet('user_email')
+    || (window._currentUser && window._currentUser.email)
+    || (_entEl && _entEl.value)
+    || '';
   const bloc = document.getElementById('bloc-dev-famille');
   if(!bloc) return;
-  if(isOwner){
+  if(email === 'malik.arbi@hotmail.com'){
     bloc.style.display = '';
     const sel = document.getElementById('dev-famille-select');
     if(sel) sel.value = lsGet('user_famille') || 'btp';
