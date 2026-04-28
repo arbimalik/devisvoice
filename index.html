@@ -869,6 +869,7 @@ select option{background:var(--card);color:var(--text);}
     <div class="card-header ch-dark">💰 Paramètres de Facturation</div>
     <div class="card-body">
       <div class="form-group"><label>Taux Horaire Main d'Œuvre (€/h)</label><input type="number" id="t-mo" placeholder="45"></div>
+      <div class="form-group"><label>Taux Journalier (€/jour)</label><input type="number" id="t-journalier" placeholder="350" step="0.01"></div>
       <div class="form-row">
         <div><label>TVA par Défaut</label>
           <select id="t-tva" onchange="majTvaDevis(this.value)">
@@ -903,7 +904,7 @@ if(USER_KEY && !localStorage.getItem('_migr_'+USER_KEY)){
    'user_telephone','user_plan','user_document_type','ent-nom','ent-email','ent-tel',
    'ent-adr','ent-siret','ent-prenom','ent-nom-artisan','ent-logo','ent-banque','ent-iban',
    'ent-bic','ent-titulaire','ent-comptable','ent-decennale-compagnie','ent-decennale-numero',
-   'mentions','t-mo','t-tva','theme'].forEach(k => {
+   'mentions','t-mo','t-journalier','t-tva','theme'].forEach(k => {
     const old = localStorage.getItem(k);
     if(old !== null && !localStorage.getItem(USER_KEY+'_'+k))
       localStorage.setItem(USER_KEY+'_'+k, old);
@@ -950,6 +951,12 @@ if (!isDevMode) {
             lsSet('user_telephone', profile.telephone  || '');
             lsSet('user_plan',      profile.plan    || 'gratuit');
             lsSet('user_plaque',    profile.plaque  || '');
+            // Taux journalier (DB → localStorage + champ)
+            if(profile.taux_journalier !== undefined && profile.taux_journalier !== null){
+              lsSet('t-journalier', String(profile.taux_journalier));
+              const tjEl = document.getElementById('t-journalier');
+              if(tjEl) tjEl.value = profile.taux_journalier;
+            }
             console.log('famille lue:', lsGet('user_famille'));
             console.log('metier lu:', lsGet('user_metier'));
             // Pré-remplir les champs profil si vides
@@ -1978,7 +1985,7 @@ function afficherPrestations(key) {
             style="flex:1;padding:5px 8px;border:1.5px solid var(--border);border-radius:5px;font-size:13px;background:var(--input-bg);color:var(--text);text-align:right;">
           <select onchange="setUnite('${key}',${i},this.value)"
             style="flex:1;padding:5px 6px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text);">
-            ${['m²','ml','m³','u','h','j','forfait','kg','tonne','lot'].map(u=>`<option value="${u}" ${(p.unite||'')=== u?'selected':''}>${u}</option>`).join('')}
+            ${['m²','ml','m³','u','h','j','km','forfait','kg','tonne','lot'].map(u=>`<option value="${u}" ${(p.unite||'')=== u?'selected':''}>${u}</option>`).join('')}
           </select>
         </div>
       </div>`;
@@ -1992,7 +1999,7 @@ function afficherPrestations(key) {
           style="width:100%;padding:4px 6px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;background:var(--input-bg);color:var(--text);text-align:right">
         <select onchange="setUnite('${key}',${i},this.value)"
           style="width:100%;padding:4px 4px;border:1.5px solid var(--border);border-radius:5px;font-size:11px;background:var(--input-bg);color:var(--text)">
-          ${['m²','ml','m³','u','h','j','forfait','kg','tonne','lot'].map(u=>`<option value="${u}" ${(p.unite||'')=== u?'selected':''}>${u}</option>`).join('')}
+          ${['m²','ml','m³','u','h','j','km','forfait','kg','tonne','lot'].map(u=>`<option value="${u}" ${(p.unite||'')=== u?'selected':''}>${u}</option>`).join('')}
         </select>
         <button onclick="supprimerPrestation('${key}',${i})" title="Supprimer"
           style="background:rgba(220,50,50,.12);color:#e04040;border:1px solid rgba(220,50,50,.2);border-radius:5px;padding:4px 8px;font-size:13px;cursor:pointer;width:100%;">🗑</button>
@@ -3610,7 +3617,7 @@ async function devChangerFamille(famille){
   }
 }
 function saveTarifs(){
-  ['t-mo','t-tva'].forEach(id=>{const el=document.getElementById(id);if(el)lsSet(id,el.value);});
+  ['t-mo','t-journalier','t-tva'].forEach(id=>{const el=document.getElementById(id);if(el)lsSet(id,el.value);});
   const tva=document.getElementById('t-tva').value;
   const mentionsAuto={
     '10':'TVA à taux réduit 10% applicable — Art. 279 du CGI',
@@ -3622,6 +3629,17 @@ function saveTarifs(){
   if(mentionsEl && mentionsAuto[tva]){
     mentionsEl.value=mentionsAuto[tva];
     lsSet('mentions',mentionsAuto[tva]);
+  }
+  // Persistance backend du taux journalier (table users.taux_journalier)
+  const email = lsGet('user_email') || lsGet('ent-email');
+  const tjEl  = document.getElementById('t-journalier');
+  const tjVal = tjEl ? tjEl.value : '';
+  if(email){
+    fetch(BACKEND+'/api/users/register', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email, taux_journalier: tjVal === '' ? null : Number(tjVal) })
+    }).catch(()=>{});
   }
   flash('t-badge');
 }
@@ -4745,7 +4763,7 @@ async function marquerPayee(){
 }
 
 function loadAll(){
-  const map={'ent-prenom':'ent-prenom','ent-nom-artisan':'ent-nom-artisan','ent-nom':'ent-nom','ent-siret':'ent-siret','ent-tel':'ent-tel','ent-adr':'ent-adr','ent-email':'ent-email','mentions':'mentions','ent-decennale-compagnie':'ent-decennale-compagnie','ent-decennale-numero':'ent-decennale-numero','ent-banque':'ent-banque','ent-iban':'ent-iban','ent-bic':'ent-bic','ent-titulaire':'ent-titulaire','ent-comptable':'ent-comptable','t-mo':'t-mo','t-tva':'t-tva'};
+  const map={'ent-prenom':'ent-prenom','ent-nom-artisan':'ent-nom-artisan','ent-nom':'ent-nom','ent-siret':'ent-siret','ent-tel':'ent-tel','ent-adr':'ent-adr','ent-email':'ent-email','mentions':'mentions','ent-decennale-compagnie':'ent-decennale-compagnie','ent-decennale-numero':'ent-decennale-numero','ent-banque':'ent-banque','ent-iban':'ent-iban','ent-bic':'ent-bic','ent-titulaire':'ent-titulaire','ent-comptable':'ent-comptable','t-mo':'t-mo','t-journalier':'t-journalier','t-tva':'t-tva'};
   Object.keys(map).forEach(k=>{const v=lsGet(k);const el=document.getElementById(map[k]);if(v&&el){el.value=v;}});
   const tvaSaved=lsGet('t-tva');
   if(tvaSaved) majTvaDevis(tvaSaved);
