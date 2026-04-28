@@ -2121,6 +2121,14 @@ function afficherPrestations(key) {
       if(!prestationsActives[key].find(x=>x.nom===p)) prestationsActives[key].push({nom:p,actif:true,prix:'',unite:getDefaultUnite(key,p)});
     });
   }
+  // Filtrage : ne garder que les prestations du métier courant + personnalisées.
+  // Retire les entrées appartenant exclusivement à d'autres métiers (données obsolètes).
+  const ownList = new Set(list);
+  const autresMetiers = new Set();
+  Object.keys(PRESTATIONS).forEach(k => {
+    if(k !== key) PRESTATIONS[k].forEach(p => autresMetiers.add(p));
+  });
+  prestationsActives[key] = prestationsActives[key].filter(p => ownList.has(p.nom) || !autresMetiers.has(p.nom));
 
   let html = '<div style="background:var(--bg3);border-radius:8px;padding:12px;border:1px solid var(--border)">';
   html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
