@@ -956,8 +956,11 @@ function lsGet(key){ return localStorage.getItem(USER_KEY ? USER_KEY+'_'+key : k
 function lsSet(key, val){ localStorage.setItem(USER_KEY ? USER_KEY+'_'+key : key, val); }
 function lsRemove(key){ localStorage.removeItem(USER_KEY ? USER_KEY+'_'+key : key); }
 
-// Migration one-shot : copier les clés non-préfixées existantes vers les clés préfixées
-if(USER_KEY && !localStorage.getItem('_migr_'+USER_KEY)){
+// Migration one-shot legacy → préfixé.
+// Ne s'exécute QUE si aucun compte n'a déjà été migré sur ce navigateur,
+// pour éviter qu'un nouveau compte hérite des clés non-préfixées d'un compte précédent.
+const _aDejaMigré = Object.keys(localStorage).some(k => k.startsWith('_migr_'));
+if(USER_KEY && !localStorage.getItem('_migr_'+USER_KEY) && !_aDejaMigré){
   ['user_famille','user_metier','user_metiers','user_prenom','user_nom','user_entreprise',
    'user_telephone','user_plan','user_document_type','ent-nom','ent-email','ent-tel',
    'ent-adr','ent-siret','ent-prenom','ent-nom-artisan','ent-logo','ent-banque','ent-iban',
@@ -1051,6 +1054,17 @@ if (!isDevMode) {
   verifierPlanComptable(p || 'gratuit');
   document.addEventListener('DOMContentLoaded', evaluerVisibiliteBdc);
   if(document.readyState !== 'loading') evaluerVisibiliteBdc();
+  // Auto-sélection du premier métier si famille connue mais aucun métier choisi
+  if(f && !m){
+    const _aliases = { batiment:'btp', automobile:'auto' };
+    const _fNorm = _aliases[f.toLowerCase()] || f.toLowerCase();
+    const _autoSel = () => {
+      const firstMc = document.querySelector('.metiers-section[data-famille="'+_fNorm+'"] .mc');
+      if(firstMc && !document.querySelector('.mc.sel')) firstMc.click();
+    };
+    if(document.readyState !== 'loading') _autoSel();
+    else document.addEventListener('DOMContentLoaded', _autoSel);
+  }
 })();
 
 // ── FILTRE FAMILLE ────────────────────────────────────────────────────────────
@@ -1660,10 +1674,10 @@ function varBadge(actuel, precedent, isPercent){
 }
 
 async function loadStats(){
-  const email = lsGet('ent-email');
-  if(!email){ document.getElementById('stat-derniers').textContent='Renseignez votre email pro dans "Votre Entreprise".'; return; }
+  const token = localStorage.getItem('dv_token');
+  if(!token){ document.getElementById('stat-derniers').textContent='Session expirée. Reconnectez-vous.'; return; }
   try{
-    const r=await fetch(BACKEND+'/api/stats?email='+encodeURIComponent(email));
+    const r=await fetch(BACKEND+'/api/stats', { headers:{'Authorization':'Bearer '+token} });
     if(!r.ok) return;
     const s=await r.json();
 
@@ -4557,13 +4571,14 @@ function showSubTab(name, btn){
 }
 
 async function loadChantiers(){
+  const token = localStorage.getItem('dv_token');
   const email = ls('ent-email');
   const container = document.getElementById('chantiers-list');
-  if(!email){ container.innerHTML='<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">Renseignez votre email pro dans Mon Profil.</div>'; return; }
+  if(!token){ container.innerHTML='<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">Session expirée. Reconnectez-vous.</div>'; return; }
   container.innerHTML='<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;"><div class="spin" style="display:inline-block;margin-right:8px;vertical-align:middle;"></div>Chargement…</div>';
   try{
     const [devisRes, facturesRes] = await Promise.all([
-      fetch(BACKEND+'/api/devis?email='+encodeURIComponent(email)),
+      fetch(BACKEND+'/api/devis', { headers:{'Authorization':'Bearer '+token} }),
       fetch(BACKEND+'/api/factures?email='+encodeURIComponent(email))
     ]);
     const tousDevis = devisRes.ok ? await devisRes.json() : [];
