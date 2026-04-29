@@ -339,13 +339,13 @@ async function terminer(){
   localStorage.setItem('onboarding_complete', 'true');
 
   // Mettre à jour le profil si un token existe
-  const email = localStorage.getItem('user_email');
-  if(email){
+  const token = localStorage.getItem('dv_token');
+  if(token){
     try {
-      await fetch(BACKEND + '/api/users/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, famille, metier, metiers, document_type })
+      await fetch(BACKEND + '/api/users/account', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ famille, metier, metiers, document_type })
       });
     } catch(e) { /* non bloquant */ }
   }
