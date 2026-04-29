@@ -1762,7 +1762,10 @@ async function ouvrirDetailDevis(id){
   modal.style.display = 'block';
   _detailDevisCourant = null;
   try{
-    const r = await fetch(BACKEND+'/api/devis/'+encodeURIComponent(id));
+    const _jwt = localStorage.getItem('dv_token') || '';
+    const r = await fetch(BACKEND+'/api/devis/'+encodeURIComponent(id), {
+      headers: _jwt ? { 'Authorization': 'Bearer '+_jwt } : {}
+    });
     if(!r.ok) throw new Error('Devis introuvable');
     const row = await r.json();
     const d = row.data || {};
@@ -3609,9 +3612,24 @@ async function envoyerDevis(){
   const clientTelEmailHtml = d.client.tel
     ? `<br>📞 ${d.client.tel}` : '';
 
+  // Sauvegarde + récupération du share_token pour le lien d'acceptation client
+  let shareToken='';
+  try{
+    const _saveR=await fetch(BACKEND+'/api/devis/save',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({id:d.numero,data:d,artisanEmail,artisanNom,clientEmail:ce})
+    });
+    if(_saveR.ok){
+      const _saveData=await _saveR.json();
+      shareToken=_saveData.share_token||'';
+    }
+  }catch(e){}
+  if(!shareToken){ showES('error','❌ Impossible de générer le lien sécurisé. Réessayez.'); return; }
+
   const BASE_URL='https://arbimalik.github.io/devisvoice';
-  const acceptUrl=`${BASE_URL}/accept.html?numero=${encodeURIComponent(d.numero)}&client=${encodeURIComponent(d.client.nom)}&artisan=${encodeURIComponent(artisanNom)}&artisanEmail=${encodeURIComponent(artisanEmail)}&montant=${encodeURIComponent(montantTTC)}&clientEmail=${encodeURIComponent(ce)}`;
-  const pdfUrl=`${BASE_URL}/devis-pdf.html?id=${encodeURIComponent(d.numero)}`;
+  const tokenParam=encodeURIComponent(shareToken);
+  const acceptUrl=`${BASE_URL}/accept.html?token=${tokenParam}&numero=${encodeURIComponent(d.numero)}&client=${encodeURIComponent(d.client.nom)}&artisan=${encodeURIComponent(artisanNom)}&artisanEmail=${encodeURIComponent(artisanEmail)}&montant=${encodeURIComponent(montantTTC)}&clientEmail=${encodeURIComponent(ce)}`;
+  const pdfUrl=`${BASE_URL}/devis-pdf.html?token=${tokenParam}`;
 
   const accentColor=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#FF4500';
   const entTelArtisan = ls('ent-tel')||'';
@@ -4118,7 +4136,10 @@ async function ouvrirModalFinChantier(devisId){
 
   // Charger le devis pour afficher les infos
   try {
-    const r = await fetch(BACKEND+'/api/devis/'+encodeURIComponent(devisId));
+    const _jwt = localStorage.getItem('dv_token') || '';
+    const r = await fetch(BACKEND+'/api/devis/'+encodeURIComponent(devisId), {
+      headers: _jwt ? { 'Authorization': 'Bearer '+_jwt } : {}
+    });
     const row = await r.json();
     const d = typeof row.data === 'string' ? JSON.parse(row.data) : row.data;
 
@@ -4478,7 +4499,10 @@ async function confirmerFinChantier(){
 
   try {
     // Charger le devis complet
-    const r = await fetch(BACKEND+'/api/devis/'+encodeURIComponent(devisId));
+    const _jwt = localStorage.getItem('dv_token') || '';
+    const r = await fetch(BACKEND+'/api/devis/'+encodeURIComponent(devisId), {
+      headers: _jwt ? { 'Authorization': 'Bearer '+_jwt } : {}
+    });
     const row = await r.json();
     const d = typeof row.data === 'string' ? JSON.parse(row.data) : row.data;
 
@@ -4792,7 +4816,10 @@ async function ouvrirFacture(devisId){
   content.innerHTML='<div style="text-align:center;padding:30px;"><div class="spin" style="display:inline-block;margin-right:8px;vertical-align:middle;"></div>Chargement…</div>';
   modal.style.display='block';
   try{
-    const r = await fetch(BACKEND+'/api/devis/'+encodeURIComponent(devisId));
+    const _jwt = localStorage.getItem('dv_token') || '';
+    const r = await fetch(BACKEND+'/api/devis/'+encodeURIComponent(devisId), {
+      headers: _jwt ? { 'Authorization': 'Bearer '+_jwt } : {}
+    });
     const row = await r.json();
     const d = typeof row.data==='string'?JSON.parse(row.data):row.data;
     if(!d.logo) d.logo = lsGet('ent-logo')||'';

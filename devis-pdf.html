@@ -350,10 +350,20 @@ function renderFactureHtml(d){
 async function init(){
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
+  const shareToken = params.get('token') || '';
   const type = params.get('type') || 'devis';
-  if(!id){document.getElementById('loading').style.display='none';document.getElementById('error').style.display='block';return;}
+  if(!id && !shareToken){document.getElementById('loading').style.display='none';document.getElementById('error').style.display='block';return;}
   try{
-    const r=await fetch(BACKEND+'/api/devis/'+encodeURIComponent(id));
+    // Token = accès public client. Sinon = artisan authentifié (JWT).
+    let r;
+    if(shareToken){
+      r = await fetch(BACKEND+'/api/devis/share/'+encodeURIComponent(shareToken));
+    } else {
+      const jwt = localStorage.getItem('dv_token') || '';
+      r = await fetch(BACKEND+'/api/devis/'+encodeURIComponent(id), {
+        headers: jwt ? { 'Authorization': 'Bearer '+jwt } : {}
+      });
+    }
     if(!r.ok)throw new Error();
     const row=await r.json();
     devisData=typeof row.data==='string'?JSON.parse(row.data):row.data;

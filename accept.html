@@ -170,6 +170,7 @@ body{font-family:'Inter',sans-serif;background:#f5f4f1;min-height:100vh;display:
 const BACKEND = 'https://devisvoice-backend-production-9ed2.up.railway.app';
 const params       = new URLSearchParams(window.location.search);
 const numero       = params.get('numero')      || '';
+const shareToken   = params.get('token')       || '';
 const clientNom    = params.get('client')      || '';
 const artisanNom   = params.get('artisan')     || '';
 const artisanEmail = params.get('artisanEmail')|| '';
@@ -246,7 +247,10 @@ function init(){
   document.getElementById('rc-artisan').textContent=artisanNom||'—';
   document.getElementById('rc-montant').textContent=montant||'—';
 
-  fetch(BACKEND+'/api/devis/'+encodeURIComponent(numero))
+  // Accès via token de partage (sécurisé). Lien sans token = email legacy, retombe en silence.
+  fetch(BACKEND + (shareToken
+    ? '/api/devis/share/'+encodeURIComponent(shareToken)
+    : '/api/devis/'+encodeURIComponent(numero)))
     .then(r=>r.ok?r.json():null)
     .then(row=>{
       if(!row)return;
