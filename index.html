@@ -4855,7 +4855,8 @@ async function setStatutFacture(devisId, statut){
   const factureId = 'F-'+devisId;
   try{
     await fetch(BACKEND+'/api/factures/'+encodeURIComponent(factureId)+'/statut', {
-      method:'PATCH', headers:{'Content-Type':'application/json'},
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('dv_token')||'')},
       body: JSON.stringify({ statut })
     });
   }catch(e){ /* localStorage déjà mis à jour, on continue */ }
