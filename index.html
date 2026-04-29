@@ -1291,13 +1291,13 @@ async function enregistrerBonCommande(){
 async function sauvegarderPlaque(){
   const sbar = document.getElementById('plaque-sbar');
   const plaque = (document.getElementById('user-plaque').value || '').trim().toUpperCase();
-  const email = lsGet('ent-email') || lsGet('user_email');
-  if(!email){ sbar.className='sbar error'; sbar.textContent='Email pro requis.'; return; }
+  const token = localStorage.getItem('dv_token');
+  if(!token){ sbar.className='sbar error'; sbar.textContent='Connexion requise.'; return; }
   sbar.className='sbar loading'; sbar.innerHTML='<div class="spin"></div>Enregistrement…';
   try{
-    const r = await fetch(BACKEND+'/api/users/register', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ email, plaque })
+    const r = await fetch(BACKEND+'/api/users/account', {
+      method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({ plaque })
     });
     const data = await r.json();
     if(data.success){
@@ -3921,14 +3921,15 @@ function initBlocDevFamille(){
 async function devChangerFamille(famille){
   const token = localStorage.getItem('dv_token');
   const msg = document.getElementById('dev-famille-msg');
+  if(!token){ if(msg) msg.textContent = 'Connexion requise.'; return; }
   try {
-    const r = await fetch(BACKEND + '/api/users/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'malik.arbi@hotmail.com', famille })
+    const r = await fetch(BACKEND + '/api/users/account', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ famille })
     });
     const data = await r.json();
-    if(data.success || data.famille){
+    if(data.success){
       lsSet('user_famille', famille);
       filtrerFamille(famille);
       appliquerLabels(famille);
@@ -3955,14 +3956,14 @@ function saveTarifs(){
     lsSet('mentions',mentionsAuto[tva]);
   }
   // Persistance backend du taux journalier (table users.taux_journalier)
-  const email = lsGet('user_email') || lsGet('ent-email');
+  const _tjToken = localStorage.getItem('dv_token');
   const tjEl  = document.getElementById('t-journalier');
   const tjVal = tjEl ? tjEl.value : '';
-  if(email){
-    fetch(BACKEND+'/api/users/register', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ email, taux_journalier: tjVal === '' ? null : Number(tjVal) })
+  if(_tjToken){
+    fetch(BACKEND+'/api/users/account', {
+      method:'PUT',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_tjToken},
+      body: JSON.stringify({ taux_journalier: tjVal === '' ? null : Number(tjVal) })
     }).catch(()=>{});
   }
   flash('t-badge');
