@@ -3971,17 +3971,17 @@ function flash(id){const el=document.getElementById(id);el.classList.add('show')
 let _clientSearchTimer = null;
 
 async function rechercherClient(q, target){
-  const email = ls('ent-email');
+  const _jwt = localStorage.getItem('dv_token') || '';
   const ddId      = target === 'bdc' ? 'bdc-client-dropdown' : 'client-dropdown';
   const remplirFn = target === 'bdc' ? 'remplirClientBdc'    : 'remplirClient';
   const dropdown = document.getElementById(ddId);
-  if(!email){ dropdown.style.display='none'; return; }
+  if(!_jwt){ dropdown.style.display='none'; return; }
 
   clearTimeout(_clientSearchTimer);
   _clientSearchTimer = setTimeout(async ()=>{
     try{
-      const url = BACKEND+'/api/clients?email='+encodeURIComponent(email)+(q.trim()?'&q='+encodeURIComponent(q.trim()):'');
-      const r = await fetch(url);
+      const url = BACKEND+'/api/clients'+(q.trim()?'?q='+encodeURIComponent(q.trim()):'');
+      const r = await fetch(url, { headers: { 'Authorization': 'Bearer '+_jwt } });
       const clients = r.ok ? await r.json() : [];
       if(!clients.length){ dropdown.style.display='none'; return; }
       dropdown.innerHTML = clients.map(c=>`
