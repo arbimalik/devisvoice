@@ -2426,10 +2426,10 @@ Réponds UNIQUEMENT avec le JSON brut, sans markdown, sans explication, sans tex
     document.getElementById('dictee-text').innerText = '';
     // Sauvegarde auto en BDD
     fetch(BACKEND+'/api/devis/save', {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer '+(localStorage.getItem('dv_token')||'')},
       body: JSON.stringify({
         id: devisData.numero, data: devisData,
-        artisanEmail: ls('ent-email')||'',
         artisanNom: ls('ent-nom')||'',
         clientEmail: devisData.client?.email||''
       })
@@ -2448,10 +2448,10 @@ function sauvegarderDevisDebounce(){
   window._saveDevisTimer = setTimeout(() => {
     if(!devisData) return;
     fetch(BACKEND+'/api/devis/save', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'Authorization': 'Bearer '+(localStorage.getItem('dv_token')||'')},
       body: JSON.stringify({
         id: devisData.numero, data: devisData,
-        artisanEmail: ls('ent-email')||'',
         artisanNom: ls('ent-nom')||'',
         clientEmail: devisData.client?.email||''
       })
@@ -3341,12 +3341,15 @@ RÈGLES ABSOLUES: Ne jamais inventer un prix. Unité: "pers" par personne, "h" h
         parsed.decennale_compagnie = ls('ent-decennale-compagnie')||'';
         parsed.decennale_numero    = ls('ent-decennale-numero')||'';
         parsed.logo      = lsGet('ent-logo')||'';
-        fetch(BACKEND+'/api/devis/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-          id:parsed.numero,data:parsed,
-          artisanEmail:ls('ent-email')||'',
-          artisanNom:ls('ent-nom')||'',
-          clientEmail:document.getElementById('client-email').value||''
-        })}).catch(()=>{});
+        fetch(BACKEND+'/api/devis/save',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('dv_token')||'')},
+          body:JSON.stringify({
+            id:parsed.numero,data:parsed,
+            artisanNom:ls('ent-nom')||'',
+            clientEmail:document.getElementById('client-email').value||''
+          })
+        }).catch(()=>{});
       } else {
         const sections=parsed.sections||[];
         sections.forEach(s=>{
@@ -3616,8 +3619,9 @@ async function envoyerDevis(){
   let shareToken='';
   try{
     const _saveR=await fetch(BACKEND+'/api/devis/save',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({id:d.numero,data:d,artisanEmail,artisanNom,clientEmail:ce})
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('dv_token')||'')},
+      body:JSON.stringify({id:d.numero,data:d,artisanNom,clientEmail:ce})
     });
     if(_saveR.ok){
       const _saveData=await _saveR.json();
@@ -3717,10 +3721,10 @@ async function imprimerDevis(){
   clearTimeout(window._saveDevisTimer);
   try{
     await fetch(BACKEND+'/api/devis/save',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('dv_token')||'')},
       body:JSON.stringify({
         id:devisData.numero,data:devisData,
-        artisanEmail:ls('ent-email')||'',
         artisanNom:ls('ent-nom')||'',
         clientEmail:devisData.client?.email||''
       })
@@ -4735,15 +4739,16 @@ async function loadChantiers(){
 }
 
 async function sauvegarderLibelle(devisId, valeur){
-  const email = ls('ent-email');
-  if(!email) return;
+  const _jwt = localStorage.getItem('dv_token') || '';
+  if(!_jwt) return;
   // Mettre à jour en mémoire pour que le re-render (mode fusion) conserve la valeur
   const d = _devisCourants.find(d => d.id === devisId);
   if(d) d.libelle = valeur;
   try{
     await fetch(BACKEND+'/api/devis/save', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ id: devisId, libelle: valeur, artisanEmail: email, data: null, _libelleOnly: true })
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_jwt},
+      body: JSON.stringify({ id: devisId, libelle: valeur, data: null, _libelleOnly: true })
     });
   }catch(e){ /* silencieux */ }
 }
@@ -5001,12 +5006,15 @@ function majObservations(val){
   // Re-sauvegarder en BDD avec les observations
   clearTimeout(window._obsSaveTimer);
   window._obsSaveTimer = setTimeout(()=>{
-    fetch(BACKEND+'/api/devis/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-      id:devisData.numero, data:devisData,
-      artisanEmail:ls('ent-email')||'',
-      artisanNom:ls('ent-nom')||'',
-      clientEmail:document.getElementById('client-email').value||''
-    })}).catch(()=>{});
+    fetch(BACKEND+'/api/devis/save',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('dv_token')||'')},
+      body:JSON.stringify({
+        id:devisData.numero, data:devisData,
+        artisanNom:ls('ent-nom')||'',
+        clientEmail:document.getElementById('client-email').value||''
+      })
+    }).catch(()=>{});
   }, 1000);
 }
 
