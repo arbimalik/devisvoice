@@ -53,6 +53,35 @@ nav{background:var(--nav);display:flex;align-items:center;justify-content:space-
 .tbtn.active{opacity:1;border-color:var(--accent);transform:scale(1.1);}
 .btn-agent{background:var(--accent);color:#fff;border:none;padding:7px 14px;font-family:'Syne',sans-serif;font-weight:700;font-size:11px;letter-spacing:.5px;text-transform:uppercase;border-radius:20px;cursor:pointer;}
 
+/* ── ASSISTANT CHAT ── */
+#assistant-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:800;align-items:flex-end;justify-content:center;padding:0;}
+#assistant-modal.open{display:flex;}
+#assistant-box{background:var(--card);width:100%;max-width:480px;border-radius:20px 20px 0 0;display:flex;flex-direction:column;height:min(580px,90vh);box-shadow:0 -4px 40px rgba(0,0,0,.18);}
+.assistant-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 14px;border-bottom:1px solid var(--border);}
+.assistant-header-left{display:flex;align-items:center;gap:10px;}
+.assistant-avatar-dv{width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;color:#fff;flex-shrink:0;}
+.assistant-title{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--text);}
+.assistant-subtitle{font-size:11px;color:var(--text2);margin-top:1px;}
+.assistant-close{background:none;border:none;font-size:20px;color:var(--text2);cursor:pointer;padding:4px;line-height:1;}
+.assistant-messages{flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:12px;}
+.assistant-messages::-webkit-scrollbar{width:4px;}
+.assistant-messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+.msg-row{display:flex;align-items:flex-end;gap:8px;}
+.msg-row.user{flex-direction:row-reverse;}
+.msg-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:11px;flex-shrink:0;}
+.msg-avatar.dv{background:var(--accent);color:#fff;}
+.msg-avatar.user{background:var(--bg3);color:var(--text2);}
+.msg-bubble{max-width:78%;padding:10px 13px;border-radius:14px;font-size:13px;line-height:1.55;color:var(--text);}
+.msg-row.assistant .msg-bubble{background:var(--bg3);border-bottom-left-radius:4px;}
+.msg-row.user .msg-bubble{background:var(--accent);color:#fff;border-bottom-right-radius:4px;}
+.msg-typing .msg-bubble{background:var(--bg3);color:var(--text2);font-style:italic;}
+.assistant-footer{padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:8px;}
+.assistant-input{flex:1;border:1.5px solid var(--border);border-radius:20px;padding:10px 14px;font-family:'Inter',sans-serif;font-size:13px;background:var(--input-bg);color:var(--text);outline:none;transition:border-color .2s;}
+.assistant-input:focus{border-color:var(--accent);}
+.assistant-send{background:var(--accent);color:#fff;border:none;border-radius:20px;padding:10px 16px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;transition:opacity .2s;}
+.assistant-send:disabled{opacity:.45;cursor:default;}
+@media(min-width:520px){#assistant-box{border-radius:20px;margin-bottom:24px;}}
+
 .tabs{background:var(--tab-bg);display:flex;padding:0 18px;border-bottom:1px solid var(--border);}
 .tab{background:none;border:none;color:var(--text2);font-family:'Inter',sans-serif;font-weight:500;font-size:13px;padding:13px 16px 11px;cursor:pointer;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
@@ -295,7 +324,7 @@ select option{background:var(--card);color:var(--text);}
       <button class="tbtn" onclick="setTheme('light-blue',this)" title="Beige / Bleu" style="color:#3a8eff"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2 10c2-3 4-4 6-4s4 2 6 2 4-2 6-2v3c-2 0-4 2-6 2s-4-2-6-2-4 2-6 2v-3zm0 6c2-3 4-4 6-4s4 2 6 2 4-2 6-2v3c-2 0-4 2-6 2s-4-2-6-2-4 2-6 2v-3z"/></svg></button>
       <button class="tbtn" onclick="setTheme('light-green',this)" title="Noir / Beige" style="color:#c9a96e"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 2a6 6 0 0 0-5.81 7.54l-7.1 7.1a1.5 1.5 0 0 0 0 2.12l2.12 2.12a1.5 1.5 0 0 0 2.12 0l7.1-7.1A6 6 0 1 0 16 2zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"/></svg></button>
     </div>
-    <button class="btn-agent">Assistant</button>
+    <button class="btn-agent" onclick="ouvrirAssistant()">Assistant</button>
     <button id="btn-deconnexion-header" onclick="deconnecter()" style="background:transparent;border:1px solid #FF4500;color:#FF4500;border-radius:20px;padding:7px 14px;font-size:11px;font-weight:700;text-transform:uppercase;font-family:'Syne',sans-serif;cursor:pointer;letter-spacing:.5px;margin-left:6px;">Déconnexion</button>
   </div>
 </nav>
@@ -946,6 +975,27 @@ select option{background:var(--card);color:var(--text);}
       <div class="sbar" id="dp-sbar"></div>
       <div style="text-align:center;margin-top:16px;">
         <a href="privacy.html" style="font-size:12px;color:var(--text2);text-decoration:none;border-bottom:1px solid var(--border);">Politique de confidentialité</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale Assistant IA -->
+  <div id="assistant-modal" onclick="if(event.target===this)fermerAssistant()">
+    <div id="assistant-box">
+      <div class="assistant-header">
+        <div class="assistant-header-left">
+          <div class="assistant-avatar-dv">DV</div>
+          <div>
+            <div class="assistant-title">Assistant DevisVoice</div>
+            <div class="assistant-subtitle">Répond à vos questions sur l'app</div>
+          </div>
+        </div>
+        <button class="assistant-close" onclick="fermerAssistant()">✕</button>
+      </div>
+      <div class="assistant-messages" id="assistant-messages"></div>
+      <div class="assistant-footer">
+        <input class="assistant-input" id="assistant-input" type="text" placeholder="Posez votre question…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();envoyerMessageAssistant();}">
+        <button class="assistant-send" id="assistant-send" onclick="envoyerMessageAssistant()">Envoyer</button>
       </div>
     </div>
   </div>
@@ -5168,6 +5218,124 @@ setTimeout(()=>{ if(!isRec) drawOrb(); }, 300);
     if(el && !el.value) el.value=testFields[k];
   });
 })();
+
+// ── ASSISTANT IA ──────────────────────────────────────────────────────────────
+const ASSISTANT_SYSTEM = `Tu es l'assistant officiel de DevisVoice, une application qui permet aux artisans de créer et gérer leurs devis et factures par dictée vocale.
+
+Tu peux aider sur :
+- Création de devis par dictée vocale : appuyer sur le bouton micro, dicter les travaux, l'IA génère le devis
+- Envoi de devis : bouton "Envoyer au client" dans l'onglet Devis, le client reçoit un email avec lien de signature
+- Signature électronique : le client signe directement depuis le lien reçu par email
+- Génération de facture : depuis un devis accepté, onglet Factures, bouton "Créer la facture"
+- Plans disponibles : Gratuit (fonctions de base), Pro (clients illimités, factures), Business (comptable, statistiques avancées)
+- Modification de profil : onglet Paramètres, sections "Mon Profil" et "Mon Compte"
+- Modification de devis : dicter ou taper une instruction dans le champ de modification, l'IA applique les changements
+
+Si la question sort de ce périmètre, réponds exactement : "Je ne peux pas répondre à cette question, contactez-nous à contact@devisvoice.fr"
+
+Réponds toujours en français, de façon concise et amicale. Maximum 3 phrases.`;
+
+let _assistantHistory = [];
+let _assistantOpened = false;
+
+function ouvrirAssistant() {
+  const modal = document.getElementById('assistant-modal');
+  modal.classList.add('open');
+  if (!_assistantOpened) {
+    _assistantOpened = true;
+    _appendAssistantMsg('assistant', 'Bonjour\u00a0! Je suis l\'assistant DevisVoice. Comment puis-je vous aider\u00a0?');
+  }
+  setTimeout(() => document.getElementById('assistant-input').focus(), 100);
+}
+
+function fermerAssistant() {
+  document.getElementById('assistant-modal').classList.remove('open');
+}
+
+function _appendAssistantMsg(role, text) {
+  const list = document.getElementById('assistant-messages');
+  const prenom = lsGet('user_prenom') || 'U';
+  const initiale = prenom.charAt(0).toUpperCase();
+
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + role;
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar ' + (role === 'assistant' ? 'dv' : 'user');
+  avatar.textContent = role === 'assistant' ? 'DV' : initiale;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.textContent = text;
+
+  row.appendChild(avatar);
+  row.appendChild(bubble);
+  list.appendChild(row);
+  list.scrollTop = list.scrollHeight;
+  return row;
+}
+
+function _appendTyping() {
+  const list = document.getElementById('assistant-messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row assistant msg-typing';
+  row.id = 'assistant-typing';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar dv';
+  avatar.textContent = 'DV';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.textContent = 'En train d\'écrire…';
+
+  row.appendChild(avatar);
+  row.appendChild(bubble);
+  list.appendChild(row);
+  list.scrollTop = list.scrollHeight;
+}
+
+async function envoyerMessageAssistant() {
+  const input = document.getElementById('assistant-input');
+  const sendBtn = document.getElementById('assistant-send');
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  sendBtn.disabled = true;
+  _appendAssistantMsg('user', text);
+  _assistantHistory.push({ role: 'user', content: text });
+
+  _appendTyping();
+
+  try {
+    const token = localStorage.getItem('dv_token') || '';
+    const r = await fetch(BACKEND + '/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ payload: {
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 512,
+        system: ASSISTANT_SYSTEM,
+        messages: _assistantHistory
+      }})
+    });
+    const data = await r.json();
+    const reply = data.content?.[0]?.text || 'Désolé, une erreur est survenue.';
+    _assistantHistory.push({ role: 'assistant', content: reply });
+
+    const typing = document.getElementById('assistant-typing');
+    if (typing) typing.remove();
+    _appendAssistantMsg('assistant', reply);
+  } catch {
+    const typing = document.getElementById('assistant-typing');
+    if (typing) typing.remove();
+    _appendAssistantMsg('assistant', 'Erreur réseau. Veuillez réessayer.');
+  } finally {
+    sendBtn.disabled = false;
+    input.focus();
+  }
+}
 </script>
 </body>
 </html>
