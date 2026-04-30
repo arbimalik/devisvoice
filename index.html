@@ -80,6 +80,10 @@ nav{background:var(--nav);display:flex;align-items:center;justify-content:space-
 .assistant-input:focus{border-color:var(--accent);}
 .assistant-send{background:var(--accent);color:#fff;border:none;border-radius:20px;padding:10px 16px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;transition:opacity .2s;}
 .assistant-send:disabled{opacity:.45;cursor:default;}
+.assistant-feedback{display:flex;gap:6px;padding:4px 0 0 36px;}
+.fb-btn{border:none;border-radius:20px;padding:6px 12px;font-size:11px;font-weight:600;font-family:'Syne',sans-serif;cursor:pointer;transition:opacity .15s;}
+.fb-yes{background:var(--accent);color:#fff;}
+.fb-no{background:var(--bg3);color:var(--text2);border:1px solid var(--border);}
 @media(min-width:520px){#assistant-box{border-radius:20px;margin-bottom:24px;}}
 
 .tabs{background:var(--tab-bg);display:flex;padding:0 18px;border-bottom:1px solid var(--border);}
@@ -5236,13 +5240,15 @@ Si la question sort de ce périmètre, réponds exactement : "Je ne peux pas ré
 Réponds toujours en français, de façon concise et amicale. Maximum 3 phrases.`;
 
 let _assistantHistory = [];
-let _assistantOpened = false;
+
+function _resetAssistant() {
+  _assistantHistory = [];
+  document.getElementById('assistant-messages').innerHTML = '';
+}
 
 function ouvrirAssistant() {
-  const modal = document.getElementById('assistant-modal');
-  modal.classList.add('open');
-  if (!_assistantOpened) {
-    _assistantOpened = true;
+  document.getElementById('assistant-modal').classList.add('open');
+  if (document.getElementById('assistant-messages').children.length === 0) {
     _appendAssistantMsg('assistant', 'Bonjour\u00a0! Je suis l\'assistant DevisVoice. Comment puis-je vous aider\u00a0?');
   }
   setTimeout(() => document.getElementById('assistant-input').focus(), 100);
@@ -5250,6 +5256,7 @@ function ouvrirAssistant() {
 
 function fermerAssistant() {
   document.getElementById('assistant-modal').classList.remove('open');
+  _resetAssistant();
 }
 
 function _appendAssistantMsg(role, text) {
@@ -5273,6 +5280,28 @@ function _appendAssistantMsg(role, text) {
   list.appendChild(row);
   list.scrollTop = list.scrollHeight;
   return row;
+}
+
+function _appendFeedbackBtns() {
+  const list = document.getElementById('assistant-messages');
+  const div = document.createElement('div');
+  div.className = 'assistant-feedback';
+  div.id = 'assistant-feedback';
+
+  const yes = document.createElement('button');
+  yes.className = 'fb-btn fb-yes';
+  yes.textContent = 'Oui, merci ✓';
+  yes.onclick = () => fermerAssistant();
+
+  const no = document.createElement('button');
+  no.className = 'fb-btn fb-no';
+  no.textContent = 'Non, autre question →';
+  no.onclick = () => { div.remove(); document.getElementById('assistant-input').focus(); };
+
+  div.appendChild(yes);
+  div.appendChild(no);
+  list.appendChild(div);
+  list.scrollTop = list.scrollHeight;
 }
 
 function _appendTyping() {
@@ -5301,6 +5330,9 @@ async function envoyerMessageAssistant() {
   const text = input.value.trim();
   if (!text) return;
 
+  const existing = document.getElementById('assistant-feedback');
+  if (existing) existing.remove();
+
   input.value = '';
   sendBtn.disabled = true;
   _appendAssistantMsg('user', text);
@@ -5327,6 +5359,7 @@ async function envoyerMessageAssistant() {
     const typing = document.getElementById('assistant-typing');
     if (typing) typing.remove();
     _appendAssistantMsg('assistant', reply);
+    _appendFeedbackBtns();
   } catch {
     const typing = document.getElementById('assistant-typing');
     if (typing) typing.remove();
