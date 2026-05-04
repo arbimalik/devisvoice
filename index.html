@@ -422,61 +422,68 @@ select option{background:var(--card);color:var(--text);}
     </div>
     <div id="metiers-body" class="card-body">
       <div class="metiers-grid" id="metiers-grid">
-        <!-- BTP -->
+        <!-- BATIMENT -->
         <div class="metiers-section" data-famille="btp">
-          <div class="metiers-famille">🏗 BTP &amp; Bâtiment</div>
-          <div class="mc" onclick="selMetier(this,'carrelage')" data-m="Carrelage / Sols">🪨 Carreleur</div>
+          <div class="metiers-famille">🏗 Bâtiment &amp; Travaux</div>
           <div class="mc" onclick="selMetier(this,'plomberie')" data-m="Plomberie / Sanitaire">🚿 Plombier</div>
           <div class="mc" onclick="selMetier(this,'electricite')" data-m="Électricité">⚡ Électricien</div>
-          <div class="mc" onclick="selMetier(this,'peinture')" data-m="Peinture / Revêtements">🎨 Peintre</div>
           <div class="mc" onclick="selMetier(this,'maconnerie')" data-m="Maçonnerie / Gros œuvre">🧱 Maçon</div>
+          <div class="mc" onclick="selMetier(this,'peinture')" data-m="Peinture / Revêtements">🎨 Peintre</div>
           <div class="mc" onclick="selMetier(this,'menuiserie')" data-m="Menuiserie intérieure / extérieure">🪵 Menuisier</div>
+          <div class="mc" onclick="selMetier(this,'carrelage')" data-m="Carrelage / Sols">🪨 Carreleur</div>
+          <div class="mc" onclick="selMetier(this,'chauffage')" data-m="Plomberie / Chauffage / CVC">🔥 Chauffagiste</div>
+          <div class="mc" onclick="selMetier(this,'etancheur')" data-m="Étanchéité / Toiture terrasse">🛡️ Étancheur</div>
+          <div class="mc" onclick="selMetier(this,'terrassement')" data-m="Terrassement / VRD / Gros œuvre">🚜 Terrassier</div>
           <div class="mc" onclick="selMetier(this,'plaquiste')" data-m="Plâtrerie / Cloisons / Faux-plafonds">🏗️ Plaquiste</div>
           <div class="mc" onclick="selMetier(this,'charpentier')" data-m="Charpente / Ossature bois">🪚 Charpentier</div>
           <div class="mc" onclick="selMetier(this,'facadier')" data-m="Façade / Ravalement / ITE">🏚️ Façadier</div>
-          <div class="mc" onclick="selMetier(this,'chauffage')" data-m="Plomberie / Chauffage / CVC">🔥 Plombier/Chauffagiste</div>
-          <div class="mc" onclick="selMetier(this,'couverture')" data-m="Couverture / Zinguerie / Étanchéité">☔ Couvreur/Zingeur</div>
-          <div class="mc" onclick="selMetier(this,'serrurerie')" data-m="Serrurerie / Métallerie">🔒 Serrurier</div>
-          <div class="mc" onclick="selMetier(this,'terrassement')" data-m="Terrassement / VRD / Gros œuvre">🚜 Terrassier</div>
-          <div class="mc" onclick="selMetier(this,'cuisiniste')" data-m="Cuisine / Agencement">📐 Cuisiniste</div>
           <div class="mc" onclick="selMetier(this,'pisciniste')" data-m="Piscine / Spa / Bassin">🏊 Pisciniste</div>
-          <div class="mc" onclick="selMetier(this,'etancheur')" data-m="Étanchéité / Toiture terrasse">🛡️ Étancheur</div>
           <div class="mc" onclick="selMetier(this,'paysagiste')" data-m="Paysagisme / Espaces verts">🌿 Paysagiste</div>
-          <div class="mc" onclick="selMetier(this,'tous')" data-m="Multi-corps d'état / Rénovation globale">🏠 Tous corps d'état</div>
+          <div class="mc" onclick="selMetier(this,'couverture')" data-m="Couverture / Zinguerie">☔ Couvreur</div>
+          <div class="mc" onclick="selMetier(this,'isolation')" data-m="Isolation thermique / phonique">🧱 Isolation</div>
         </div>
-        <!-- RESTAURATION -->
-        <div class="metiers-section" data-famille="restauration">
-          <div class="metiers-famille">🍽 Restauration &amp; Traiteur</div>
+        <!-- EVENEMENTIEL -->
+        <div class="metiers-section" data-famille="evenementiel">
+          <div class="metiers-famille">🎉 Événementiel &amp; Traiteur</div>
           <div class="mc" onclick="selMetier(this,'traiteur')" data-m="Traiteur / Réception">🥂 Traiteur</div>
-          <div class="mc" onclick="selMetier(this,'traiteur')" data-m="Restaurateur">🍴 Restaurateur</div>
+          <div class="mc" onclick="selMetier(this,'wedding-planner')" data-m="Wedding Planner">💍 Wedding Planner</div>
+          <div class="mc" onclick="selMetier(this,'dj-sono')" data-m="DJ / Sono / Animation">🎵 DJ / Sono</div>
+          <div class="mc" onclick="selMetier(this,'decorateur-event')" data-m="Décorateur événementiel">🌸 Décorateur événementiel</div>
+          <div class="mc" onclick="selMetier(this,'videaste')" data-m="Vidéaste / Reportage">🎥 Vidéaste</div>
         </div>
         <!-- AUTO -->
         <div class="metiers-section" data-famille="auto">
-          <div class="metiers-famille">🚗 Automobile</div>
+          <div class="metiers-famille">🚗 Auto &amp; Mécanique</div>
           <div class="mc" onclick="selMetier(this,'mecanicien')" data-m="Mécanique / Entretien">🔧 Mécanicien</div>
           <div class="mc" onclick="selMetier(this,'carrossier')" data-m="Carrosserie / Peinture">🚙 Carrossier</div>
           <div class="mc" onclick="selMetier(this,'detailing')" data-m="Détailing / Nettoyage auto">✨ Détailing</div>
         </div>
         <!-- SERVICES -->
         <div class="metiers-section" data-famille="services">
-          <div class="metiers-famille">🧹 Services</div>
+          <div class="metiers-famille">🧹 Services &amp; Prestataires</div>
           <div class="mc" onclick="selMetier(this,'nettoyage')" data-m="Nettoyage / Entretien">🧹 Nettoyage</div>
           <div class="mc" onclick="selMetier(this,'demenagement')" data-m="Déménagement / Manutention">📦 Déménagement</div>
           <div class="mc" onclick="selMetier(this,'securite')" data-m="Sécurité / Gardiennage">🛡️ Sécurité</div>
+          <div class="mc" onclick="selMetier(this,'jardinier')" data-m="Jardinage / Espaces verts">🌱 Jardinier</div>
+          <div class="mc" onclick="selMetier(this,'informatique')" data-m="Informatique / Dépannage">💻 Informatique</div>
+          <div class="mc" onclick="selMetier(this,'serrurerie')" data-m="Serrurerie / Dépannage">🔑 Serrurerie</div>
         </div>
         <!-- CREATION -->
         <div class="metiers-section" data-famille="creation">
-          <div class="metiers-famille">🎨 Création</div>
-          <div class="mc" onclick="selMetier(this,'archi-interieur')" data-m="Architecture d'intérieur">🏠 Architecture intérieur</div>
-          <div class="mc" onclick="selMetier(this,'prestataire-it')" data-m="Prestataire IT / Dev">💻 Prestataire IT</div>
+          <div class="metiers-famille">🎨 Création &amp; Design</div>
           <div class="mc" onclick="selMetier(this,'photographe')" data-m="Photographie / Vidéo">📷 Photographe</div>
+          <div class="mc" onclick="selMetier(this,'archi-interieur')" data-m="Architecture d'intérieur">🏠 Architecte d'intérieur</div>
+          <div class="mc" onclick="selMetier(this,'prestataire-it')" data-m="Prestataire IT / Dev">💻 Prestataire IT / Dev</div>
+          <div class="mc" onclick="selMetier(this,'graphiste')" data-m="Graphisme / Design">✏️ Graphiste</div>
+          <div class="mc" onclick="selMetier(this,'videaste-creation')" data-m="Vidéaste / Montage">🎥 Vidéaste</div>
         </div>
         <!-- TRANSPORT -->
         <div class="metiers-section" data-famille="transport">
-          <div class="metiers-famille">🚐 Transport</div>
-          <div class="mc" onclick="selMetier(this,'vtc')" data-m="Chauffeur VTC / Taxi">🚖 Chauffeur VTC</div>
-
-          <div class="mc" onclick="selMetier(this,'coursier')" data-m="Coursier / Livraison">🛵 Coursier</div>
+          <div class="metiers-famille">🚐 Transport &amp; Mobilité</div>
+          <div class="mc" onclick="selMetier(this,'vtc')" data-m="Chauffeur VTC">🚖 Chauffeur VTC</div>
+          <div class="mc" onclick="selMetier(this,'coursier')" data-m="Coursier / Livraison">🛵 Coursier / Livraison</div>
+          <div class="mc" onclick="selMetier(this,'taxi')" data-m="Taxi">🚕 Taxi</div>
+          <div class="mc" onclick="selMetier(this,'transporteur')" data-m="Transport / Logistique">🚛 Transporteur</div>
         </div>
       </div>
       <div id="prestations-zone" style="display:none;margin-top:14px;"></div>
@@ -1132,7 +1139,7 @@ if (!isDevMode) {
   if(document.readyState !== 'loading') evaluerVisibiliteBdc();
   // Auto-sélection du premier métier si famille connue mais aucun métier choisi
   if(f && !m){
-    const _aliases = { batiment:'btp', automobile:'auto' };
+    const _aliases = { batiment:'btp', automobile:'auto', evenementiel:'evenementiel' };
     const _fNorm = _aliases[f.toLowerCase()] || f.toLowerCase();
     const _autoSel = () => {
       const firstMc = document.querySelector('.metiers-section[data-famille="'+_fNorm+'"] .mc');
@@ -1145,7 +1152,7 @@ if (!isDevMode) {
 
 // ── FILTRE FAMILLE ────────────────────────────────────────────────────────────
 function filtrerFamille(famille){
-  const aliases = { batiment:'btp', automobile:'auto' };
+  const aliases = { batiment:'btp', automobile:'auto', evenementiel:'evenementiel' };
   const raw = (famille || 'btp').toLowerCase();
   const f = aliases[raw] || raw;
   document.querySelectorAll('.metiers-section').forEach(sec => {
@@ -1154,7 +1161,7 @@ function filtrerFamille(famille){
 }
 
 function getLabels(famille){
-  const aliases = { batiment:'btp', automobile:'auto' };
+  const aliases = { batiment:'btp', automobile:'auto', evenementiel:'evenementiel' };
   const raw = (famille || 'btp').toLowerCase();
   const f = aliases[raw] || raw;
   if(f === 'btp') return {
