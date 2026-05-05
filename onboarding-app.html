@@ -234,8 +234,16 @@ html,body{height:100dvh;background:#f0ebe3;overflow:hidden;font-family:'Space Gr
         </div>
         <div class="field-group"><div class="field-label">Entreprise</div><input class="field-input" id="reg-entreprise" type="text" placeholder="Plomberie Dupont" autocomplete="organization"></div>
         <div class="field-group"><div class="field-label">Email professionnel</div><input class="field-input" id="reg-email" type="email" placeholder="jean@dupont.fr" autocomplete="email"></div>
+        <div class="field-group"><div class="field-label">Confirmer l'email</div><input class="field-input" id="reg-email-confirm" type="email" placeholder="jean@dupont.fr" autocomplete="email"></div>
         <div class="field-group"><div class="field-label">Téléphone</div><input class="field-input" id="reg-telephone" type="tel" placeholder="06 12 34 56 78" autocomplete="tel"></div>
-        <div class="field-group"><div class="field-label">Mot de passe</div><input class="field-input" id="reg-password" type="password" placeholder="••••••••" autocomplete="new-password"></div>
+        <div class="field-group">
+          <div class="field-label">Mot de passe</div>
+          <input class="field-input" id="reg-password" type="password" placeholder="••••••••" autocomplete="new-password" oninput="updatePwdIndicators()">
+          <div id="pwd-indicators" style="display:flex;gap:14px;margin-top:5px;">
+            <span id="pwd-len" style="font-size:12px;color:var(--muted);">✗ 8 caractères minimum</span>
+            <span id="pwd-maj" style="font-size:12px;color:var(--muted);">✗ 1 majuscule minimum</span>
+          </div>
+        </div>
         <div id="reg-error" class="form-error"></div>
       </div>
     </div>
@@ -512,19 +520,63 @@ function renderMetiers() {
   });
 }
 
+// ── Password indicators ────────────────────────────────────────────────────────
+function updatePwdIndicators() {
+  const pwd = document.getElementById('reg-password').value;
+  const lenOk = pwd.length >= 8;
+  const majOk = /[A-Z]/.test(pwd);
+  const elLen = document.getElementById('pwd-len');
+  const elMaj = document.getElementById('pwd-maj');
+  elLen.textContent = (lenOk ? '✓' : '✗') + ' 8 caractères minimum';
+  elLen.style.color  = lenOk ? '#2d7a3a' : 'var(--muted)';
+  elMaj.textContent = (majOk ? '✓' : '✗') + ' 1 majuscule minimum';
+  elMaj.style.color  = majOk ? '#2d7a3a' : 'var(--muted)';
+}
+
 // ── Register ───────────────────────────────────────────────────────────────────
 async function submitRegister() {
-  const prenom    = document.getElementById('reg-prenom').value.trim();
-  const nom       = document.getElementById('reg-nom').value.trim();
-  const entreprise= document.getElementById('reg-entreprise').value.trim();
-  const email     = document.getElementById('reg-email').value.trim();
-  const telephone = document.getElementById('reg-telephone').value.trim();
-  const password  = document.getElementById('reg-password').value;
-  const errEl     = document.getElementById('reg-error');
-  const btn       = document.getElementById('reg-submit');
+  const prenom       = document.getElementById('reg-prenom').value.trim();
+  const nom          = document.getElementById('reg-nom').value.trim();
+  const entreprise   = document.getElementById('reg-entreprise').value.trim();
+  const email        = document.getElementById('reg-email').value.trim();
+  const emailConfirm = document.getElementById('reg-email-confirm').value.trim();
+  const telephone    = document.getElementById('reg-telephone').value.trim();
+  const password     = document.getElementById('reg-password').value;
+  const errEl        = document.getElementById('reg-error');
+  const btn          = document.getElementById('reg-submit');
 
+  ['reg-prenom','reg-nom','reg-entreprise','reg-email','reg-email-confirm','reg-telephone','reg-password'].forEach(id => {
+    document.getElementById(id).style.borderColor = '';
+  });
   errEl.classList.remove('visible');
-  if (!email || !password) { showRegError('Email et mot de passe requis.'); return; }
+
+  function fieldError(msg, ...ids) {
+    ids.forEach(id => document.getElementById(id).style.borderColor = '#e8420a');
+    showRegError(msg);
+  }
+
+  if (!prenom || !nom || !entreprise || !email || !emailConfirm || !telephone || !password) {
+    fieldError('Tous les champs sont obligatoires.',
+      ...(!prenom ? ['reg-prenom'] : []),
+      ...(!nom ? ['reg-nom'] : []),
+      ...(!entreprise ? ['reg-entreprise'] : []),
+      ...(!email ? ['reg-email'] : []),
+      ...(!emailConfirm ? ['reg-email-confirm'] : []),
+      ...(!telephone ? ['reg-telephone'] : []),
+      ...(!password ? ['reg-password'] : [])
+    );
+    return;
+  }
+
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRe.test(email)) { fieldError('Email invalide.', 'reg-email'); return; }
+
+  if (email !== emailConfirm) { fieldError('Les adresses email ne correspondent pas.', 'reg-email', 'reg-email-confirm'); return; }
+
+  if (password.length < 8 || !/[A-Z]/.test(password)) {
+    document.getElementById('reg-password').style.borderColor = '#e8420a';
+    return;
+  }
 
   btn.disabled = true;
   btn.textContent = 'Création en cours…';

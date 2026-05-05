@@ -1063,7 +1063,7 @@ if (!isDevMode) {
   const onboardingDone = localStorage.getItem('onboarding_complete') === 'true';
 
   if (!onboardingDone) {
-    window.location.href = 'onboarding.html';
+    window.location.href = 'onboarding-web.html';
   } else if (!token) {
     window.location.href = 'login.html';
   } else {

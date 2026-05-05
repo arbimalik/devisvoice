@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="format-detection" content="telephone=no,address=no">
+<title>DevisVoice — Onboarding</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100vh;background:#f0ebe3;font-family:'Space Grotesk',sans-serif;}
+
+:root{
+  --or:#e8420a;--bg:#f0ebe3;--card:#fff;--dark:#1a1510;--muted:#8a8075;--nav:#1a1510;
+}
+
+@keyframes wave1{0%,100%{height:6px}50%{height:28px}}
+@keyframes wave2{0%,100%{height:6px}50%{height:44px}}
+@keyframes wave3{0%,100%{height:6px}50%{height:20px}}
+@keyframes wave4{0%,100%{height:6px}50%{height:38px}}
+@keyframes pulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.8;transform:scale(1.06)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+#app{min-height:100vh;position:relative;}
+
+/* ── Steps ── */
+.step{display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:100px 48px 60px;}
+.step.active{display:flex;animation:fadeIn .25s ease both;}
+#step-0.active{padding:0;height:100vh;min-height:unset;}
+#step-7.active,#step-8.active{padding:0;height:100vh;min-height:unset;}
+
+/* ── Step inner container ── */
+.step-inner{width:100%;max-width:600px;display:flex;flex-direction:column;gap:28px;}
+#step-2 .step-inner{max-width:940px;}
+
+/* ── Back button ── */
+#back-btn{position:fixed;top:28px;left:36px;z-index:100;background:transparent;border:none;color:var(--muted);cursor:pointer;font-family:'Space Grotesk',sans-serif;font-size:32px;line-height:1;display:none;transition:color .2s;padding:4px 8px;}
+#back-btn:hover{color:var(--or);}
+
+/* ── Dots ── */
+.dots{display:flex;gap:6px;justify-content:center;}
+.dot{height:4px;border-radius:99px;background:rgba(0,0,0,0.12);transition:all .35s;}
+.dot.filled{background:var(--or);}
+.dot.active{width:26px;background:var(--or);}
+.dot.inactive{width:8px;}
+
+/* ── Typography ── */
+.h1{font-weight:800;font-size:36px;color:var(--dark);letter-spacing:-1.5px;line-height:1.1;}
+.sub{font-weight:400;font-size:15px;color:var(--muted);line-height:1.5;margin-top:6px;}
+
+/* ── Cards ── */
+.section-card{background:var(--card);border-radius:18px;padding:24px 28px;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
+
+/* ── Buttons ── */
+.btn-primary{width:100%;padding:15px 24px;border-radius:14px;background:var(--or);border:none;color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;cursor:pointer;letter-spacing:-0.3px;transition:background .2s,transform .1s;}
+.btn-primary:hover{background:#ff4f18;transform:scale(1.005);}
+.btn-primary:disabled{opacity:.5;cursor:default;transform:none;}
+.btn-secondary{width:100%;padding:15px 24px;border-radius:14px;background:transparent;border:1.5px solid var(--or);color:var(--or);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;cursor:pointer;letter-spacing:-0.3px;transition:all .2s;}
+.btn-secondary:hover{background:rgba(232,66,10,0.06);}
+
+/* ── Waveform ── */
+.waveform{display:flex;gap:6px;align-items:center;height:56px;}
+.waveform .bar{border-radius:99px;opacity:.75;}
+
+/* ── Plan grid (3 colonnes) ── */
+.plan-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;align-items:start;}
+.plan-card{background:var(--card);border:2px solid rgba(0,0,0,0.07);border-radius:20px;padding:30px 26px;cursor:pointer;position:relative;transition:all .25s;box-shadow:0 2px 12px rgba(0,0,0,0.06);display:flex;flex-direction:column;gap:0;}
+.plan-card:hover{border-color:rgba(232,66,10,0.3);}
+.plan-card.selected{background:rgba(232,66,10,0.05);border-color:var(--or);}
+.plan-card.featured{box-shadow:0 12px 48px rgba(232,66,10,0.16);transform:translateY(-8px);}
+.plan-card.featured.selected{box-shadow:0 12px 48px rgba(232,66,10,0.26);}
+.plan-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--or);border-radius:99px;padding:4px 16px;font-weight:700;font-size:11px;color:#fff;white-space:nowrap;letter-spacing:.3px;}
+.plan-name{font-weight:800;font-size:20px;color:var(--dark);margin-bottom:10px;}
+.plan-price{font-weight:800;font-size:38px;color:var(--dark);letter-spacing:-2px;line-height:1;}
+.plan-price-period{font-size:15px;font-weight:500;color:var(--muted);letter-spacing:0;}
+.plan-card.selected .plan-price{color:var(--or);}
+.plan-divider{height:1px;background:rgba(0,0,0,0.07);margin:20px 0;}
+.plan-features{display:flex;flex-direction:column;gap:10px;}
+.plan-feature{font-size:14px;color:var(--muted);display:flex;align-items:center;gap:9px;line-height:1.4;}
+.plan-feature-check{color:var(--or);font-weight:700;font-size:14px;flex-shrink:0;width:16px;}
+
+/* ── Form fields ── */
+.field-group{display:flex;flex-direction:column;}
+.field-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
+.field-input{background:#fff;border:1.5px solid rgba(0,0,0,0.1);border-radius:12px;padding:13px 16px;font-family:'Space Grotesk',sans-serif;font-size:15px;color:var(--dark);outline:none;transition:border-color .2s;width:100%;}
+.field-input:focus{border-color:var(--or);}
+.field-input::placeholder{color:rgba(0,0,0,0.22);}
+.field-row{display:flex;gap:12px;}
+.field-row .field-group{flex:1;}
+
+.form-error{background:rgba(220,50,50,.1);border:1px solid rgba(220,50,50,.3);border-radius:10px;padding:11px 16px;font-size:13px;color:#c0392b;display:none;}
+.form-error.visible{display:block;}
+
+/* ── Domain grid (3 colonnes) ── */
+.domain-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.domain-card{background:var(--card);border:2px solid rgba(0,0,0,0.07);border-radius:18px;padding:22px 18px;cursor:pointer;transition:all .2s;box-shadow:0 1px 6px rgba(0,0,0,0.05);}
+.domain-card:hover{border-color:rgba(232,66,10,0.3);}
+.domain-card.selected{background:var(--or);border-color:var(--or);}
+.domain-card .d-label{font-weight:700;font-size:16px;color:var(--dark);transition:color .2s;}
+.domain-card .d-sub{font-size:13px;color:var(--muted);margin-top:4px;transition:color .2s;}
+.domain-card.selected .d-label{color:#fff;}
+.domain-card.selected .d-sub{color:rgba(255,255,255,0.65);}
+
+/* ── Métier chips (desktop : plus grandes) ── */
+.metier-chips{display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start;}
+.metier-chip{padding:11px 22px;border-radius:99px;cursor:pointer;transition:all .2s;background:var(--card);border:1.5px solid rgba(0,0,0,0.1);font-weight:600;font-size:15px;color:var(--dark);box-shadow:0 1px 4px rgba(0,0,0,0.05);}
+.metier-chip:hover{border-color:var(--or);background:rgba(232,66,10,0.04);}
+.metier-chip.selected{background:var(--or);border-color:var(--or);color:#fff;}
+.metier-chip.selected:hover{background:#ff4f18;}
+
+/* ── Stripe mock ── */
+.stripe-field{background:#ede8e0;border-radius:10px;padding:13px 14px;font-size:14px;color:rgba(0,0,0,0.22);font-family:'Space Grotesk',sans-serif;}
+
+/* ── Privacy / login links ── */
+.privacy-note{text-align:center;font-size:13px;color:var(--muted);line-height:1.5;}
+.privacy-note a{color:var(--or);text-decoration:none;}
+.privacy-note a:hover{text-decoration:underline;}
+.login-link{text-align:center;margin-top:10px;font-size:14px;color:var(--muted);}
+.login-link span{color:var(--or);cursor:pointer;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Bouton retour (partagé) -->
+  <button id="back-btn" onclick="goBack()">‹</button>
+
+  <!-- ── S0 Splash ── -->
+  <div class="step active" id="step-0" style="background:#0d0c0b;position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 38%,rgba(232,66,10,.2) 0%,transparent 70%);pointer-events:none;"></div>
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:space-between;height:100%;width:100%;max-width:560px;padding:80px 48px;text-align:center;position:relative;">
+      <!-- Logo -->
+      <div style="animation:fadeUp .5s ease both;">
+        <span style="font-weight:800;font-size:48px;letter-spacing:-1px;"><span style="color:#f0ede8;">Devis</span><span style="color:var(--or);">Voice</span></span>
+      </div>
+      <!-- Centre : waveform + tagline -->
+      <div style="animation:fadeUp .5s .1s ease both;">
+        <div class="waveform" id="waveform-splash" style="justify-content:center;"></div>
+        <div style="margin-top:32px;font-weight:800;font-size:44px;color:#f0ede8;letter-spacing:-2px;line-height:1.1;">Devis vocal<br/>en <span style="color:var(--or);">30 secondes</span></div>
+        <div style="font-size:16px;color:rgba(255,255,255,0.45);line-height:1.7;margin-top:14px;">Pour les pros du bâtiment, transport,<br/>auto et services.</div>
+      </div>
+      <!-- CTA -->
+      <div style="animation:fadeUp .5s .2s ease both;width:100%;">
+        <button class="btn-primary" onclick="goTo(1)">Commencer →</button>
+        <div class="login-link" style="color:rgba(255,255,255,0.4);margin-top:12px;">
+          Déjà un compte ? <span style="color:var(--or);" onclick="goTo(8)">Se connecter</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── S1 Comment ça marche ── -->
+  <div class="step" id="step-1">
+    <div class="step-inner">
+      <div class="dots" id="dots-1"></div>
+      <div>
+        <div class="h1">Comment ça<br/>marche ?</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+        <div class="section-card">
+          <div style="font-weight:800;font-size:36px;color:var(--or);line-height:1;margin-bottom:16px;">01</div>
+          <div style="font-weight:700;font-size:18px;color:var(--dark);">Parlez</div>
+          <div style="font-size:14px;color:var(--muted);margin-top:6px;line-height:1.65;">Dictez votre devis à voix haute. L'IA transcrit et structure automatiquement.</div>
+        </div>
+        <div class="section-card">
+          <div style="font-weight:800;font-size:36px;color:var(--or);line-height:1;margin-bottom:16px;">02</div>
+          <div style="font-weight:700;font-size:18px;color:var(--dark);">Validez</div>
+          <div style="font-size:14px;color:var(--muted);margin-top:6px;line-height:1.65;">Relisez, ajustez les montants. Votre devis est prêt en 30 secondes.</div>
+        </div>
+        <div class="section-card">
+          <div style="font-weight:800;font-size:36px;color:var(--or);line-height:1;margin-bottom:16px;">03</div>
+          <div style="font-weight:700;font-size:18px;color:var(--dark);">Envoyez</div>
+          <div style="font-size:14px;color:var(--muted);margin-top:6px;line-height:1.65;">Facture PDF envoyée par email. Suivi client intégré, zéro saisie manuelle.</div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="goTo(2)">Choisir mon plan →</button>
+    </div>
+  </div>
+
+  <!-- ── S2 Plans ── -->
+  <div class="step" id="step-2">
+    <div class="step-inner">
+      <div class="dots" id="dots-2"></div>
+      <div style="text-align:center;">
+        <div class="h1">Choisissez votre plan</div>
+        <div class="sub">30 jours d'essai gratuit · annulable à tout moment</div>
+      </div>
+      <div class="plan-grid">
+
+        <!-- Gratuit -->
+        <div class="plan-card" id="plan-gratuit" onclick="selectPlan('gratuit')">
+          <div class="plan-name">Gratuit</div>
+          <div><span class="plan-price">0€</span></div>
+          <div class="plan-divider"></div>
+          <div class="plan-features">
+            <div class="plan-feature"><span class="plan-feature-check">✓</span>5 devis / mois</div>
+            <div class="plan-feature"><span class="plan-feature-check">✓</span>Dictée vocale IA</div>
+            <div class="plan-feature"><span class="plan-feature-check">✓</span>Export PDF</div>
+          </div>
+        </div>
+
+        <!-- Starter (featured) -->
+        <div class="plan-card featured selected" id="plan-starter" onclick="selectPlan('starter')">
+          <div class="plan-badge">⭐ Populaire</div>
+          <div class="plan-name">Starter</div>
+          <div><span class="plan-price">9,90€</span><span class="plan-price-period"> /mois</span></div>
+          <div class="plan-divider"></div>
+          <div class="plan-features">
+            <div class="plan-feature"><span class="plan-feature-check">✓</span>Devis illimités</div>
+            <div class="plan-feature"><span class="plan-feature-check">✓</span>20 factures / mois</div>
+            <div class="plan-feature"><span class="plan-feature-check">✓</span>Envoi email client</div>
+            <div class="plan-feature"><span class="plan-feature-check">✓</span>Support inclus</div>
+          </div>
+        </div>
+
+        <!-- Pro -->
+        <div class="plan-card" id="plan-pro" onclick="selectPlan('pro')">
+          <div class="plan-name">Pro</div>
+          <div><span class="plan-price">17,90€</span><span class="plan-price-period"> /mois</span></div>
+          <div class="plan-divider"></div>
+          <div class="plan-features">
+            <div class="plan-feature"><span class="plan-feature-check">✓</span>Tout Starter</div>
+            <div class="plan-feature"><span class="plan-feature-check">✓</span>Factures illimitées</div>
+            <div class="plan-feature"><span class="plan-feature-check">✓</span>Multi-utilisateurs</div>
+            <div class="plan-feature"><span class="plan-feature-check">✓</span>Support prioritaire</div>
+          </div>
+        </div>
+
+      </div>
+      <button class="btn-primary" style="max-width:400px;margin:0 auto;" onclick="goTo(3)">Continuer →</button>
+    </div>
+  </div>
+
+  <!-- ── S3 Inscription ── -->
+  <div class="step" id="step-3">
+    <div class="step-inner">
+      <div class="dots" id="dots-3"></div>
+      <div>
+        <div class="h1">Créez votre compte</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="field-row">
+          <div class="field-group"><div class="field-label">Prénom</div><input class="field-input" id="reg-prenom" type="text" placeholder="Jean" autocomplete="given-name"></div>
+          <div class="field-group"><div class="field-label">Nom</div><input class="field-input" id="reg-nom" type="text" placeholder="Dupont" autocomplete="family-name"></div>
+        </div>
+        <div class="field-group"><div class="field-label">Entreprise</div><input class="field-input" id="reg-entreprise" type="text" placeholder="Plomberie Dupont" autocomplete="organization"></div>
+        <div class="field-row">
+          <div class="field-group"><div class="field-label">Email professionnel</div><input class="field-input" id="reg-email" type="email" placeholder="jean@dupont.fr" autocomplete="email"></div>
+          <div class="field-group"><div class="field-label">Confirmer l'email</div><input class="field-input" id="reg-email-confirm" type="email" placeholder="jean@dupont.fr" autocomplete="email"></div>
+        </div>
+        <div class="field-group"><div class="field-label">Téléphone</div><input class="field-input" id="reg-telephone" type="tel" placeholder="06 12 34 56 78" autocomplete="tel"></div>
+        <div class="field-group">
+          <div class="field-label">Mot de passe</div>
+          <input class="field-input" id="reg-password" type="password" placeholder="••••••••" autocomplete="new-password" oninput="updatePwdIndicators()" onkeydown="if(event.key==='Enter')submitRegister()">
+          <div id="pwd-indicators" style="display:flex;gap:16px;margin-top:6px;">
+            <span id="pwd-len" style="font-size:12px;color:var(--muted);">✗ 8 caractères minimum</span>
+            <span id="pwd-maj" style="font-size:12px;color:var(--muted);">✗ 1 majuscule minimum</span>
+          </div>
+        </div>
+        <div id="reg-error" class="form-error"></div>
+      </div>
+      <div>
+        <button class="btn-primary" id="reg-submit" onclick="submitRegister()">Créer mon compte →</button>
+        <div class="privacy-note" style="margin-top:10px;">
+          En créant un compte, vous acceptez notre <a href="privacy.html">Politique de confidentialité</a>
+        </div>
+        <div class="login-link">Déjà un compte ? <span onclick="goTo(8)">Se connecter</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── S4 Domaine ── -->
+  <div class="step" id="step-4">
+    <div class="step-inner">
+      <div class="dots" id="dots-4"></div>
+      <div>
+        <div class="h1">Votre domaine d'activité ?</div>
+        <div class="sub">Sélectionnez votre famille de métiers</div>
+      </div>
+      <div class="domain-grid" id="domain-grid"></div>
+      <button class="btn-primary" id="domain-btn" onclick="goTo(5)">Continuer →</button>
+    </div>
+  </div>
+
+  <!-- ── S5 Paiement (mock) ── -->
+  <div class="step" id="step-5">
+    <div class="step-inner">
+      <div class="dots" id="dots-5"></div>
+      <div>
+        <div style="font-size:14px;color:var(--muted);font-weight:500;">Essayez Pro Mensuel</div>
+        <div class="h1" style="font-size:30px;margin-top:4px;">30 jours gratuits</div>
+        <div class="sub">Puis 17,90 € / mois à partir du 29 mai 2026</div>
+      </div>
+      <div>
+        <!-- Express checkout -->
+        <div style="display:flex;gap:12px;margin-bottom:16px;">
+          <button style="flex:1;padding:12px 16px;background:#000;border:none;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            <span style="font-weight:700;font-size:15px;color:#fff;">Apple Pay</span>
+          </button>
+          <button style="flex:1;padding:12px 16px;background:#00d632;border:none;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span style="font-weight:700;font-size:15px;color:#fff;">Link</span>
+          </button>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <div style="flex:1;height:1px;background:rgba(0,0,0,0.1);"></div>
+          <span style="font-size:13px;color:var(--muted);font-weight:500;">OU</span>
+          <div style="flex:1;height:1px;background:rgba(0,0,0,0.1);"></div>
+        </div>
+        <!-- Carte -->
+        <div style="font-weight:600;font-size:15px;color:var(--dark);margin-bottom:12px;">Saisissez vos données de paiement</div>
+        <div style="background:var(--card);border-radius:14px;overflow:hidden;border:1px solid rgba(0,0,0,0.08);box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+          <div style="display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid rgba(0,0,0,0.06);">
+            <div style="width:18px;height:18px;border-radius:99px;border:2px solid var(--or);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><div style="width:8px;height:8px;border-radius:99px;background:var(--or);"></div></div>
+            <svg width="28" height="18" viewBox="0 0 32 20" fill="none"><rect width="32" height="20" rx="3" fill="#1a1f71"/><rect y="6" width="32" height="6" fill="#f7b600"/></svg>
+            <span style="font-size:15px;color:var(--dark);">Carte bancaire</span>
+          </div>
+          <div style="padding:14px 18px;display:flex;flex-direction:column;gap:10px;">
+            <div>
+              <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;">Numéro de carte</div>
+              <div class="stripe-field" style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:rgba(0,0,0,0.22);pointer-events:none;user-select:none;">1234 1234 1234 1234</span>
+                <div style="display:flex;"><div style="width:26px;height:16px;background:#eb001b;border-radius:3px;"></div><div style="width:26px;height:16px;background:#f79e1b;border-radius:3px;margin-left:-10px;opacity:.9;"></div></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <div class="stripe-field" style="flex:1;pointer-events:none;user-select:none;">MM / AA</div>
+              <div class="stripe-field" style="flex:1;pointer-events:none;user-select:none;">CVC</div>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;">Nom du titulaire</div>
+              <div class="stripe-field" style="pointer-events:none;user-select:none;">Nom complet</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <button class="btn-primary" onclick="goTo(6)">Démarrer l'essai gratuit →</button>
+        <div style="text-align:center;margin-top:10px;font-size:12px;color:var(--muted);">Paiement sécurisé par Stripe · Annulable à tout moment</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── S6 Métier ── -->
+  <div class="step" id="step-6">
+    <div class="step-inner">
+      <div class="dots" id="dots-6"></div>
+      <div>
+        <div class="h1">Choisissez votre métier</div>
+        <div class="sub">Jusqu'à 3 métiers</div>
+      </div>
+      <div class="metier-chips" id="metier-chips"></div>
+      <button class="btn-primary" onclick="submitMetier()">Accéder à mon espace →</button>
+    </div>
+  </div>
+
+  <!-- ── S7 Succès ── -->
+  <div class="step" id="step-7" style="background:var(--nav);position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 40%,rgba(232,66,10,.13) 0%,transparent 70%);pointer-events:none;"></div>
+    <div style="text-align:center;position:relative;max-width:500px;padding:48px 32px;">
+      <div style="width:96px;height:96px;border-radius:99px;background:rgba(232,66,10,.14);border:2px solid var(--or);display:flex;align-items:center;justify-content:center;animation:pulse 1.5s ease infinite;margin:0 auto 36px;">
+        <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--or)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="22"/>
+        </svg>
+      </div>
+      <div style="font-weight:800;font-size:42px;color:#f0ede8;letter-spacing:-2px;line-height:1.1;margin-bottom:16px;">
+        Tout est prêt,<br/><span style="color:var(--or);">bienvenue !</span>
+      </div>
+      <div style="font-size:16px;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:40px;">
+        Votre espace DevisVoice est configuré<br/>et prêt à l'emploi.
+      </div>
+      <div class="waveform" id="waveform-success" style="justify-content:center;margin-bottom:40px;"></div>
+      <button class="btn-primary" onclick="window.location.href='index.html'">Créer mon premier devis →</button>
+    </div>
+  </div>
+
+  <!-- ── S8 Connexion ── -->
+  <div class="step" id="step-8" style="background:var(--nav);position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 30%,rgba(232,66,10,.16) 0%,transparent 70%);pointer-events:none;"></div>
+    <div style="position:relative;width:100%;max-width:420px;padding:0 28px;">
+      <div style="text-align:center;margin-bottom:40px;">
+        <span style="font-weight:800;font-size:40px;letter-spacing:-1px;"><span style="color:#f0ede8;">Devis</span><span style="color:var(--or);">Voice</span></span>
+        <div style="font-size:15px;color:rgba(255,255,255,.5);margin-top:10px;">Connectez-vous à votre espace</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="field-group">
+          <div class="field-label" style="color:rgba(255,255,255,.5);">Email</div>
+          <input class="field-input" id="login-email" type="email" placeholder="jean@dupont.fr" autocomplete="email">
+        </div>
+        <div class="field-group">
+          <div class="field-label" style="color:rgba(255,255,255,.5);">Mot de passe</div>
+          <input class="field-input" id="login-password" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitLogin()">
+        </div>
+        <div id="login-error" class="form-error"></div>
+      </div>
+      <div style="margin-top:22px;display:flex;flex-direction:column;gap:10px;">
+        <button class="btn-primary" id="login-submit" onclick="submitLogin()">Se connecter →</button>
+        <button class="btn-secondary" style="border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.6);" onclick="goTo(0)">← Retour</button>
+      </div>
+      <div style="text-align:center;margin-top:18px;font-size:14px;color:rgba(255,255,255,.4);">
+        Pas encore de compte ? <span style="color:var(--or);cursor:pointer;" onclick="goTo(3)">S'inscrire</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+const BACKEND = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:8080'
+  : 'https://devisvoice-backend-production-9ed2.up.railway.app';
+
+const TOTAL_STEPS = 7;
+let currentStep = 0;
+let selectedPlan = 'starter';
+let selectedDomaine = null;
+let selectedMetiers = [];
+
+const DOMAINES = [
+  {id:'batiment',      label:'Bâtiment',      sub:'& Travaux'},
+  {id:'evenementiel',  label:'Événementiel',  sub:'& Traiteur'},
+  {id:'transport',     label:'Transport',     sub:'& Mobilité'},
+  {id:'auto',          label:'Auto',          sub:'& Mécanique'},
+  {id:'services',      label:'Services',      sub:'& Prestataires'},
+  {id:'creation',      label:'Création',      sub:'& Design'},
+];
+
+const METIERS = {
+  batiment:     ['Plombier','Électricien','Maçon','Peintre','Menuisier','Carreleur','Chauffagiste','Étancheur','Terrassier','Plaquiste','Charpentier','Façadier','Pisciniste','Paysagiste','Couvreur'],
+  evenementiel: ['Traiteur','Wedding Planner','DJ / Sono','Décorateur événementiel','Vidéaste'],
+  transport:    ['Chauffeur VTC','Coursier / Livraison','Transporteur'],
+  auto:         ['Mécanicien','Carrossier','Détailing'],
+  services:     ['Nettoyage','Déménagement','Sécurité','Serrurerie'],
+  creation:     ['Photographe','Architecte d\'intérieur','Prestataire IT / Dev','Graphiste','Vidéaste'],
+};
+
+// ── Navigation ─────────────────────────────────────────────────────────────────
+function goTo(n) {
+  document.getElementById('step-' + currentStep).classList.remove('active');
+  currentStep = n;
+  const el = document.getElementById('step-' + n);
+  el.classList.add('active');
+
+  document.getElementById('back-btn').style.display = (n >= 1 && n <= 6) ? 'block' : 'none';
+
+  if (n >= 1 && n <= 6) renderDots(n);
+
+  if (n === 4) renderDomains();
+  if (n === 6) renderMetiers();
+  if (n === 5 && selectedPlan === 'gratuit') { goTo(6); return; }
+  if (n === 8) {
+    const regEmail = document.getElementById('reg-email').value;
+    if (regEmail) document.getElementById('login-email').value = regEmail;
+  }
+
+  window.scrollTo(0, 0);
+}
+
+function goBack() {
+  if (currentStep > 1) goTo(currentStep - 1);
+  else goTo(0);
+}
+
+// ── Dots ───────────────────────────────────────────────────────────────────────
+function renderDots(step) {
+  const container = document.getElementById('dots-' + step);
+  if (!container) return;
+  container.innerHTML = '';
+  for (let i = 1; i <= TOTAL_STEPS; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot ' + (i < step ? 'filled inactive' : i === step ? 'active' : 'inactive');
+    container.appendChild(d);
+  }
+}
+
+// ── Plans ──────────────────────────────────────────────────────────────────────
+function selectPlan(id) {
+  selectedPlan = id;
+  ['gratuit','starter','pro'].forEach(p => {
+    const card = document.getElementById('plan-' + p);
+    card.classList.toggle('selected', p === id);
+    const price = card.querySelector('.plan-price');
+    if (price) price.style.color = p === id ? 'var(--or)' : 'var(--dark)';
+  });
+}
+
+// ── Domains ────────────────────────────────────────────────────────────────────
+function renderDomains() {
+  const grid = document.getElementById('domain-grid');
+  grid.innerHTML = '';
+  DOMAINES.forEach(d => {
+    const card = document.createElement('div');
+    card.className = 'domain-card' + (selectedDomaine === d.id ? ' selected' : '');
+    card.innerHTML = `<div class="d-label">${d.label}</div><div class="d-sub">${d.sub}</div>`;
+    card.onclick = () => {
+      selectedDomaine = d.id;
+      document.querySelectorAll('.domain-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+    };
+    grid.appendChild(card);
+  });
+}
+
+// ── Métiers ────────────────────────────────────────────────────────────────────
+function renderMetiers() {
+  const list = (selectedDomaine && METIERS[selectedDomaine]) ? METIERS[selectedDomaine] : METIERS.batiment;
+  const container = document.getElementById('metier-chips');
+  container.innerHTML = '';
+  selectedMetiers = [];
+  list.forEach(m => {
+    const chip = document.createElement('div');
+    chip.className = 'metier-chip';
+    chip.textContent = m;
+    chip.onclick = () => {
+      if (chip.classList.contains('selected')) {
+        chip.classList.remove('selected');
+        selectedMetiers = selectedMetiers.filter(x => x !== m);
+      } else {
+        chip.classList.add('selected');
+        selectedMetiers.push(m);
+      }
+    };
+    container.appendChild(chip);
+  });
+}
+
+// ── Password indicators ────────────────────────────────────────────────────────
+function updatePwdIndicators() {
+  const pwd = document.getElementById('reg-password').value;
+  const lenOk = pwd.length >= 8;
+  const majOk = /[A-Z]/.test(pwd);
+  const elLen = document.getElementById('pwd-len');
+  const elMaj = document.getElementById('pwd-maj');
+  elLen.textContent = (lenOk ? '✓' : '✗') + ' 8 caractères minimum';
+  elLen.style.color  = lenOk ? '#2d7a3a' : 'var(--muted)';
+  elMaj.textContent = (majOk ? '✓' : '✗') + ' 1 majuscule minimum';
+  elMaj.style.color  = majOk ? '#2d7a3a' : 'var(--muted)';
+}
+
+// ── Register ───────────────────────────────────────────────────────────────────
+async function submitRegister() {
+  const prenom       = document.getElementById('reg-prenom').value.trim();
+  const nom          = document.getElementById('reg-nom').value.trim();
+  const entreprise   = document.getElementById('reg-entreprise').value.trim();
+  const email        = document.getElementById('reg-email').value.trim();
+  const emailConfirm = document.getElementById('reg-email-confirm').value.trim();
+  const telephone    = document.getElementById('reg-telephone').value.trim();
+  const password     = document.getElementById('reg-password').value;
+  const errEl        = document.getElementById('reg-error');
+  const btn          = document.getElementById('reg-submit');
+
+  // Reset field borders
+  ['reg-prenom','reg-nom','reg-entreprise','reg-email','reg-email-confirm','reg-telephone','reg-password'].forEach(id => {
+    document.getElementById(id).style.borderColor = '';
+  });
+  errEl.classList.remove('visible');
+
+  function fieldError(msg, ...ids) {
+    ids.forEach(id => document.getElementById(id).style.borderColor = '#e8420a');
+    showRegError(msg);
+  }
+
+  if (!prenom || !nom || !entreprise || !email || !emailConfirm || !telephone || !password) {
+    fieldError('Tous les champs sont obligatoires.',
+      ...(!prenom ? ['reg-prenom'] : []),
+      ...(!nom ? ['reg-nom'] : []),
+      ...(!entreprise ? ['reg-entreprise'] : []),
+      ...(!email ? ['reg-email'] : []),
+      ...(!emailConfirm ? ['reg-email-confirm'] : []),
+      ...(!telephone ? ['reg-telephone'] : []),
+      ...(!password ? ['reg-password'] : [])
+    );
+    return;
+  }
+
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRe.test(email)) { fieldError('Email invalide.', 'reg-email'); return; }
+
+  if (email !== emailConfirm) { fieldError('Les adresses email ne correspondent pas.', 'reg-email', 'reg-email-confirm'); return; }
+
+  if (password.length < 8 || !/[A-Z]/.test(password)) {
+    document.getElementById('reg-password').style.borderColor = '#e8420a';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Création en cours…';
+
+  try {
+    const resp = await fetch(BACKEND + '/api/users/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prenom: prenom || null,
+        nom: nom || null,
+        entreprise: entreprise || null,
+        email,
+        telephone: telephone || null,
+        mot_de_passe: password,
+        famille: selectedDomaine || null,
+        metier: null,
+      })
+    });
+    const data = await resp.json();
+
+    if (resp.status === 409) {
+      showRegError('Un compte existe déjà avec cet email. Connectez-vous.');
+    } else if (data.success && data.token) {
+      localStorage.setItem('dv_token', data.token);
+      localStorage.setItem('user_email', email);
+      localStorage.setItem('onboarding_complete', 'false');
+      goTo(4);
+    } else {
+      showRegError(data.error || 'Erreur lors de la création du compte.');
+    }
+  } catch {
+    showRegError('Erreur réseau. Vérifiez votre connexion.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Créer mon compte →';
+  }
+}
+
+function showRegError(msg) {
+  const el = document.getElementById('reg-error');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+
+// ── Metier submit ──────────────────────────────────────────────────────────────
+async function submitMetier() {
+  const token = localStorage.getItem('dv_token');
+  if (token && (selectedDomaine || selectedMetiers.length > 0)) {
+    try {
+      await fetch(BACKEND + '/api/users/account', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({
+          famille: selectedDomaine || null,
+          metier: selectedMetiers[0] || null,
+          metiers: selectedMetiers,
+        })
+      });
+    } catch (_) {}
+  }
+  localStorage.setItem('onboarding_complete', 'true');
+  goTo(7);
+}
+
+// ── Login ──────────────────────────────────────────────────────────────────────
+async function submitLogin() {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const btn      = document.getElementById('login-submit');
+
+  document.getElementById('login-error').classList.remove('visible');
+  if (!email || !password) { showLoginError('Email et mot de passe requis.'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Connexion…';
+
+  try {
+    const resp = await fetch(BACKEND + '/api/users/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, mot_de_passe: password })
+    });
+    const data = await resp.json();
+
+    if (data.success && data.token) {
+      localStorage.setItem('dv_token', data.token);
+      localStorage.setItem('user_email', email);
+      localStorage.setItem('onboarding_complete', 'true');
+      window.location.href = 'index.html';
+    } else {
+      showLoginError(data.error || 'Email ou mot de passe incorrect.');
+    }
+  } catch {
+    showLoginError('Erreur réseau. Vérifiez votre connexion.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Se connecter →';
+  }
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+
+// ── Waveform ───────────────────────────────────────────────────────────────────
+function buildWaveform(id, light) {
+  const heights = [10,18,30,22,42,34,20,38,26,14,32,16];
+  const anims   = ['wave1','wave2','wave3','wave4'];
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = '';
+  heights.forEach((h, i) => {
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.cssText = `width:5px;height:${h}px;border-radius:99px;background:${light ? 'rgba(255,255,255,0.7)' : 'var(--or)'};animation:${anims[i%4]} ${0.7+i*0.06}s ease-in-out infinite;animation-delay:${i*0.07}s;opacity:${0.6+i/heights.length*0.4};`;
+    el.appendChild(bar);
+  });
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+buildWaveform('waveform-splash', true);
+buildWaveform('waveform-success', true);
+
+const _existingEmail = localStorage.getItem('user_email');
+if (_existingEmail) document.getElementById('login-email').value = _existingEmail;
+</script>
+</body>
+</html>
