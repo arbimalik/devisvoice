@@ -9,6 +9,8 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
 
+body{visibility:hidden;}
+
 /* ========= THÈMES ========= */
 [data-theme="dark-orange"] {
   --bg:#0d0d0d;--bg2:#161616;--bg3:#1e1e1e;--border:#2a2a2a;
@@ -1116,11 +1118,13 @@ if (!isDevMode) {
             // Verrouiller email comptable si plan gratuit
             verifierPlanComptable(profile.plan || 'gratuit');
           }
-        }).catch(() => {});
+          document.body.style.visibility = 'visible';
+        }).catch(() => { document.body.style.visibility = 'visible'; });
       }
-    }).catch(() => {});
+    }).catch(() => { document.body.style.visibility = 'visible'; });
   }
 }
+if (isDevMode) document.body.style.visibility = 'visible';
 
 // Appliquer immédiatement depuis localStorage (avant le retour de l'API)
 (function(){
