@@ -73,6 +73,8 @@ nav{background:#1a1510;display:flex;align-items:center;justify-content:space-bet
 
 .content{display:none;padding:20px 16px 60px;max-width:780px;margin:0 auto;}
 .content.active{display:block;}
+#subtab-devis-classique{display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start;}
+@media(max-width:860px){#subtab-devis-classique{grid-template-columns:1fr;}}
 
 .card{background:var(--card);border-radius:var(--radius);margin-bottom:14px;border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;transition:background .3s;}
 .card-header{padding:13px 18px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:8px;}
@@ -425,7 +427,7 @@ select option{background:var(--card);color:var(--text);}
 </div>
 
 <!-- DEVIS -->
-<div id="tab-devis" class="content">
+<div id="tab-devis" class="content" style="max-width:1100px;">
 
   <!-- Sous-onglets Devis | Bon de commande (visibles uniquement si famille=transport ET metier=vtc) -->
   <div id="devis-subtabs" style="display:none;gap:0;padding:0 18px;background:var(--tab-bg);border-bottom:1px solid var(--border);margin:-20px -16px 16px;">
@@ -435,6 +437,9 @@ select option{background:var(--card);color:var(--text);}
 
   <!-- Vue Devis classique -->
   <div id="subtab-devis-classique">
+
+  <!-- Colonne gauche : formulaire + résultat -->
+  <div>
 
   <div class="card">
     <div class="card-header ch-orange" id="card-header-client">📋 Maître d'Ouvrage &amp; Chantier</div>
@@ -569,12 +574,29 @@ select option{background:var(--card);color:var(--text);}
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-header ch-dark">🎙️ Dictez Vos Postes et Tarifs</div>
-    <div class="card-body">
-      <div class="ex-box">
-        <div class="ex-lbl">Exemple</div>
-        <p>Dépose carrelage 20 euros le m2, ragréage 15 euros, pose grès cérame 60x60 fourni et posé 48 le m2, joint époxy forfait 250 euros</p>
+  <div class="sbar" id="sbar"></div>
+
+  <div id="result-box">
+    <div class="devis-wrap">
+      <div id="devis-preview" class="devis-preview"></div>
+      <div class="res-actions">
+        <button class="btn-sec" onclick="envoyerDevis()">📧 Envoyer par Email</button>
+        <button class="btn-sec" onclick="imprimerDevis()">📄 Télécharger PDF</button>
+        <button class="btn-sec" onclick="nouveauDevis()">+ Nouveau</button>
+      </div>
+      <div class="sbar" id="email-sbar" style="margin:0 16px 14px;"></div>
+    </div>
+  </div>
+
+  </div><!-- /colonne gauche -->
+
+  <!-- Colonne droite : dictée vocale (sticky) -->
+  <div style="position:sticky;top:70px;">
+
+    <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:16px;">
+      <div style="background:var(--accent);color:#fff;border-radius:8px;padding:8px 16px;font-weight:700;font-size:13px;display:inline-block;margin-bottom:16px;">DICTÉE VOCALE</div>
+      <div style="background:var(--bg3);border-radius:8px;padding:12px 14px;margin-bottom:20px;font-size:12px;color:var(--text2);line-height:1.6;">
+        Dites par ex. : <em>Dépose et repose WC suspendu, fourniture robinet mitigeur, main d'œuvre 4 heures à 60 euros de l'heure</em>
       </div>
       <div class="mic-zone">
         <div class="mic-wrap" id="mic-wrap">
@@ -596,22 +618,10 @@ select option{background:var(--card);color:var(--text);}
       </div>
       <div id="dictee-text" class="dictee-box" contenteditable="true" data-ph="Votre dictée apparaît ici — ou tapez directement..." oninput="onDicteeChange()"></div>
     </div>
-  </div>
 
-  <button class="btn-primary" id="btn-gen" onclick="actionDevis()">⚡ Générer le Devis</button>
-  <div class="sbar" id="sbar"></div>
+    <button class="btn-primary" id="btn-gen" onclick="actionDevis()" style="width:100%;background:var(--accent);color:#fff;border-radius:12px;padding:14px;font-weight:700;font-size:15px;border:none;cursor:pointer;font-family:'Inter',sans-serif;">⚡ Générer le Devis IA</button>
 
-  <div id="result-box">
-    <div class="devis-wrap">
-      <div id="devis-preview" class="devis-preview"></div>
-      <div class="res-actions">
-        <button class="btn-sec" onclick="envoyerDevis()">📧 Envoyer par Email</button>
-        <button class="btn-sec" onclick="imprimerDevis()">📄 Télécharger PDF</button>
-        <button class="btn-sec" onclick="nouveauDevis()">+ Nouveau</button>
-      </div>
-      <div class="sbar" id="email-sbar" style="margin:0 16px 14px;"></div>
-    </div>
-  </div>
+  </div><!-- /colonne droite -->
 
   </div><!-- /subtab-devis-classique -->
 
