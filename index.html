@@ -11,32 +11,13 @@
 
 body{visibility:hidden;}
 
-/* ========= THÈMES ========= */
-[data-theme="dark-orange"] {
-  --bg:#0d0d0d;--bg2:#161616;--bg3:#1e1e1e;--border:#2a2a2a;
-  --text:#f0f0f0;--text2:#888;--card:#161616;--input-bg:#1e1e1e;
-  --nav:#080808;--tab-bg:#111;--shadow:0 4px 24px rgba(0,0,0,0.4);
-  --accent:#FF4500;--accent2:#ff6a35;--accent-bg:rgba(255,69,0,.07);
-  --accent-border:rgba(255,69,0,.2);--nav-border:rgba(255,69,0,.15);
-  --logo-txt:#fff;
-}
-[data-theme="light-orange"] {
+/* ========= THÈME ========= */
+:root,[data-theme="light-orange"] {
   --bg:#f0ebe3;--bg2:#fff;--bg3:#e8e0d5;--border:#d8d0c5;
   --text:#1a1a1a;--text2:#888;--card:#fff;--input-bg:#faf7f3;
   --nav:#111;--tab-bg:#e8e0d5;--shadow:0 4px 24px rgba(0,0,0,0.08);
   --accent:#FF4500;--accent2:#ff6a35;--accent-rgb:255,69,0;--on-accent:#fff;--logo-txt:#fff;--logo-text:#fff;
-}
-[data-theme="light-blue"] {
-  --bg:#f0ebe3;--bg2:#fff;--bg3:#e8e0d5;--border:#d8d0c5;
-  --text:#0d1b2e;--text2:#6b82a0;--card:#fff;--input-bg:#faf7f3;
-  --nav:#0d1b2e;--tab-bg:#e8e0d5;--shadow:0 4px 24px rgba(13,27,46,0.10);
-  --accent:#1d6fd8;--accent2:#3a8eff;--accent-rgb:29,111,216;--on-accent:#fff;--logo-txt:#fff;--logo-text:#fff;
-}
-[data-theme="light-green"] {
-  --bg:#0d0d0d;--bg2:#161616;--bg3:#1e1e1e;--border:#2a2a2a;
-  --text:#f0ebe3;--text2:#a89880;--card:#161616;--input-bg:#1e1e1e;
-  --nav:#080808;--tab-bg:#111;--shadow:0 4px 24px rgba(0,0,0,0.4);
-  --accent:#c9a96e;--accent2:#e0c080;--accent-rgb:201,169,110;--on-accent:#111;--logo-txt:#f0ebe3;
+  --accent-bg:rgba(255,69,0,.07);--accent-border:rgba(255,69,0,.2);--nav-border:rgba(255,69,0,.15);
 }
 
 :root{--radius:12px;--rsm:8px;}
@@ -44,16 +25,18 @@ body{visibility:hidden;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;}
 
-nav{background:var(--nav);display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:56px;position:sticky;top:0;z-index:200;border-bottom:1px solid var(--nav-border);box-shadow:0 2px 8px rgba(0,0,0,0.06);}
-.logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--logo-txt);letter-spacing:-.5px;}
+/* ========= TOPBAR ========= */
+nav{background:#1a1510;display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:50px;position:sticky;top:0;z-index:100;gap:16px;}
+.logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#f0ede8;letter-spacing:-.5px;flex-shrink:0;}
 .logo span{color:var(--accent);}
-.nav-right{display:flex;align-items:center;gap:10px;}
-
-/* ========= THEME SWITCHER ========= */
-.theme-sw{display:flex;background:var(--bg3);border-radius:20px;padding:3px;gap:2px;border:1px solid var(--border);}
-.tbtn{width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;background:transparent;opacity:.5;transition:opacity .2s,transform .2s,border-color .2s;color:#fff;}
-.tbtn.active{opacity:1;border-color:var(--accent);transform:scale(1.1);}
-.btn-agent{background:var(--accent);color:#fff;border:none;padding:7px 14px;font-family:'Syne',sans-serif;font-weight:700;font-size:11px;letter-spacing:.5px;text-transform:uppercase;border-radius:20px;cursor:pointer;}
+.nav-tabs{display:flex;align-items:center;gap:2px;flex:1;justify-content:center;}
+.nav-tab{background:none;border:none;color:rgba(255,255,255,0.55);font-family:'Inter',sans-serif;font-weight:500;font-size:14px;padding:6px 16px;border-radius:8px;cursor:pointer;transition:color .15s,background .15s;white-space:nowrap;}
+.nav-tab.active{color:#fff;font-weight:700;background:rgba(255,255,255,0.15);}
+.nav-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.btn-agent{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:6px 14px;font-family:'Inter',sans-serif;font-weight:500;font-size:13px;border-radius:8px;cursor:pointer;transition:background .15s;white-space:nowrap;}
+.btn-agent:hover{background:rgba(255,255,255,0.14);}
+.btn-deco{background:transparent;border:none;color:rgba(255,255,255,0.4);font-size:13px;cursor:pointer;padding:4px 6px;font-family:'Inter',sans-serif;white-space:nowrap;}
+.nav-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:default;}
 
 /* ── ASSISTANT CHAT ── */
 #assistant-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:800;align-items:flex-end;justify-content:center;padding:0;}
@@ -87,10 +70,6 @@ nav{background:var(--nav);display:flex;align-items:center;justify-content:space-
 .fb-yes{background:var(--accent);color:#fff;}
 .fb-no{background:var(--bg3);color:var(--text2);border:1px solid var(--border);}
 @media(min-width:520px){#assistant-box{border-radius:20px;margin-bottom:24px;}}
-
-.tabs{background:var(--tab-bg);display:flex;padding:0 18px;border-bottom:1px solid var(--border);}
-.tab{background:none;border:none;color:var(--text2);font-family:'Inter',sans-serif;font-weight:500;font-size:13px;padding:13px 16px 11px;cursor:pointer;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;}
-.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 
 .content{display:none;padding:20px 16px 60px;max-width:780px;margin:0 auto;}
 .content.active{display:block;}
@@ -227,18 +206,13 @@ select option{background:var(--card);color:var(--text);}
 @media(max-width:480px){
 
   /* Navigation */
-  nav{padding:0 10px;height:50px;}
+  nav{padding:0 8px;height:50px;}
   .logo{font-size:16px;}
-  .nav-right{gap:5px;}
-  .btn-agent{font-size:9px;padding:5px 9px;letter-spacing:.3px;}
-  .theme-sw{gap:0;padding:2px;}
-  .tbtn{width:22px;height:22px;}
-  #btn-deconnexion-header{display:none;}
-
-  /* Tabs — scroll horizontal pour éviter chevauchement */
-  .tabs{padding:0 8px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
-  .tabs::-webkit-scrollbar{display:none;}
-  .tab{font-size:12px;padding:11px 10px 9px;white-space:nowrap;flex-shrink:0;}
+  .nav-tabs{gap:0;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .nav-tabs::-webkit-scrollbar{display:none;}
+  .nav-tab{font-size:11px;padding:5px 10px;}
+  .btn-agent{font-size:11px;padding:5px 9px;}
+  .btn-deco{display:none;}
 
   /* Contenu */
   .content{padding:12px 14px 80px;}
@@ -323,28 +297,135 @@ select option{background:var(--card);color:var(--text);}
 
 <nav>
   <div class="logo">Devis<span>Voice</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('dashboard',this)">Tableau de bord</button>
+    <button class="nav-tab" onclick="showTab('devis',this)">Devis</button>
+    <button class="nav-tab" id="tab-btn-chantiers" onclick="showTab('chantiers',this)">Chantiers</button>
+    <button class="nav-tab" onclick="showTab('tarifs',this)">Facturation</button>
+    <button class="nav-tab" onclick="showTab('profil',this)">Mon Profil</button>
+    <button class="nav-tab" onclick="showTab('parametres',this)">Paramètres</button>
+  </div>
   <div class="nav-right">
-    <div class="theme-sw">
-      <button class="tbtn" onclick="setTheme('dark-orange',this)" title="Nuit / Orange" style="color:#a8b8d0"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg></button>
-      <button class="tbtn" onclick="setTheme('light-orange',this)" title="Beige / Orange" style="color:#f5c842"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/></svg></button>
-      <button class="tbtn" onclick="setTheme('light-blue',this)" title="Beige / Bleu" style="color:#3a8eff"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2 10c2-3 4-4 6-4s4 2 6 2 4-2 6-2v3c-2 0-4 2-6 2s-4-2-6-2-4 2-6 2v-3zm0 6c2-3 4-4 6-4s4 2 6 2 4-2 6-2v3c-2 0-4 2-6 2s-4-2-6-2-4 2-6 2v-3z"/></svg></button>
-      <button class="tbtn" onclick="setTheme('light-green',this)" title="Noir / Beige" style="color:#c9a96e"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 2a6 6 0 0 0-5.81 7.54l-7.1 7.1a1.5 1.5 0 0 0 0 2.12l2.12 2.12a1.5 1.5 0 0 0 2.12 0l7.1-7.1A6 6 0 1 0 16 2zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"/></svg></button>
-    </div>
-    <button class="btn-agent" onclick="ouvrirAssistant()">Assistant</button>
-    <button id="btn-deconnexion-header" onclick="deconnecter()" style="background:transparent;border:1px solid #FF4500;color:#FF4500;border-radius:20px;padding:7px 14px;font-size:11px;font-weight:700;text-transform:uppercase;font-family:'Syne',sans-serif;cursor:pointer;letter-spacing:.5px;margin-left:6px;">Déconnexion</button>
+    <button class="btn-agent" onclick="ouvrirAssistant()">Assistant IA</button>
+    <button class="btn-deco" onclick="deconnecter()">Déconnexion</button>
+    <div class="nav-avatar" id="nav-avatar">DV</div>
   </div>
 </nav>
 
-<div class="tabs">
-  <button class="tab active" onclick="showTab('devis',this)">Devis</button>
-  <button class="tab" id="tab-btn-chantiers" onclick="showTab('chantiers',this)">🏗 Chantiers</button>
-  <button class="tab" onclick="showTab('profil',this)">Mon Profil</button>
-  <button class="tab" onclick="showTab('tarifs',this)">Facturation</button>
-  <button class="tab" onclick="showTab('parametres',this)">⚙️ Paramètres</button>
+<!-- TABLEAU DE BORD -->
+<div id="tab-dashboard" class="content active" style="max-width:1100px;padding:32px 24px;">
+
+  <!-- Header -->
+  <div style="margin-bottom:28px;">
+    <h1 id="dash-bonjour" style="font-size:28px;font-weight:800;color:var(--text);font-family:'Syne',sans-serif;margin-bottom:4px;"></h1>
+    <div id="dash-subtitle" style="font-size:14px;color:var(--text2);"></div>
+  </div>
+
+  <!-- 4 stats -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;">
+
+    <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;">Devis ce mois</div>
+      <div id="dash-envoyes" style="font-size:38px;font-weight:700;color:var(--text);font-family:'Inter','Space Grotesk',sans-serif;letter-spacing:-1px;line-height:1;margin-bottom:6px;">0</div>
+      <div id="dash-envoyes-sub" style="font-size:12px;color:var(--text2);margin-bottom:14px;">—</div>
+      <div style="height:5px;background:var(--bg3);border-radius:99px;overflow:hidden;"><div id="dash-bar-envoyes" style="height:100%;background:var(--accent);border-radius:99px;width:0%;transition:width .6s;"></div></div>
+    </div>
+
+    <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;">Taux d'acceptation</div>
+      <div id="dash-taux" style="font-size:38px;font-weight:700;color:var(--text);font-family:'Inter','Space Grotesk',sans-serif;letter-spacing:-1px;line-height:1;margin-bottom:6px;">0%</div>
+      <div id="dash-taux-sub" style="font-size:12px;color:var(--text2);margin-bottom:14px;">—</div>
+      <div style="height:5px;background:var(--bg3);border-radius:99px;overflow:hidden;"><div id="dash-bar-taux" style="height:100%;background:#2d7a3a;border-radius:99px;width:0%;transition:width .6s;"></div></div>
+    </div>
+
+    <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;">CA du mois</div>
+      <div id="dash-montant" style="font-size:38px;font-weight:700;color:var(--text);font-family:'Inter','Space Grotesk',sans-serif;letter-spacing:-1px;line-height:1;margin-bottom:6px;">0 €</div>
+      <div id="dash-montant-sub" style="font-size:12px;color:var(--text2);margin-bottom:14px;">Objectif 5 000 €</div>
+      <div style="height:5px;background:var(--bg3);border-radius:99px;overflow:hidden;"><div id="dash-bar-montant" style="height:100%;background:var(--accent);border-radius:99px;width:0%;transition:width .6s;"></div></div>
+    </div>
+
+    <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;">Factures en attente</div>
+      <div id="dash-attente" style="font-size:38px;font-weight:700;color:var(--text);font-family:'Inter','Space Grotesk',sans-serif;letter-spacing:-1px;line-height:1;margin-bottom:6px;">0 €</div>
+      <div id="dash-attente-sub" style="font-size:12px;color:var(--text2);margin-bottom:14px;">Aucune</div>
+      <div style="height:5px;background:var(--bg3);border-radius:99px;overflow:hidden;"><div id="dash-bar-attente" style="height:100%;background:#2563eb;border-radius:99px;width:0%;transition:width .6s;"></div></div>
+    </div>
+
+  </div>
+
+  <!-- CA annuel + Derniers devis -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+
+    <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;">CA <span id="dash-annee">2026</span></div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:16px;">par mois</div>
+      <div id="dash-chart" style="display:flex;align-items:flex-end;gap:4px;height:120px;">
+        <div style="flex:1;height:4px;background:rgba(0,0,0,0.06);border-radius:3px 3px 0 0;"></div>
+        <div style="flex:1;height:4px;background:rgba(0,0,0,0.06);border-radius:3px 3px 0 0;"></div>
+        <div style="flex:1;height:4px;background:rgba(0,0,0,0.06);border-radius:3px 3px 0 0;"></div>
+        <div style="flex:1;height:4px;background:rgba(0,0,0,0.06);border-radius:3px 3px 0 0;"></div>
+        <div style="flex:1;height:4px;background:rgba(0,0,0,0.06);border-radius:3px 3px 0 0;"></div>
+        <div style="flex:1;height:4px;background:rgba(0,0,0,0.06);border-radius:3px 3px 0 0;"></div>
+        <div style="flex:1;height:4px;background:rgba(0,0,0,0.06);border-radius:3px 3px 0 0;"></div>
+        <div style="flex:1;height:4px;background:rgba(0,0,0,0.06);border-radius:3px 3px 0 0;"></div>
+        <div style="flex:1;height:4px;background:rgba(0,0,0,0.06);border-radius:3px 3px 0 0;"></div>
+        <div style="flex:1;height:4px;background:rgba(0,0,0,0.06);border-radius:3px 3px 0 0;"></div>
+        <div style="flex:1;height:4px;background:rgba(0,0,0,0.06);border-radius:3px 3px 0 0;"></div>
+        <div style="flex:1;height:8px;background:var(--accent);border-radius:3px 3px 0 0;"></div>
+      </div>
+      <div id="dash-chart-labels" style="display:flex;gap:4px;margin-top:6px;">
+        <div style="flex:1;text-align:center;font-size:9px;color:var(--text2);">J</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:var(--text2);">F</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:var(--text2);">M</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:var(--text2);">A</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:var(--text2);">M</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:var(--text2);">J</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:var(--text2);">J</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:var(--text2);">A</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:var(--text2);">S</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:var(--text2);">O</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:var(--text2);">N</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:var(--accent);font-weight:700;">D</div>
+      </div>
+    </div>
+
+    <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:16px;">Derniers devis</div>
+      <div id="dash-derniers"><div style="text-align:center;padding:20px 0;color:var(--text2);font-size:13px;">Chargement…</div></div>
+    </div>
+
+  </div>
+
+  <!-- Raccourcis + CTA micro -->
+  <div style="display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start;">
+
+    <div>
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;">Raccourcis</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button onclick="goToTab('devis')" style="background:#fff;border:1px solid rgba(0,0,0,0.1);border-radius:10px;padding:10px 18px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--text);">Nouveau devis vocal</button>
+        <button onclick="goToTab('chantiers')" style="background:#fff;border:1px solid rgba(0,0,0,0.1);border-radius:10px;padding:10px 18px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--text);">Voir les factures</button>
+        <button onclick="goToTab('devis')" style="background:#fff;border:1px solid rgba(0,0,0,0.1);border-radius:10px;padding:10px 18px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--text);">Ajouter un client</button>
+        <button onclick="goToTab('parametres')" style="background:#fff;border:1px solid rgba(0,0,0,0.1);border-radius:10px;padding:10px 18px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--text);">Paramètres</button>
+      </div>
+    </div>
+
+    <div onclick="goToTab('devis');setTimeout(toggleMic,300)" style="background:#fff;border-radius:14px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,0.06);cursor:pointer;display:flex;align-items:center;gap:16px;min-width:220px;">
+      <div style="width:48px;height:48px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v6a2 2 0 0 0 4 0V5a2 2 0 0 0-2-2zm7 8a1 1 0 0 1 1 1 8 8 0 0 1-7 7.93V22h-2v-2.07A8 8 0 0 1 4 12a1 1 0 0 1 2 0 6 6 0 0 0 12 0 1 1 0 0 1 1-1z"/></svg>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:16px;color:var(--text);">Créer un devis vocal</div>
+        <div style="font-size:13px;color:var(--text2);margin-top:2px;">En 30 secondes chrono</div>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 
 <!-- DEVIS -->
-<div id="tab-devis" class="content active">
+<div id="tab-devis" class="content">
 
   <!-- Sous-onglets Devis | Bon de commande (visibles uniquement si famille=transport ET metier=vtc) -->
   <div id="devis-subtabs" style="display:none;gap:0;padding:0 18px;background:var(--tab-bg);border-bottom:1px solid var(--border);margin:-20px -16px 16px;">
@@ -1119,6 +1200,7 @@ if (!isDevMode) {
             verifierPlanComptable(profile.plan || 'gratuit');
           }
           document.body.style.visibility = 'visible';
+          loadDashboard();
         }).catch(() => { document.body.style.visibility = 'visible'; });
       }
     }).catch(() => { document.body.style.visibility = 'visible'; });
@@ -1726,21 +1808,6 @@ const BACKEND= window.location.hostname==='localhost'||window.location.hostname=
 let devisData=null;
 let gDecCompagnie='',gDecNumero='',gIban='',gBic='',gBanque='',gTitulaire='',gMentions='';
 
-// ========= THÈMES =========
-const THEMES = ['dark-orange','light-orange','light-blue','light-green'];
-function setTheme(t, btn) {
-  document.documentElement.setAttribute('data-theme', t);
-  document.querySelectorAll('.tbtn').forEach(b => b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  lsSet('theme', t);
-}
-(()=>{
-  const t = lsGet('theme') || 'light-orange';
-  document.documentElement.setAttribute('data-theme', t);
-  const idx = THEMES.indexOf(t);
-  const btns = document.querySelectorAll('.tbtn');
-  if(idx >= 0 && btns[idx]) btns[idx].classList.add('active');
-})();
 
 
 function varBadge(actuel, precedent, isPercent){
@@ -1813,6 +1880,106 @@ async function loadStats(){
       document.getElementById('stat-derniers').textContent='Aucun devis pour le moment.';
     }
   }catch(e){ document.getElementById('stat-derniers').textContent='Impossible de charger les stats.'; }
+}
+
+// ── TABLEAU DE BORD ───────────────────────────────────────────────────────────
+async function loadDashboard(){
+  // Header
+  const prenom = lsGet('user_prenom') || lsGet('ent-prenom') || localStorage.getItem('prenom') || '';
+  const elBonj = document.getElementById('dash-bonjour');
+  if(elBonj) elBonj.textContent = 'Bonjour' + (prenom ? ', ' + prenom : '');
+  const elSub = document.getElementById('dash-subtitle');
+  if(elSub){
+    const moisLabel = new Date().toLocaleDateString('fr-FR', {month:'long', year:'numeric'});
+    elSub.textContent = 'Activité de ' + moisLabel.charAt(0).toUpperCase() + moisLabel.slice(1);
+  }
+  const token = localStorage.getItem('dv_token');
+  if(!token) return;
+  try{
+    const r = await fetch(BACKEND+'/api/stats', { headers:{'Authorization':'Bearer '+token} });
+    if(!r.ok) return;
+    const s = await r.json();
+    const set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+    const setH = (id,v) => { const e=document.getElementById(id); if(e) e.innerHTML=v; };
+    const setW = (id,pct) => { const e=document.getElementById(id); if(e) e.style.width=Math.min(100,Math.max(0,pct))+'%'; };
+
+    // Stat 1 — Devis ce mois
+    const total = s.total_mois||0;
+    set('dash-envoyes', total);
+    set('dash-envoyes-sub', total>0 ? '↑ En cours' : 'Aucun ce mois');
+    setW('dash-bar-envoyes', Math.min(total*10, 100));
+
+    // Stat 2 — Taux d'acceptation
+    const taux = s.taux_acceptation||0;
+    set('dash-taux', taux+'%');
+    set('dash-taux-sub', taux>=50 ? 'Bon taux' : 'À développer');
+    setW('dash-bar-taux', taux);
+
+    // Stat 3 — CA du mois
+    const montant = s.montant_mois||0;
+    set('dash-montant', fmt(montant)+' €');
+    set('dash-montant-sub', 'Objectif 5 000 €');
+    setW('dash-bar-montant', Math.min(montant/5000*100, 100));
+
+    // Stat 4 — Factures en attente
+    const attente = s.factures_attente_montant||0;
+    const nbFac = s.factures_attente_nb||0;
+    set('dash-attente', fmt(attente)+' €');
+    set('dash-attente-sub', nbFac ? nbFac+' facture'+(nbFac>1?'s':'') : 'Aucune');
+    setW('dash-bar-attente', attente>0 ? Math.min(attente/5000*100, 100) : 0);
+
+    // Graphique annuel
+    set('dash-annee', new Date().getFullYear());
+    const hist = s.historique||[];
+    const moisCourant = new Date().getMonth();
+    const MOIS_LABELS = ['J','F','M','A','M','J','J','A','S','O','N','D'];
+    if(hist.length){
+      const maxM = Math.max(...hist.map(m=>m.montant), 1);
+      setH('dash-chart', hist.map((m,i)=>{
+        const cur = i===moisCourant;
+        const h = m.montant>0 ? Math.max(Math.round(m.montant/maxM*100), 4) : (cur?8:4);
+        const bg = cur ? 'var(--accent)' : (m.montant>0 ? 'var(--accent-border)' : 'rgba(0,0,0,0.06)');
+        return `<div title="${m.mois} : ${fmt(m.montant)} €" style="flex:1;height:${h}px;background:${bg};border-radius:3px 3px 0 0;"></div>`;
+      }).join(''));
+      setH('dash-chart-labels', hist.map((m,i)=>{
+        const cur = i===moisCourant;
+        return `<div style="flex:1;text-align:center;font-size:9px;color:${cur?'var(--accent)':'var(--text2)'};font-weight:${cur?'700':'400'};">${m.mois.charAt(0)}</div>`;
+      }).join(''));
+    } else {
+      setH('dash-chart', MOIS_LABELS.map((_,i)=>{
+        const cur = i===moisCourant;
+        return `<div style="flex:1;height:${cur?8:4}px;background:${cur?'var(--accent)':'rgba(0,0,0,0.06)'};border-radius:3px 3px 0 0;"></div>`;
+      }).join(''));
+      setH('dash-chart-labels', MOIS_LABELS.map((l,i)=>{
+        const cur = i===moisCourant;
+        return `<div style="flex:1;text-align:center;font-size:9px;color:${cur?'var(--accent)':'var(--text2)'};font-weight:${cur?'700':'400'};">${l}</div>`;
+      }).join(''));
+    }
+
+    // Derniers devis
+    const COULEURS = ['#FF4500','#00b450','#1d6fd8','#e08000','#9b59b6'];
+    if(s.derniers&&s.derniers.length){
+      setH('dash-derniers', s.derniers.map((d,i)=>{
+        const init = (d.client||'??').split(' ').map(p=>p[0]||'').join('').slice(0,2).toUpperCase();
+        const badgeStyle = d.accepted
+          ? 'background:rgba(0,180,80,.12);color:#00b450'
+          : 'background:rgba(255,69,0,.08);color:#FF4500';
+        return `<div onclick="ouvrirDetailDevis('${d.id}')" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;">
+          <div style="width:36px;height:36px;border-radius:50%;background:${COULEURS[i%COULEURS.length]};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">${init}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:600;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.client||'—'}</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:1px;">${d.id}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-weight:700;font-size:13px;color:var(--text);">${d.montant?fmt(parseFloat(d.montant))+' €':'—'}</div>
+            <span style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;${badgeStyle};">${d.accepted?'Accepté':'En attente'}</span>
+          </div>
+        </div>`;
+      }).join(''));
+    } else {
+      set('dash-derniers', 'Aucun devis pour le moment.');
+    }
+  }catch(e){ console.error('loadDashboard:', e); }
 }
 
 // ── DÉTAIL DEVIS (modale depuis "Derniers devis") ─────────────────────────────
@@ -1908,11 +2075,17 @@ async function envoyerDevisDetail(){
   }
 }
 
+function goToTab(n){
+  const btn = document.querySelector(`.nav-tab[onclick*="'${n}'"]`);
+  if(btn) showTab(n, btn);
+}
+
 function showTab(n,el){
   document.querySelectorAll('.content').forEach(c=>c.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+n).classList.add('active');
   el.classList.add('active');
+  if(n==='dashboard'){loadDashboard();}
   if(n==='profil'){loadStats();loadHabitudes();}
   if(n==='parametres'){chargerParametres();}
   if(n==='chantiers'){
