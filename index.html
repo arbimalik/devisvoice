@@ -1021,10 +1021,60 @@ select option{background:var(--card);color:var(--text);}
 </div>
 
 <!-- TARIFS -->
-<div id="tab-tarifs" class="content">
-  <div class="card">
-    <div class="card-header ch-dark">💰 Paramètres de Facturation</div>
-    <div class="card-body">
+<div id="tab-tarifs" class="content" style="max-width:1100px;">
+
+  <!-- Filtres -->
+  <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+    <button style="background:var(--accent);color:#fff;border:none;border-radius:99px;padding:6px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Toutes</button>
+    <button style="background:transparent;border:1px solid rgba(0,0,0,0.12);color:var(--text);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Payées</button>
+    <button style="background:transparent;border:1px solid rgba(0,0,0,0.12);color:var(--text);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">En attente</button>
+    <button style="background:transparent;border:1px solid rgba(0,0,0,0.12);color:var(--text);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Brouillon</button>
+  </div>
+
+  <!-- 3 stats -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;">
+
+    <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;">Total facturé</div>
+      <div id="fact-stat-total" style="font-size:32px;font-weight:700;font-family:'Inter',sans-serif;letter-spacing:-1px;color:var(--text);line-height:1;margin-bottom:4px;">0 €</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Ce mois</div>
+      <div style="height:4px;background:var(--bg3);border-radius:99px;overflow:hidden;"><div id="fact-bar-total" style="height:100%;background:var(--accent);border-radius:99px;width:0%;transition:width .6s;"></div></div>
+    </div>
+
+    <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;">Payé</div>
+      <div id="fact-stat-paye" style="font-size:32px;font-weight:700;font-family:'Inter',sans-serif;letter-spacing:-1px;color:var(--text);line-height:1;margin-bottom:4px;">0 €</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Reçu</div>
+      <div style="height:4px;background:var(--bg3);border-radius:99px;overflow:hidden;"><div id="fact-bar-paye" style="height:100%;background:#00b450;border-radius:99px;width:0%;transition:width .6s;"></div></div>
+    </div>
+
+    <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;">En attente</div>
+      <div id="fact-stat-attente" style="font-size:32px;font-weight:700;font-family:'Inter',sans-serif;letter-spacing:-1px;color:var(--text);line-height:1;margin-bottom:4px;">0 €</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">À recevoir</div>
+      <div style="height:4px;background:var(--bg3);border-radius:99px;overflow:hidden;"><div id="fact-bar-attente" style="height:100%;background:var(--accent);border-radius:99px;width:0%;transition:width .6s;"></div></div>
+    </div>
+
+  </div>
+
+  <!-- Tableau des factures -->
+  <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:20px;">
+    <div style="display:grid;grid-template-columns:1.5fr 2fr 1fr 1fr 1fr;gap:12px;padding-bottom:12px;border-bottom:1px solid rgba(0,0,0,0.08);">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;">N°</div>
+      <div style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;">Client</div>
+      <div style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;text-align:right;">Montant</div>
+      <div style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;">Date</div>
+      <div style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;">Statut</div>
+    </div>
+    <div id="fact-tableau">
+      <div style="text-align:center;padding:30px;color:var(--text2);font-size:13px;">Chargement…</div>
+    </div>
+  </div>
+
+  <!-- Tarifs & TVA -->
+  <div style="margin-top:40px;border-top:1px solid rgba(0,0,0,0.08);padding-top:24px;">
+    <div style="font-weight:700;font-size:18px;color:var(--text);margin-bottom:16px;">Tarifs & TVA</div>
+    <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
       <div class="form-group"><label>Taux Horaire Main d'Œuvre (€/h)</label><input type="number" id="t-mo" placeholder="45"></div>
       <div class="form-group"><label>Taux Journalier (€/jour)</label><input type="number" id="t-journalier" placeholder="350" step="0.01"></div>
       <div class="form-row">
@@ -1041,6 +1091,7 @@ select option{background:var(--card);color:var(--text);}
       <div class="savebadge" id="t-badge">✓ Tarifs sauvegardés</div>
     </div>
   </div>
+
 </div>
 
 <!-- PARAMÈTRES -->
@@ -2105,6 +2156,7 @@ function showTab(n,el){
   if(n==='dashboard'){loadDashboard();}
   if(n==='profil'){loadStats();loadHabitudes();}
   if(n==='parametres'){chargerParametres();}
+  if(n==='tarifs'){loadFacturationTab();}
   if(n==='chantiers'){
     const _f=(lsGet('user_famille')||'').toLowerCase();
     const _m=(lsGet('user_metier')||'').toLowerCase();
@@ -5030,6 +5082,68 @@ async function sauvegarderLibelleFacture(factureId, valeur){
       body: JSON.stringify({ id: factureId, artisanEmail: email, libelle: valeur, _libelleOnly: true })
     });
   }catch(e){ /* silencieux */ }
+}
+
+async function loadFacturationTab(){
+  const email = ls('ent-email');
+  const tbody = document.getElementById('fact-tableau');
+  if(!tbody) return;
+  if(!email){
+    tbody.innerHTML='<div style="text-align:center;padding:30px;color:var(--text2);font-size:13px;">Renseignez votre email pro dans Mon Profil.</div>';
+    return;
+  }
+  tbody.innerHTML='<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;"><div class="spin" style="display:inline-block;margin-right:8px;vertical-align:middle;"></div>Chargement…</div>';
+  try{
+    const r = await fetch(BACKEND+'/api/factures?email='+encodeURIComponent(email));
+    const factures = r.ok ? await r.json() : [];
+    const set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+    const setW = (id,pct) => { const e=document.getElementById(id); if(e) e.style.width=Math.min(100,Math.max(0,pct))+'%'; };
+
+    // Stats
+    const now = new Date();
+    let total=0, paye=0, attente=0;
+    factures.forEach(f=>{
+      const m = parseFloat(f.montant_ttc||f.montant||0);
+      const d = new Date(f.created_at);
+      if(d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()) total+=m;
+      if(f.statut==='payee') paye+=m;
+      if(f.statut==='en_attente'||f.statut==='envoyee') attente+=m;
+    });
+    set('fact-stat-total', fmt(total)+' €');
+    set('fact-stat-paye', fmt(paye)+' €');
+    set('fact-stat-attente', fmt(attente)+' €');
+    const maxS = Math.max(total, paye, attente, 1);
+    setW('fact-bar-total', total/maxS*100);
+    setW('fact-bar-paye', paye/maxS*100);
+    setW('fact-bar-attente', attente/maxS*100);
+
+    if(!factures.length){
+      tbody.innerHTML='<div style="text-align:center;padding:30px;color:var(--text2);font-size:13px;">Aucune facture.</div>';
+      return;
+    }
+    tbody.innerHTML = factures.map(f=>{
+      const badgeStyle = f.statut==='payee'
+        ? 'background:rgba(0,180,80,.12);color:#00b450'
+        : f.statut==='en_attente'
+          ? 'background:rgba(255,165,0,.12);color:#e08000'
+          : f.statut==='envoyee'
+            ? 'background:rgba(100,160,255,.12);color:#4a90d9'
+            : 'background:rgba(255,69,0,.08);color:#FF4500';
+      const label = f.statut==='payee'?'Payée':f.statut==='en_attente'?'En attente':f.statut==='envoyee'?'Envoyée':'À envoyer';
+      const date = new Date(f.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});
+      const montant = parseFloat(f.montant_ttc||f.montant||0);
+      return `<div onclick="ouvrirFacture('${f.devis_id}')" style="display:grid;grid-template-columns:1.5fr 2fr 1fr 1fr 1fr;gap:12px;padding:14px 0;border-bottom:1px solid rgba(0,0,0,0.05);cursor:pointer;align-items:center;">
+        <div style="font-weight:600;color:var(--accent);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.numero||f.id}</div>
+        <div style="font-weight:500;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.client_nom||'—'}</div>
+        <div style="font-weight:700;font-size:13px;color:var(--text);text-align:right;">${montant?fmt(montant)+' €':'—'}</div>
+        <div style="font-size:13px;color:var(--text2);">${date}</div>
+        <div><span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;${badgeStyle}">${label}</span></div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    const t=document.getElementById('fact-tableau');
+    if(t) t.innerHTML='<div style="text-align:center;padding:20px;color:#e04040;font-size:13px;">Impossible de charger les factures.</div>';
+  }
 }
 
 async function loadFacturesList(){
