@@ -708,7 +708,7 @@ select option{background:var(--card);color:var(--text);}
 
 
 <!-- CHANTIERS -->
-<div id="tab-chantiers" class="content">
+<div id="tab-chantiers" class="content" style="max-width:1100px;">
   <!-- Sous-onglets Chantiers / Factures -->
   <div style="display:flex;gap:0;padding:0 18px;background:var(--tab-bg);border-bottom:1px solid var(--border);margin-bottom:0;">
     <button class="subtab subtab-active" id="subtab-btn-cours" onclick="showSubTab('cours',this)" style="background:none;border:none;border-bottom:2px solid var(--accent);color:var(--accent);font-family:'Inter',sans-serif;font-weight:600;font-size:12px;padding:11px 14px 9px;cursor:pointer;letter-spacing:.3px;">🏗 Chantiers</button>
@@ -730,6 +730,13 @@ select option{background:var(--card);color:var(--text);}
           <button onclick="toggleModeFusion()" style="background:none;border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;">Annuler</button>
           <button id="btn-confirmer-fusion" onclick="ouvrirModalFusion()" disabled style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;opacity:.4;">Fusionner</button>
         </div>
+      </div>
+      <!-- Filtres chantiers -->
+      <div style="display:flex;gap:8px;padding:14px 18px 0;flex-wrap:wrap;">
+        <button style="background:var(--accent);color:#fff;border:none;border-radius:99px;padding:6px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Tous</button>
+        <button style="background:transparent;border:1px solid rgba(0,0,0,0.12);color:var(--text);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">En cours</button>
+        <button style="background:transparent;border:1px solid rgba(0,0,0,0.12);color:var(--text);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Planifiés</button>
+        <button style="background:transparent;border:1px solid rgba(0,0,0,0.12);color:var(--text);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Terminés</button>
       </div>
       <div class="card-body" id="chantiers-list">
         <div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">Chargement…</div>
@@ -4906,44 +4913,53 @@ function majAffichageChantiers(){
 }
 
 function renderChantiersList(chantiers, container){
-  const statutMap = {};
   container.innerHTML = chantiers.map(d=>{
-    const st = statutMap[d.id] || lsGet('facture-statut-'+d.id) || 'non_envoyee';
-    const badge = st==='payee' ? 'background:rgba(0,180,80,.12);color:#00b450'
-      : st==='en_attente' ? 'background:rgba(255,165,0,.12);color:#e08000'
-      : st==='envoyee'   ? 'background:rgba(100,160,255,.12);color:#4a90d9'
-      : 'background:var(--bg3);color:var(--text2)';
-    const label = st==='payee'?'✅ Payée':st==='en_attente'?'⏳ En attente':st==='envoyee'?'📨 Envoyée':'📋 À facturer';
+    const st = lsGet('facture-statut-'+d.id) || 'non_envoyee';
+
+    let chStatut, badgeStyle, barColor, barWidth;
+    if(st === 'payee'){
+      chStatut='Terminé'; badgeStyle='background:rgba(0,180,80,.12);color:#00b450'; barColor='#00b450'; barWidth='100%';
+    } else if(st==='en_attente'||st==='envoyee'){
+      chStatut='En cours'; badgeStyle='background:rgba(37,99,235,.1);color:#2563eb'; barColor='#2563eb'; barWidth='70%';
+    } else {
+      chStatut='Planifié'; badgeStyle='background:rgba(255,69,0,.08);color:#FF4500'; barColor='#FF4500'; barWidth='30%';
+    }
+
+    const nom = d.libelle || d.id;
     const libelle = d.libelle||'';
+    let adresse = '';
+    try { const dd=typeof d.data==='string'?JSON.parse(d.data):(d.data||{}); adresse=dd.chantier_adresse||dd.adresse||''; } catch(_){}
     const checked = !!_devisSelectionnes[d.id];
     const checkbox = _modeFusion
       ? `<input type="checkbox" ${checked?'checked':''} onchange="toggleSelectionDevis('${d.id}',this.checked,'${d.montant||''}','${(d.client||'').replace(/'/g,"\\'")}')"
-           style="width:18px;height:18px;accent-color:var(--accent);flex-shrink:0;cursor:pointer;">`
+           style="width:18px;height:18px;accent-color:var(--accent);flex-shrink:0;cursor:pointer;margin-top:3px;">`
       : '';
-    return `<div style="padding:12px 0;border-bottom:1px solid var(--border);">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+
+    return `<div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:12px;">
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;">
         ${checkbox}
-        <div style="min-width:0;flex:1;">
-          <div style="font-weight:600;font-size:13px;color:var(--text)">${d.id}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:2px;">${d.client||'Client'}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:17px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${nom}</div>
+          <div style="font-size:13px;color:var(--text2);margin-top:3px;">${d.client||'—'}${adresse?' · '+adresse:''}</div>
         </div>
-        <div class="ch-actions" style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-          <div style="text-align:right;">
-            <div style="font-weight:800;font-size:14px;color:var(--accent)">${d.montant?fmt(parseFloat(d.montant))+' €':'—'}</div>
-            <div style="font-size:10px;color:#00b450;font-weight:600;">✓ Accepté</div>
-          </div>
-          <div style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;${badge}">${label}</div>
-          ${!_modeFusion?`
-            <button onclick="ouvrirFacture('${d.id}')" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">📄 Facture</button>
-            ${st !== 'payee' ? `<button onclick="ouvrirModalFinChantier('${d.id}')" style="background:rgba(0,180,80,.12);color:#00b450;border:1.5px solid rgba(0,180,80,.3);border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">✅ Terminer</button>` : ''}
-          `:''}
+        <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+          <span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;${badgeStyle}">${chStatut}</span>
+          <div style="font-weight:700;font-size:14px;color:var(--accent)">${d.montant?fmt(parseFloat(d.montant))+' €':'—'}</div>
         </div>
       </div>
-      <div style="margin-top:8px;">
-        <input type="text" value="${libelle.replace(/"/g,'&quot;')}" placeholder="📝 Libellé (pense-bête, visible uniquement par vous)…"
-          onchange="sauvegarderLibelle('${d.id}', this.value)"
-          style="width:100%;box-sizing:border-box;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--text2);font-family:'Inter',sans-serif;outline:none;">
+      <div style="height:4px;background:var(--bg3);border-radius:99px;overflow:hidden;margin-bottom:16px;">
+        <div style="height:100%;background:${barColor};border-radius:99px;width:${barWidth};"></div>
       </div>
+      ${!_modeFusion?`
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <button onclick="ouvrirDetailDevis('${d.id}')" style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:500;background:rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.08);border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;color:var(--text);">Voir le devis</button>
+        <button onclick="ouvrirFacture('${d.id}')" style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:500;background:rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.08);border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;color:var(--text);">Documents</button>
+        <button onclick="ouvrirModalFinChantier('${d.id}')" ${st==='payee'?'disabled style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:600;background:rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.08);border-radius:8px;cursor:not-allowed;font-family:\'Inter\',sans-serif;color:var(--text2);opacity:.5;"':'style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:600;background:rgba(232,66,10,0.06);border:1px solid rgba(232,66,10,0.15);border-radius:8px;cursor:pointer;font-family:\'Inter\',sans-serif;color:var(--accent);"'}>Facturer</button>
+      </div>
+      `:''}
+      <input type="text" value="${libelle.replace(/"/g,'&quot;')}" placeholder="📝 Libellé (pense-bête, visible uniquement par vous)…"
+        onchange="sauvegarderLibelle('${d.id}', this.value)"
+        style="width:100%;box-sizing:border-box;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--text2);font-family:'Inter',sans-serif;outline:none;">
     </div>`;
   }).join('');
 }
