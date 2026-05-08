@@ -75,6 +75,13 @@ nav{background:#1a1510;display:flex;align-items:center;justify-content:space-bet
 .content.active{display:block;}
 #subtab-devis-classique{display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start;}
 @media(max-width:860px){#subtab-devis-classique{grid-template-columns:1fr;}}
+#profil-grid{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start;}
+@media(max-width:860px){#profil-grid{grid-template-columns:1fr;}}
+#tab-profil{max-width:none;margin:0;padding:20px 20px 60px;}
+#tab-profil .card{background:#fff;border-radius:14px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,0.06);border:none;}
+#tab-profil .card-header{background:transparent!important;border-bottom:none!important;padding:20px 24px 0;display:block;}
+#tab-profil .card-header .ph{display:inline-block;background:var(--accent);color:#fff;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:20px;}
+#tab-profil .card-body{padding:0 24px 24px;}
 
 .card{background:var(--card);border-radius:var(--radius);margin-bottom:14px;border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;transition:background .3s;}
 .card-header{padding:13px 18px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:8px;}
@@ -208,7 +215,7 @@ select option{background:var(--card);color:var(--text);}
 @media(max-width:480px){
 
   /* Navigation */
-  nav{padding:0 8px;height:50px;}
+  nav{padding:0 20px;height:50px;}
   .logo{font-size:16px;}
   .nav-tabs{gap:0;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
   .nav-tabs::-webkit-scrollbar{display:none;}
@@ -853,171 +860,178 @@ select option{background:var(--card);color:var(--text);}
 
 <!-- PROFIL -->
 <div id="tab-profil" class="content">
-  <div class="card">
-    <div class="card-header ch-orange">📊 Tableau de bord</div>
-    <div class="card-body">
+  <div id="profil-grid">
 
-      <!-- 4 CARTES STATS -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+    <!-- Colonne gauche — carte identité sticky -->
+    <div style="position:sticky;top:70px;">
+      <div style="background:#fff;border-radius:16px;padding:28px 24px;box-shadow:0 1px 4px rgba(0,0,0,0.06);border:1px solid var(--border);text-align:center;">
 
-        <div style="background:var(--bg3);border-radius:10px;padding:14px;border:1px solid var(--border);">
-          <div style="font-size:18px;margin-bottom:4px;">📋</div>
-          <div style="font-size:28px;font-weight:800;color:var(--accent);font-family:'Syne',sans-serif;line-height:1;" id="stat-envoyes">—</div>
-          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-top:4px;">Devis ce mois</div>
-          <div id="stat-envoyes-var" style="font-size:10px;margin-top:6px;"></div>
-        </div>
+        <!-- Avatar -->
+        <div id="prof-avatar" style="width:72px;height:72px;border-radius:50%;background:var(--accent);color:#fff;font-size:26px;font-weight:800;font-family:'Syne',sans-serif;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">?</div>
 
-        <div style="background:var(--bg3);border-radius:10px;padding:14px;border:1px solid var(--border);">
-          <div style="font-size:18px;margin-bottom:4px;">✅</div>
-          <div style="font-size:28px;font-weight:800;color:#00b450;font-family:'Syne',sans-serif;line-height:1;" id="stat-taux">—</div>
-          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-top:4px;">Taux d'acceptation</div>
-          <div id="stat-taux-var" style="font-size:10px;margin-top:6px;"></div>
-        </div>
+        <!-- Nom -->
+        <div id="prof-nom" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px;">—</div>
 
-        <div style="background:var(--accent-bg);border-radius:10px;padding:14px;border:1px solid var(--accent-border);">
-          <div style="font-size:18px;margin-bottom:4px;">💰</div>
-          <div style="font-size:22px;font-weight:800;color:var(--accent);font-family:'Syne',sans-serif;line-height:1;" id="stat-montant">—</div>
-          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-top:4px;">CA du mois</div>
-          <div id="stat-montant-var" style="font-size:10px;margin-top:6px;"></div>
-        </div>
+        <!-- Métier -->
+        <div id="prof-metier" style="font-size:13px;color:var(--text2);margin-bottom:12px;">—</div>
 
-        <div style="background:var(--bg3);border-radius:10px;padding:14px;border:1px solid var(--border);">
-          <div style="font-size:18px;margin-bottom:4px;">⏳</div>
-          <div style="font-size:22px;font-weight:800;color:#e08000;font-family:'Syne',sans-serif;line-height:1;" id="stat-attente">—</div>
-          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-top:4px;">Factures en attente</div>
-          <div id="stat-attente-nb" style="font-size:10px;color:var(--text2);margin-top:6px;"></div>
-        </div>
+        <!-- Plan badge -->
+        <div id="prof-plan-badge" style="display:inline-block;background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-border);border-radius:20px;padding:4px 14px;font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:20px;">GRATUIT</div>
 
-      </div>
-
-      <!-- GRAPHIQUE ANNUEL -->
-      <div style="background:var(--bg3);border-radius:10px;padding:14px;border:1px solid var(--border);margin-bottom:14px;">
-        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:12px;">📈 CA mensuel — <span id="stat-annee"></span></div>
-        <div id="stat-chart" style="display:flex;align-items:flex-end;gap:4px;height:70px;"></div>
-        <div id="stat-chart-labels" style="display:flex;gap:4px;margin-top:4px;"></div>
-      </div>
-
-      <!-- DERNIERS DEVIS -->
-      <div style="background:var(--bg3);border-radius:10px;padding:14px;border:1px solid var(--border);">
-        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;">🕒 Derniers devis</div>
-        <div id="stat-derniers" style="font-size:12px;color:var(--text2);">Chargement…</div>
-      </div>
-
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-header ch-dark">🖼️ Logo de l'Entreprise</div>
-    <div class="card-body">
-      <div class="form-group">
-        <label>Logo (PNG, JPG, SVG ou PDF — max 2 Mo)</label>
-        <div id="logo-dropzone" onclick="document.getElementById('logo-input').click()"
-          style="margin-top:8px;border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:border-color .2s;background:var(--bg3);"
-          ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
-          ondragleave="this.style.borderColor='var(--border)'"
-          ondrop="event.preventDefault();this.style.borderColor='var(--border)';chargerLogoFichier(event.dataTransfer.files[0])">
-          <div style="font-size:28px;margin-bottom:6px;">🖼️</div>
-          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;">Glissez votre logo ici</div>
-          <div style="font-size:11px;color:var(--text2);">ou cliquez pour choisir — PNG, JPG, SVG, PDF</div>
-        </div>
-        <input type="file" id="logo-input" accept="image/*,.pdf,application/pdf" style="display:none" onchange="chargerLogoFichier(this.files[0])">
-        <div id="logo-preview-wrap" style="display:none;margin-top:12px;">
-          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:6px;">Logo actuel</div>
-          <div style="background:#fff;border-radius:8px;padding:12px;display:flex;align-items:center;justify-content:center;min-height:70px;border:1px solid var(--border);">
-            <img id="logo-preview-img" style="max-height:60px;max-width:200px;object-fit:contain;">
+        <!-- Mini stats -->
+        <div style="width:100%;margin-bottom:20px;border-top:1px solid var(--border);padding-top:16px;">
+          <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--text);padding:4px 0;">
+            <span>Devis créés</span><span id="prof-stat-devis" style="font-weight:700;">—</span>
           </div>
-          <button onclick="supprimerLogo()" style="margin-top:8px;width:100%;background:rgba(220,50,50,.08);color:#e04040;border:1px solid rgba(220,50,50,.2);border-radius:7px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;">🗑️ Supprimer le logo</button>
-        </div>
-        <div id="logo-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;padding:20px;">
-          <div style="background:var(--card);border-radius:16px;padding:24px;max-width:400px;width:100%;text-align:center;border:1px solid var(--border);">
-            <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:6px;">Votre logo</div>
-            <div style="font-size:12px;color:var(--text2);margin-bottom:16px;">Vérifiez le rendu avant de valider</div>
-            <div style="background:#fff;border-radius:8px;padding:16px;margin-bottom:16px;display:flex;align-items:center;justify-content:center;min-height:80px;">
-              <img id="logo-modal-img" style="max-height:70px;max-width:240px;object-fit:contain;">
-            </div>
-            <div style="display:flex;gap:10px;">
-              <button onclick="annulerLogo()" style="flex:1;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;">❌ Annuler</button>
-              <button onclick="validerLogo()" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;">✅ Valider</button>
-            </div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--text);padding:4px 0;">
+            <span>Factures envoyées</span><span id="prof-stat-factures" style="font-weight:700;">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--text);padding:4px 0;">
+            <span>Clients</span><span id="prof-stat-clients" style="font-weight:700;">—</span>
           </div>
         </div>
-        <div id="logo-loading" style="display:none;text-align:center;padding:12px;font-size:12px;color:var(--accent);">
-          <div class="spin" style="display:inline-block;margin-right:6px;vertical-align:middle;"></div>Traitement en cours…
+
+        <!-- CTA Pro -->
+        <a href="#" onclick="return false;" style="display:block;background:var(--accent);color:#fff;border-radius:10px;padding:11px;font-size:13px;font-weight:700;text-decoration:none;font-family:'Inter',sans-serif;">Passer à Pro ✨</a>
+      </div>
+    </div>
+
+    <!-- Colonne droite — formulaires -->
+    <div>
+
+      <!-- Infos perso -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header ch-dark"><span class="ph">👤 Infos personnelles</span></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div><label>Votre Prénom</label><input type="text" id="ent-prenom" placeholder="Jean"></div>
+            <div><label>Votre Nom</label><input type="text" id="ent-nom-artisan" placeholder="Dupont"></div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-header ch-dark">🏢 Votre Entreprise</div>
-    <div class="card-body">
-      <div class="form-row">
-        <div><label>Votre Prénom</label><input type="text" id="ent-prenom" placeholder="Jean"></div>
-        <div><label>Votre Nom</label><input type="text" id="ent-nom-artisan" placeholder="Dupont"></div>
+
+      <!-- Mon Entreprise -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header ch-dark"><span class="ph">🏢 Mon Entreprise</span></div>
+        <div class="card-body">
+          <div class="form-group"><label>Nom de l'Entreprise</label><input type="text" id="ent-nom" placeholder="Dupont Rénovations"></div>
+          <div class="form-row">
+            <div><label>SIRET</label><input type="text" id="ent-siret" placeholder="123 456 789 00012"></div>
+            <div><label>Téléphone</label><input type="tel" id="ent-tel" placeholder="06 12 34 56 78"></div>
+          </div>
+          <div class="form-group"><label>Adresse</label><input type="text" id="ent-adr" placeholder="5 av. du Bâtiment, 69001 Lyon"></div>
+          <div class="form-group"><label>Email Pro</label><input type="email" id="ent-email" placeholder="contact@monentreprise.fr"></div>
+          <div class="form-group"><label>Mentions Légales / TVA</label><textarea id="mentions" style="min-height:55px;padding-right:14px" placeholder="TVA non applicable, art. 293 B du CGI"></textarea></div>
+          <div class="form-group"><label>Assurance Décennale — Compagnie</label><input type="text" id="ent-decennale-compagnie" placeholder="ex: Allianz, MMA, AXA..."></div>
+          <div class="form-group"><label>Assurance Décennale — Numéro de Police</label><input type="text" id="ent-decennale-numero" placeholder="ex: 12345678"></div>
+        </div>
       </div>
-      <div class="form-group"><label>Nom de l'Entreprise</label><input type="text" id="ent-nom" placeholder="Dupont Rénovations"></div>
-      <div class="form-row">
-        <div><label>SIRET</label><input type="text" id="ent-siret" placeholder="123 456 789 00012"></div>
-        <div><label>Téléphone</label><input type="tel" id="ent-tel" placeholder="06 12 34 56 78"></div>
+
+      <!-- Logo -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header ch-dark"><span class="ph">🖼️ Logo de l'Entreprise</span></div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>Logo (PNG, JPG, SVG ou PDF — max 2 Mo)</label>
+            <div id="logo-dropzone" onclick="document.getElementById('logo-input').click()"
+              style="margin-top:8px;border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:border-color .2s;background:var(--bg3);"
+              ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
+              ondragleave="this.style.borderColor='var(--border)'"
+              ondrop="event.preventDefault();this.style.borderColor='var(--border)';chargerLogoFichier(event.dataTransfer.files[0])">
+              <div style="font-size:28px;margin-bottom:6px;">🖼️</div>
+              <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;">Glissez votre logo ici</div>
+              <div style="font-size:11px;color:var(--text2);">ou cliquez pour choisir — PNG, JPG, SVG, PDF</div>
+            </div>
+            <input type="file" id="logo-input" accept="image/*,.pdf,application/pdf" style="display:none" onchange="chargerLogoFichier(this.files[0])">
+            <div id="logo-preview-wrap" style="display:none;margin-top:12px;">
+              <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:6px;">Logo actuel</div>
+              <div style="background:#fff;border-radius:8px;padding:12px;display:flex;align-items:center;justify-content:center;min-height:70px;border:1px solid var(--border);">
+                <img id="logo-preview-img" style="max-height:60px;max-width:200px;object-fit:contain;">
+              </div>
+              <button onclick="supprimerLogo()" style="margin-top:8px;width:100%;background:rgba(220,50,50,.08);color:#e04040;border:1px solid rgba(220,50,50,.2);border-radius:7px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;">🗑️ Supprimer le logo</button>
+            </div>
+            <div id="logo-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;padding:20px;">
+              <div style="background:var(--card);border-radius:16px;padding:24px;max-width:400px;width:100%;text-align:center;border:1px solid var(--border);">
+                <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:6px;">Votre logo</div>
+                <div style="font-size:12px;color:var(--text2);margin-bottom:16px;">Vérifiez le rendu avant de valider</div>
+                <div style="background:#fff;border-radius:8px;padding:16px;margin-bottom:16px;display:flex;align-items:center;justify-content:center;min-height:80px;">
+                  <img id="logo-modal-img" style="max-height:70px;max-width:240px;object-fit:contain;">
+                </div>
+                <div style="display:flex;gap:10px;">
+                  <button onclick="annulerLogo()" style="flex:1;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;">❌ Annuler</button>
+                  <button onclick="validerLogo()" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;">✅ Valider</button>
+                </div>
+              </div>
+            </div>
+            <div id="logo-loading" style="display:none;text-align:center;padding:12px;font-size:12px;color:var(--accent);">
+              <div class="spin" style="display:inline-block;margin-right:6px;vertical-align:middle;"></div>Traitement en cours…
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="form-group"><label>Adresse</label><input type="text" id="ent-adr" placeholder="5 av. du Bâtiment, 69001 Lyon"></div>
-      <div class="form-group"><label>Email Pro</label><input type="email" id="ent-email" placeholder="contact@monentreprise.fr"></div>
-      <div class="form-group"><label>Mentions Légales / TVA</label><textarea id="mentions" style="min-height:55px;padding-right:14px" placeholder="TVA non applicable, art. 293 B du CGI"></textarea></div>
-      <div class="form-group"><label>Assurance Décennale — Compagnie</label><input type="text" id="ent-decennale-compagnie" placeholder="ex: Allianz, MMA, AXA..."></div>
-      <div class="form-group"><label>Assurance Décennale — Numéro de Police</label><input type="text" id="ent-decennale-numero" placeholder="ex: 12345678"></div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-header ch-dark">🏦 Coordonnées Bancaires (RIB)</div>
-    <div class="card-body">
-      <div class="form-group"><label>Banque</label><input type="text" id="ent-banque" placeholder="ex: Crédit Agricole, BNP..."></div>
-      <div class="form-group"><label>IBAN</label><input type="text" id="ent-iban" placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"></div>
-      <div class="form-row">
-        <div><label>BIC</label><input type="text" id="ent-bic" placeholder="ex: AGRIFRPP"></div>
-        <div><label>Titulaire</label><input type="text" id="ent-titulaire" placeholder="Jean Dupont"></div>
+
+      <!-- RIB -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header ch-dark"><span class="ph">🏦 Coordonnées Bancaires</span></div>
+        <div class="card-body">
+          <div class="form-group"><label>Banque</label><input type="text" id="ent-banque" placeholder="ex: Crédit Agricole, BNP..."></div>
+          <div class="form-group"><label>IBAN</label><input type="text" id="ent-iban" placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"></div>
+          <div class="form-row">
+            <div><label>BIC</label><input type="text" id="ent-bic" placeholder="ex: AGRIFRPP"></div>
+            <div><label>Titulaire</label><input type="text" id="ent-titulaire" placeholder="Jean Dupont"></div>
+          </div>
+          <div class="form-group" style="margin-top:4px;padding-top:12px;border-top:1px solid var(--border);">
+            <label>Email Comptable <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text2)">(copie automatique à chaque facture envoyée)</span></label>
+            <input type="email" id="ent-comptable" placeholder="comptable@cabinet.fr">
+          </div>
+          <button class="btn-primary" onclick="saveProfil()">💾 Sauvegarder</button>
+          <div class="savebadge" id="p-badge">✓ Profil sauvegardé</div>
+        </div>
       </div>
-      <div class="form-group" style="margin-top:4px;padding-top:12px;border-top:1px solid var(--border);">
-        <label>Email Comptable <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text2)">(copie automatique à chaque facture envoyée)</span></label>
-        <input type="email" id="ent-comptable" placeholder="comptable@cabinet.fr">
+
+      <!-- Bloc VTC / Taxi : visible uniquement si famille=transport -->
+      <div class="card" id="card-vtc-profil" style="display:none;margin-bottom:16px;">
+        <div class="card-header ch-dark"><span class="ph">🚖 Informations VTC / Taxi</span></div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>Plaque d'immatriculation</label>
+            <input type="text" id="user-plaque" placeholder="AB-123-CD" maxlength="12" oninput="this.value=this.value.toUpperCase()">
+          </div>
+          <p style="font-size:11px;color:var(--text2);margin-top:-6px;margin-bottom:10px;">Apparaîtra automatiquement sur vos bons de commande.</p>
+          <button class="btn-primary" onclick="sauvegarderPlaque()">💾 Enregistrer la plaque</button>
+          <div class="sbar" id="plaque-sbar" style="margin-top:10px;"></div>
+        </div>
       </div>
-      <button class="btn-primary" onclick="saveProfil()">💾 Sauvegarder</button>
-      <div class="savebadge" id="p-badge">✓ Profil sauvegardé</div>
-    </div>
-  </div>
-  <!-- Bloc VTC / Taxi : visible uniquement si famille=transport -->
-  <div class="card" id="card-vtc-profil" style="display:none;">
-    <div class="card-header ch-dark">🚖 Informations VTC / Taxi</div>
-    <div class="card-body">
-      <div class="form-group">
-        <label>Plaque d'immatriculation</label>
-        <input type="text" id="user-plaque" placeholder="AB-123-CD" maxlength="12" oninput="this.value=this.value.toUpperCase()">
+
+      <!-- Habitudes -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header ch-dark"><span class="ph">Habitudes détectées</span></div>
+        <div class="card-body" id="habitudes-body">
+          <div style="font-size:12px;color:var(--text2);text-align:center;padding:12px 0;">Chargement…</div>
+        </div>
       </div>
-      <p style="font-size:11px;color:var(--text2);margin-top:-6px;margin-bottom:10px;">Apparaîtra automatiquement sur vos bons de commande.</p>
-      <button class="btn-primary" onclick="sauvegarderPlaque()">💾 Enregistrer la plaque</button>
-      <div class="sbar" id="plaque-sbar" style="margin-top:10px;"></div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-header ch-dark">Habitudes détectées</div>
-    <div class="card-body" id="habitudes-body">
-      <div style="font-size:12px;color:var(--text2);text-align:center;padding:12px 0;">Chargement…</div>
-    </div>
-  </div>
-  <div class="card" id="bloc-dev-famille" style="display:none;">
-    <div class="card-header ch-dark">🧪 Mode test — Changer de famille</div>
-    <div class="card-body">
-      <div class="form-group">
-        <label>Famille active</label>
-        <select id="dev-famille-select" onchange="devChangerFamille(this.value)" style="width:100%;padding:10px;border-radius:var(--rsm);border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-size:14px;">
-          <option value="btp">btp — Bâtiment &amp; Construction</option>
-          <option value="restauration">restauration — Restauration &amp; Traiteur</option>
-          <option value="auto">auto — Automobile</option>
-          <option value="transport">transport — Transport &amp; Mobilité</option>
-          <option value="services">services — Services</option>
-          <option value="creation">creation — Création &amp; Design</option>
-        </select>
+
+      <!-- Mode test -->
+      <div class="card" id="bloc-dev-famille" style="display:none;margin-bottom:16px;">
+        <div class="card-header ch-dark"><span class="ph">🧪 Mode test</span></div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>Famille active</label>
+            <select id="dev-famille-select" onchange="devChangerFamille(this.value)" style="width:100%;padding:10px;border-radius:var(--rsm);border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-size:14px;">
+              <option value="btp">btp — Bâtiment &amp; Construction</option>
+              <option value="restauration">restauration — Restauration &amp; Traiteur</option>
+              <option value="auto">auto — Automobile</option>
+              <option value="transport">transport — Transport &amp; Mobilité</option>
+              <option value="services">services — Services</option>
+              <option value="creation">creation — Création &amp; Design</option>
+            </select>
+          </div>
+          <div id="dev-famille-msg" style="font-size:12px;color:var(--accent);margin-top:6px;min-height:16px;"></div>
+        </div>
       </div>
-      <div id="dev-famille-msg" style="font-size:12px;color:var(--accent);margin-top:6px;min-height:16px;"></div>
-    </div>
-  </div>
+
+    </div><!-- /colonne droite -->
+  </div><!-- /profil-grid -->
 </div>
 
 <!-- TARIFS -->
@@ -1892,62 +1906,22 @@ function varBadge(actuel, precedent, isPercent){
 }
 
 async function loadStats(){
+  const _s = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+  const appliquerStats = (s) => {
+    _s('prof-stat-devis', s.total_mois||0);
+    _s('prof-stat-factures', s.factures_attente_nb||0);
+    _s('prof-stat-clients', (s.derniers||[]).length||0);
+  };
+  if(window._dvStats){ appliquerStats(window._dvStats); return; }
   const token = localStorage.getItem('dv_token');
-  if(!token){ document.getElementById('stat-derniers').textContent='Session expirée. Reconnectez-vous.'; return; }
+  if(!token) return;
   try{
     const r=await fetch(BACKEND+'/api/stats', { headers:{'Authorization':'Bearer '+token} });
     if(!r.ok) return;
     const s=await r.json();
-
-    // Carte 1 — Devis ce mois
-    document.getElementById('stat-envoyes').textContent = s.total_mois||0;
-    document.getElementById('stat-envoyes-var').innerHTML = varBadge(s.total_mois||0, s.total_precedent||0, false);
-
-    // Carte 2 — Taux d'acceptation
-    document.getElementById('stat-taux').textContent = (s.taux_acceptation||0)+'%';
-    document.getElementById('stat-taux-var').innerHTML = varBadge(s.taux_acceptation||0, s.taux_precedent||0, true);
-
-    // Carte 3 — CA du mois
-    document.getElementById('stat-montant').textContent = fmt(s.montant_mois||0)+' €';
-    document.getElementById('stat-montant-var').innerHTML = varBadge(s.montant_mois||0, s.montant_precedent||0, false);
-
-    // Carte 4 — Factures en attente
-    document.getElementById('stat-attente').textContent = fmt(s.factures_attente_montant||0)+' €';
-    const nbFac = s.factures_attente_nb||0;
-    document.getElementById('stat-attente-nb').textContent = nbFac ? `${nbFac} facture${nbFac>1?'s':''} non payée${nbFac>1?'s':''}` : 'Aucune en attente';
-
-    // Graphique annuel (barres)
-    document.getElementById('stat-annee').textContent = new Date().getFullYear();
-    const hist = s.historique||[];
-    const maxMontant = Math.max(...hist.map(m=>m.montant), 1);
-    const moisCourant = new Date().getMonth(); // 0-based
-    document.getElementById('stat-chart').innerHTML = hist.map((m,i)=>{
-      const h = Math.max(Math.round(m.montant / maxMontant * 60), m.montant > 0 ? 2 : 0);
-      const isCurrent = i === moisCourant;
-      return `<div title="${m.mois} : ${fmt(m.montant)} €" style="flex:1;height:${h}px;background:${isCurrent?'var(--accent)':'var(--accent-border)'};border-radius:3px 3px 0 0;cursor:default;min-height:${m.montant>0?'2px':'0'};"></div>`;
-    }).join('');
-    document.getElementById('stat-chart-labels').innerHTML = hist.map((m,i)=>{
-      const isCurrent = i === moisCourant;
-      return `<div style="flex:1;text-align:center;font-size:9px;color:${isCurrent?'var(--accent)':'var(--text2)'};font-weight:${isCurrent?'700':'400'};">${m.mois}</div>`;
-    }).join('');
-
-    // Derniers devis
-    if(s.derniers&&s.derniers.length){
-      document.getElementById('stat-derniers').innerHTML=s.derniers.map(d=>`
-        <div onclick="ouvrirDetailDevis('${d.id}')" style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer;">
-          <div>
-            <span style="font-weight:600;color:var(--text);font-size:12px">${d.id}</span>
-            <span style="color:var(--text2);margin-left:6px;font-size:11px">${d.client||'—'}</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-weight:700;color:var(--accent);font-size:12px">${d.montant?fmt(parseFloat(d.montant))+' €':'—'}</span>
-            <span style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;${d.accepted?'background:rgba(0,180,80,.12);color:#00b450':'background:var(--accent-bg);color:var(--accent)'}">${d.accepted?'✓ Accepté':'En attente'}</span>
-          </div>
-        </div>`).join('');
-    } else {
-      document.getElementById('stat-derniers').textContent='Aucun devis pour le moment.';
-    }
-  }catch(e){ document.getElementById('stat-derniers').textContent='Impossible de charger les stats.'; }
+    window._dvStats = s;
+    appliquerStats(s);
+  }catch(e){ }
 }
 
 // ── TABLEAU DE BORD ───────────────────────────────────────────────────────────
@@ -1967,6 +1941,7 @@ async function loadDashboard(){
     const r = await fetch(BACKEND+'/api/stats', { headers:{'Authorization':'Bearer '+token} });
     if(!r.ok) return;
     const s = await r.json();
+    window._dvStats = s;
     const set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
     const setH = (id,v) => { const e=document.getElementById(id); if(e) e.innerHTML=v; };
     const setW = (id,pct) => { const e=document.getElementById(id); if(e) e.style.width=Math.min(100,Math.max(0,pct))+'%'; };
@@ -2154,7 +2129,7 @@ function showTab(n,el){
   document.getElementById('tab-'+n).classList.add('active');
   el.classList.add('active');
   if(n==='dashboard'){loadDashboard();}
-  if(n==='profil'){loadStats();loadHabitudes();}
+  if(n==='profil'){chargerFormulaireProfil();chargerCarteProfilLeft();loadStats();loadHabitudes();}
   if(n==='parametres'){chargerParametres();}
   if(n==='tarifs'){loadFacturationTab();}
   if(n==='chantiers'){
@@ -2165,6 +2140,48 @@ function showTab(n,el){
     const bdcBtn=document.getElementById('subtab-btn-bdc-courses');
     if(_isVtc && bdcBtn){bdcBtn.style.display='';showSubTab('bdc-courses',bdcBtn);}
     else loadChantiers();
+  }
+}
+
+function chargerFormulaireProfil(){
+  ['ent-prenom','ent-nom-artisan','ent-nom','ent-siret','ent-tel','ent-adr','ent-email',
+   'mentions','ent-decennale-compagnie','ent-decennale-numero',
+   'ent-banque','ent-iban','ent-bic','ent-titulaire','ent-comptable'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el){ const v = lsGet(id); if(v) el.value = v; }
+  });
+}
+
+function chargerCarteProfilLeft(){
+  const domP = (id) => (document.getElementById(id)||{}).value || '';
+  const prenom = lsGet('user_prenom') || lsGet('ent-prenom') || domP('ent-prenom');
+  const nom    = lsGet('user_nom')    || lsGet('ent-nom-artisan') || domP('ent-nom-artisan');
+  const metier = lsGet('user_metier') || localStorage.getItem('metier') || '';
+  const plan   = (lsGet('user_plan') || 'gratuit').toUpperCase();
+
+  const initiales = ((prenom[0]||'')+(nom[0]||'')).toUpperCase() || 'DV';
+  const _s = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+  _s('prof-avatar', initiales);
+  _s('prof-nom', [prenom, nom].filter(Boolean).join(' ') || '—');
+
+  const metierEl = document.getElementById('prof-metier');
+  if(metierEl){
+    metierEl.textContent = metier;
+    metierEl.style.display = metier ? '' : 'none';
+  }
+
+  const badge = document.getElementById('prof-plan-badge');
+  if(badge){
+    badge.textContent = plan;
+    if(plan === 'PRO'){
+      badge.style.background='rgba(0,180,80,.1)';
+      badge.style.color='#00b450';
+      badge.style.borderColor='rgba(0,180,80,.2)';
+    } else {
+      badge.style.background='var(--accent-bg)';
+      badge.style.color='var(--accent)';
+      badge.style.borderColor='var(--accent-border)';
+    }
   }
 }
 
