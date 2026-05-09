@@ -2192,6 +2192,7 @@ function showTab(n,el){
   document.getElementById('tab-'+n).classList.add('active');
   el.classList.add('active');
   if(n==='dashboard'){loadDashboard();}
+  if(n==='devis'){evaluerVisibiliteBdc();}
   if(n==='profil'){chargerFormulaireProfil();chargerCarteProfilLeft();loadStats();loadHabitudes();}
   if(n==='parametres'){chargerParametres();}
   if(n==='tarifs'){loadFacturationTab();}
@@ -5104,6 +5105,7 @@ function showSubTab(name, btn){
     b.style.color='var(--text2)'; b.style.borderBottomColor='transparent'; b.style.fontWeight='500';
   });
   btn.style.color='var(--accent)'; btn.style.borderBottomColor='var(--accent)'; btn.style.fontWeight='600';
+  if(name==='cours') loadChantiers();
   if(name==='factures') loadFacturesList();
   if(name==='bdc-courses') loadCourses();
 }
