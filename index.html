@@ -36,6 +36,7 @@ nav{background:#1a1510;display:flex;align-items:center;justify-content:space-bet
 .btn-agent{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:6px 14px;font-family:'Inter',sans-serif;font-weight:500;font-size:13px;border-radius:8px;cursor:pointer;transition:background .15s;white-space:nowrap;}
 .btn-agent:hover{background:rgba(255,255,255,0.14);}
 .btn-deco{background:transparent;border:none;color:rgba(255,255,255,0.4);font-size:13px;cursor:pointer;padding:4px 6px;font-family:'Inter',sans-serif;white-space:nowrap;}
+#header-ctx-btn{display:none;background:var(--accent);color:#fff;border:none;border-radius:16px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;}
 .nav-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:default;}
 
 /* ── ASSISTANT CHAT ── */
@@ -310,11 +311,17 @@ select option{background:var(--card);color:var(--text);}
   .bnav-btn svg{width:22px;height:22px;}
   .bnav-btn span{font-size:10px;font-weight:500;}
   .bnav-btn.bnav-active{color:var(--accent);}
-  /* Top nav mobile : logo + déconnexion seulement */
+  /* Top nav mobile */
   .nav-tabs{display:none;}
-  .btn-agent{display:none!important;}
   .nav-avatar{display:none!important;}
   .btn-deco{display:block!important;color:rgba(255,255,255,0.55);}
+  .btn-agent{display:inline-flex!important;font-size:11px!important;padding:5px 10px!important;}
+  #header-ctx-btn{display:inline-flex;align-items:center;}
+  #header-ctx-btn.ctx-hidden{display:none;}
+  /* CTA micro dashboard : fond noir sur mobile */
+  #tab-dashboard > div:nth-child(4) > div:last-child{background:#1a1a1a!important;border-radius:12px!important;}
+  #tab-dashboard > div:nth-child(4) > div:last-child > div:last-child > div:first-child{color:#fff!important;}
+  #tab-dashboard > div:nth-child(4) > div:last-child > div:last-child > div:last-child{color:rgba(255,255,255,0.6)!important;}
   /* Scroll zone */
   body{padding-bottom:80px;}
   .content{padding-bottom:80px;}
@@ -367,8 +374,9 @@ select option{background:var(--card);color:var(--text);}
     <button class="nav-tab" onclick="showTab('parametres',this)">Paramètres</button>
   </div>
   <div class="nav-right">
-    <button class="btn-agent" onclick="ouvrirAssistant()">Assistant IA</button>
+    <button id="header-ctx-btn" onclick="goToTab('devis')">+ Devis</button>
     <button class="btn-deco" onclick="deconnecter()">Déconnexion</button>
+    <button class="btn-agent" onclick="ouvrirAssistant()">Assistant IA</button>
     <div class="nav-avatar" id="nav-avatar">DV</div>
   </div>
 </nav>
@@ -2244,6 +2252,19 @@ function showTab(n,el){
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+n).classList.add('active');
   el.classList.add('active');
+  // Bouton contextuel header mobile
+  const _ctx=document.getElementById('header-ctx-btn');
+  if(_ctx){
+    const _ctxLabels={dashboard:'+ Devis',devis:'+ Devis',chantiers:'+ Chantier',tarifs:'+ Facture'};
+    const _ctxActions={dashboard:'devis',devis:'devis',chantiers:'chantiers',tarifs:'tarifs'};
+    if(_ctxLabels[n]){
+      _ctx.textContent=_ctxLabels[n];
+      _ctx.classList.remove('ctx-hidden');
+      _ctx.onclick=()=>goToTab(_ctxActions[n]);
+    } else {
+      _ctx.classList.add('ctx-hidden');
+    }
+  }
   // Bottom nav : sync état actif
   document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('bnav-active'));
   const _bnavTab = n==='parametres' ? 'profil' : n;
