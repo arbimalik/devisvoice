@@ -338,8 +338,14 @@ select option{background:var(--card);color:var(--text);}
   #tab-dashboard > div:nth-child(5) > div:last-child{display:none!important;}
   #tab-dashboard > div:nth-child(5) > div:first-child > div:last-child{flex-direction:column!important;}
   #tab-dashboard > div:nth-child(5) > div:first-child > div:last-child > button{width:100%!important;}
-  /* ── DEVIS : bloc dictée mobile ── */
-  #devis-dictee-mobile{display:block!important;}
+  /* ── DEVIS : dictée en premier via order ── */
+  #subtab-devis-classique > div:first-child{order:2;}
+  #subtab-devis-classique > div:last-child{order:1;position:static!important;}
+  /* Dictée card fond sombre */
+  #subtab-devis-classique > div:last-child > div:first-child{background:#2a2a2a!important;padding:14px!important;}
+  #subtab-devis-classique > div:last-child > div:first-child > div:nth-child(2){background:rgba(255,255,255,0.07)!important;color:rgba(255,255,255,0.55)!important;}
+  .dictee-box{background:rgba(255,255,255,0.07)!important;color:rgba(255,255,255,0.8)!important;border-color:rgba(255,255,255,0.12)!important;}
+  .mic-lbl{color:rgba(255,255,255,0.5)!important;}
 
   /* ── CHANTIERS : masquer la barre de sous-onglets interne ── */
   #tab-chantiers > div:first-child{display:none!important;}
@@ -514,18 +520,6 @@ select option{background:var(--card);color:var(--text);}
   <div id="devis-subtabs" style="display:none;gap:0;padding:0 18px;background:var(--tab-bg);border-bottom:1px solid var(--border);margin:-20px -16px 16px;">
     <button class="dev-subtab" id="dev-subtab-btn-classique" onclick="showDevisSubTab('classique',this)" style="background:none;border:none;border-bottom:2px solid var(--accent);color:var(--accent);font-family:'Inter',sans-serif;font-weight:600;font-size:12px;padding:11px 14px 9px;cursor:pointer;letter-spacing:.3px;">📋 Devis</button>
     <button class="dev-subtab" id="dev-subtab-btn-bdc" onclick="showDevisSubTab('bdc',this)" style="background:none;border:none;border-bottom:2px solid transparent;color:var(--text2);font-family:'Inter',sans-serif;font-weight:500;font-size:12px;padding:11px 14px 9px;cursor:pointer;letter-spacing:.3px;">🚖 Bon de commande</button>
-  </div>
-
-  <!-- Bloc dictée vocale mobile uniquement -->
-  <div id="devis-dictee-mobile" style="display:none;margin-bottom:16px;">
-    <div style="background:#2a2a2a;border-radius:14px;padding:24px;text-align:center;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:16px;">DICTEE VOCALE</div>
-      <div onclick="toggleMic()" style="width:64px;height:64px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer;margin:0 auto;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v6a2 2 0 0 0 4 0V5a2 2 0 0 0-2-2zm7 8a1 1 0 0 1 1 1 8 8 0 0 1-7 7.93V22h-2v-2.07A8 8 0 0 1 4 12a1 1 0 0 1 2 0 6 6 0 0 0 12 0 1 1 0 0 1 1-1z"/></svg>
-      </div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:12px;">Appuyez pour dicter</div>
-      <div style="background:rgba(255,255,255,0.08);border-radius:8px;padding:10px;color:rgba(255,255,255,0.3);font-size:13px;margin-top:12px;text-align:left;font-style:italic;">Votre dictée s'affiche ici...</div>
-    </div>
   </div>
 
   <!-- Vue Devis classique -->
