@@ -317,28 +317,29 @@ select option{background:var(--card);color:var(--text);}
   #header-ctx-btn{display:none!important;}
   .btn-deco{display:block!important;color:rgba(255,255,255,0.55);}
   .btn-agent{display:inline-flex!important;font-size:10px!important;padding:5px 8px!important;white-space:nowrap!important;}
-  /* CTA micro dashboard : fond noir sur mobile */
-  #tab-dashboard > div:nth-child(4) > div:last-child{background:#1a1a1a!important;border-radius:12px!important;}
-  #tab-dashboard > div:nth-child(4) > div:last-child > div:last-child > div:first-child{color:#fff!important;}
-  #tab-dashboard > div:nth-child(4) > div:last-child > div:last-child > div:last-child{color:rgba(255,255,255,0.6)!important;}
   /* Scroll zone */
   body{padding-bottom:80px;}
   .content{padding-bottom:80px;}
 
   /* ── DASHBOARD ── */
   #tab-dashboard{padding:16px 14px 80px!important;}
-  /* Stats (4 cards) : 2 colonnes, padding et label réduits */
-  #tab-dashboard > div:nth-child(2){grid-template-columns:repeat(2,1fr)!important;gap:8px!important;}
-  #tab-dashboard > div:nth-child(2) > div{padding:10px!important;}
-  #tab-dashboard > div:nth-child(2) > div > div:first-child{font-size:9px!important;}
-  /* CA 2026 + Derniers devis : 1 colonne */
-  #tab-dashboard > div:nth-child(3){grid-template-columns:1fr!important;}
-  /* Raccourcis + CTA : colonne, CTA en premier */
-  #tab-dashboard > div:nth-child(4){display:flex!important;flex-direction:column!important;gap:10px!important;}
-  #tab-dashboard > div:nth-child(4) > div:first-child{order:2;}
-  #tab-dashboard > div:nth-child(4) > div:last-child{order:1;min-width:0!important;width:100%!important;}
-  #tab-dashboard > div:nth-child(4) > div:first-child > div:last-child{flex-direction:column!important;}
-  #tab-dashboard > div:nth-child(4) > div:first-child > div:last-child > button{width:100%!important;}
+  #dash-bonjour{font-size:20px!important;}
+  #dash-subtitle{font-size:13px!important;}
+  /* CTA mobile affiché */
+  #dash-cta-mobile{display:block!important;}
+  /* Stats child 3 (décalé par #dash-cta-mobile) */
+  #tab-dashboard > div:nth-child(3){grid-template-columns:repeat(2,1fr)!important;gap:8px!important;}
+  #tab-dashboard > div:nth-child(3) > div{padding:10px!important;}
+  #tab-dashboard > div:nth-child(3) > div > div:first-child{font-size:9px!important;}
+  /* CA 2026 + Derniers devis : child 4, 1 colonne */
+  #tab-dashboard > div:nth-child(4){grid-template-columns:1fr!important;}
+  /* Raccourcis : child 5, CTA desktop masqué */
+  #tab-dashboard > div:nth-child(5){display:flex!important;flex-direction:column!important;gap:10px!important;}
+  #tab-dashboard > div:nth-child(5) > div:last-child{display:none!important;}
+  #tab-dashboard > div:nth-child(5) > div:first-child > div:last-child{flex-direction:column!important;}
+  #tab-dashboard > div:nth-child(5) > div:first-child > div:last-child > button{width:100%!important;}
+  /* ── DEVIS : bloc dictée mobile ── */
+  #devis-dictee-mobile{display:block!important;}
 
   /* ── CHANTIERS : masquer la barre de sous-onglets interne ── */
   #tab-chantiers > div:first-child{display:none!important;}
@@ -385,9 +386,22 @@ select option{background:var(--card);color:var(--text);}
 <div id="tab-dashboard" class="content active" style="max-width:1100px;padding:32px 24px;">
 
   <!-- Header -->
-  <div style="margin-bottom:28px;">
+  <div style="margin-bottom:16px;">
     <h1 id="dash-bonjour" style="font-size:28px;font-weight:800;color:var(--text);font-family:'Syne',sans-serif;margin-bottom:4px;"></h1>
     <div id="dash-subtitle" style="font-size:14px;color:var(--text2);"></div>
+  </div>
+
+  <!-- CTA micro mobile uniquement -->
+  <div id="dash-cta-mobile" style="display:none;margin-bottom:16px;">
+    <div onclick="goToTab('devis');setTimeout(toggleMic,300)" style="background:#1a1a1a;border-radius:12px;padding:18px 20px;cursor:pointer;display:flex;align-items:center;gap:14px;">
+      <div style="width:48px;height:48px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v6a2 2 0 0 0 4 0V5a2 2 0 0 0-2-2zm7 8a1 1 0 0 1 1 1 8 8 0 0 1-7 7.93V22h-2v-2.07A8 8 0 0 1 4 12a1 1 0 0 1 2 0 6 6 0 0 0 12 0 1 1 0 0 1 1-1z"/></svg>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:16px;color:#fff;">Créer un devis vocal</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-top:2px;">En 30 secondes chrono</div>
+      </div>
+    </div>
   </div>
 
   <!-- 4 stats -->
@@ -500,6 +514,18 @@ select option{background:var(--card);color:var(--text);}
   <div id="devis-subtabs" style="display:none;gap:0;padding:0 18px;background:var(--tab-bg);border-bottom:1px solid var(--border);margin:-20px -16px 16px;">
     <button class="dev-subtab" id="dev-subtab-btn-classique" onclick="showDevisSubTab('classique',this)" style="background:none;border:none;border-bottom:2px solid var(--accent);color:var(--accent);font-family:'Inter',sans-serif;font-weight:600;font-size:12px;padding:11px 14px 9px;cursor:pointer;letter-spacing:.3px;">📋 Devis</button>
     <button class="dev-subtab" id="dev-subtab-btn-bdc" onclick="showDevisSubTab('bdc',this)" style="background:none;border:none;border-bottom:2px solid transparent;color:var(--text2);font-family:'Inter',sans-serif;font-weight:500;font-size:12px;padding:11px 14px 9px;cursor:pointer;letter-spacing:.3px;">🚖 Bon de commande</button>
+  </div>
+
+  <!-- Bloc dictée vocale mobile uniquement -->
+  <div id="devis-dictee-mobile" style="display:none;margin-bottom:16px;">
+    <div style="background:#2a2a2a;border-radius:14px;padding:24px;text-align:center;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:16px;">DICTEE VOCALE</div>
+      <div onclick="toggleMic()" style="width:64px;height:64px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer;margin:0 auto;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v6a2 2 0 0 0 4 0V5a2 2 0 0 0-2-2zm7 8a1 1 0 0 1 1 1 8 8 0 0 1-7 7.93V22h-2v-2.07A8 8 0 0 1 4 12a1 1 0 0 1 2 0 6 6 0 0 0 12 0 1 1 0 0 1 1-1z"/></svg>
+      </div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:12px;">Appuyez pour dicter</div>
+      <div style="background:rgba(255,255,255,0.08);border-radius:8px;padding:10px;color:rgba(255,255,255,0.3);font-size:13px;margin-top:12px;text-align:left;font-style:italic;">Votre dictée s'affiche ici...</div>
+    </div>
   </div>
 
   <!-- Vue Devis classique -->
