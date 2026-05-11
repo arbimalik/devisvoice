@@ -739,11 +739,11 @@ select option{background:var(--card);color:var(--text);}
         </div>
       </div>
       <!-- Filtres chantiers -->
-      <div style="display:flex;gap:8px;padding:14px 18px 0;flex-wrap:wrap;">
-        <button style="background:var(--accent);color:#fff;border:none;border-radius:99px;padding:6px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Tous</button>
-        <button style="background:transparent;border:1px solid rgba(0,0,0,0.12);color:var(--text);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">En cours</button>
-        <button style="background:transparent;border:1px solid rgba(0,0,0,0.12);color:var(--text);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Planifiés</button>
-        <button style="background:transparent;border:1px solid rgba(0,0,0,0.12);color:var(--text);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Terminés</button>
+      <div id="filtres-chantiers" style="display:flex;gap:8px;padding:14px 18px 0;flex-wrap:wrap;">
+        <button onclick="toggleFiltreChantiers(this,'tous')" style="background:var(--accent);color:#fff;border:none;border-radius:99px;padding:6px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Tous</button>
+        <button onclick="toggleFiltreChantiers(this,'en-cours')" style="background:transparent;border:1px solid rgba(0,0,0,0.12);color:var(--text);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">En cours</button>
+        <button onclick="toggleFiltreChantiers(this,'planifies')" style="background:transparent;border:1px solid rgba(0,0,0,0.12);color:var(--text);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Planifiés</button>
+        <button onclick="toggleFiltreChantiers(this,'termines')" style="background:transparent;border:1px solid rgba(0,0,0,0.12);color:var(--text);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Terminés</button>
       </div>
       <div class="card-body" id="chantiers-list">
         <div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">Chargement…</div>
@@ -1038,11 +1038,11 @@ select option{background:var(--card);color:var(--text);}
 <div id="tab-tarifs" class="content" style="max-width:1100px;">
 
   <!-- Filtres -->
-  <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
-    <button style="background:var(--accent);color:#fff;border:none;border-radius:99px;padding:6px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Toutes</button>
-    <button style="background:transparent;border:1px solid rgba(0,0,0,0.12);color:var(--text);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Payées</button>
-    <button style="background:transparent;border:1px solid rgba(0,0,0,0.12);color:var(--text);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">En attente</button>
-    <button style="background:transparent;border:1px solid rgba(0,0,0,0.12);color:var(--text);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Brouillon</button>
+  <div id="filtres-tarifs" style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+    <button onclick="toggleFiltreTarifs(this,'toutes')" style="background:var(--accent);color:#fff;border:none;border-radius:99px;padding:6px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Toutes</button>
+    <button onclick="toggleFiltreTarifs(this,'payees')" style="background:transparent;border:1px solid rgba(0,0,0,0.12);color:var(--text);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Payées</button>
+    <button onclick="toggleFiltreTarifs(this,'en-attente')" style="background:transparent;border:1px solid rgba(0,0,0,0.12);color:var(--text);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">En attente</button>
+    <button onclick="toggleFiltreTarifs(this,'brouillon')" style="background:transparent;border:1px solid rgba(0,0,0,0.12);color:var(--text);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Brouillon</button>
   </div>
 
   <!-- 3 stats -->
@@ -5095,6 +5095,28 @@ function renderChantiersList(chantiers, container){
         style="width:100%;box-sizing:border-box;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--text2);font-family:'Inter',sans-serif;outline:none;">
     </div>`;
   }).join('');
+}
+
+function toggleFiltreChantiers(btn, filtre){
+  document.querySelectorAll('#filtres-chantiers button').forEach(b=>{
+    b.style.background='transparent'; b.style.border='1px solid rgba(0,0,0,0.12)';
+    b.style.color='var(--text)'; b.style.fontWeight='500';
+  });
+  btn.style.background='var(--accent)'; btn.style.border='none';
+  btn.style.color='#fff'; btn.style.fontWeight='600';
+  window._filtreChantiers = filtre;
+  loadChantiers(filtre);
+}
+
+function toggleFiltreTarifs(btn, filtre){
+  document.querySelectorAll('#filtres-tarifs button').forEach(b=>{
+    b.style.background='transparent'; b.style.border='1px solid rgba(0,0,0,0.12)';
+    b.style.color='var(--text)'; b.style.fontWeight='500';
+  });
+  btn.style.background='var(--accent)'; btn.style.border='none';
+  btn.style.color='#fff'; btn.style.fontWeight='600';
+  window._filtreFacturation = filtre;
+  loadFacturationTab(filtre);
 }
 
 function showSubTab(name, btn){
