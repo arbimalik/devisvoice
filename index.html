@@ -3133,7 +3133,7 @@ function startMic(){
 function pauseMic(){
   micState='paused'; isRec=false;
   if(recog){try{recog.stop();}catch(e){} try{recog.abort();}catch(e){} recog=null;}
-  stopAudioViz();
+  pauseAudioViz(); // conserve le stream pour la reprise (fix Safari iOS)
   const btn=document.getElementById('mic-btn');
   btn.classList.remove('rec'); btn.classList.add('paused');
   document.getElementById('mic-wrap').classList.remove('recording');
@@ -3151,6 +3151,13 @@ function stopMic(){
 }
 
 function startAudioViz(){
+  // Reprise après pause : stream/analyser déjà acquis, on les réutilise
+  if(micStream && audioCtx && analyser){
+    if(audioCtx.state==='suspended') audioCtx.resume();
+    if(animFrame){cancelAnimationFrame(animFrame);animFrame=null;}
+    drawOrb();
+    return;
+  }
   navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
     micStream=stream;
     audioCtx=new(window.AudioContext||window.webkitAudioContext)();
@@ -3258,7 +3265,14 @@ function stopAudioViz(){
   if(micStream)micStream.getTracks().forEach(t=>t.stop());
   if(audioCtx){audioCtx.close();audioCtx=null;}
   analyser=null;micStream=null;
-  // Relance l'animation idle
+  const canvas=document.getElementById('orb-canvas');
+  if(canvas){ isRec=false; drawOrb(); }
+  document.getElementById('mic-btn').style.transform='scale(1)';
+}
+
+function pauseAudioViz(){
+  // Arrête l'animation mais conserve micStream/audioCtx/analyser pour la reprise
+  if(animFrame){cancelAnimationFrame(animFrame);animFrame=null;}
   const canvas=document.getElementById('orb-canvas');
   if(canvas){ isRec=false; drawOrb(); }
   document.getElementById('mic-btn').style.transform='scale(1)';
