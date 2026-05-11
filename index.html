@@ -300,6 +300,58 @@ select option{background:var(--card);color:var(--text);}
   .ch-actions{flex-wrap:wrap;width:100%;margin-top:8px;justify-content:flex-end;}
 }
 
+/* ========= BOTTOM NAV ========= */
+.bottom-nav{display:none;}
+
+@media(max-width:768px){
+  /* Bottom nav — top:auto reset le top:0 hérité de nav{} */
+  .bottom-nav{position:fixed!important;bottom:0!important;top:auto!important;left:0;right:0;height:64px;padding:0 0 env(safe-area-inset-bottom)!important;background:var(--nav)!important;display:flex!important;justify-content:space-around;align-items:center;border-top:1px solid var(--border);z-index:300;gap:0!important;}
+  .bnav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;cursor:pointer;padding:8px 0;color:var(--text2);flex:1;}
+  .bnav-btn svg{width:22px;height:22px;}
+  .bnav-btn span{font-size:10px;font-weight:500;}
+  .bnav-btn.bnav-active{color:var(--accent);}
+  /* Top nav mobile : logo + déconnexion seulement */
+  .nav-tabs{display:none;}
+  .btn-agent{display:none!important;}
+  .nav-avatar{display:none!important;}
+  .btn-deco{display:block!important;color:rgba(255,255,255,0.55);}
+  /* Scroll zone */
+  body{padding-bottom:80px;}
+  .content{padding-bottom:80px;}
+
+  /* ── DASHBOARD ── */
+  #tab-dashboard{padding:16px 14px 80px!important;}
+  /* Stats (4 cards) : 2 colonnes, padding et label réduits */
+  #tab-dashboard > div:nth-child(2){grid-template-columns:repeat(2,1fr)!important;gap:8px!important;}
+  #tab-dashboard > div:nth-child(2) > div{padding:10px!important;}
+  #tab-dashboard > div:nth-child(2) > div > div:first-child{font-size:9px!important;}
+  /* CA 2026 + Derniers devis : 1 colonne */
+  #tab-dashboard > div:nth-child(3){grid-template-columns:1fr!important;}
+  /* Raccourcis + CTA : colonne, CTA en premier */
+  #tab-dashboard > div:nth-child(4){display:flex!important;flex-direction:column!important;gap:10px!important;}
+  #tab-dashboard > div:nth-child(4) > div:first-child{order:2;}
+  #tab-dashboard > div:nth-child(4) > div:last-child{order:1;min-width:0!important;width:100%!important;}
+  #tab-dashboard > div:nth-child(4) > div:first-child > div:last-child{flex-direction:column!important;}
+  #tab-dashboard > div:nth-child(4) > div:first-child > div:last-child > button{width:100%!important;}
+
+  /* ── CHANTIERS : masquer la barre de sous-onglets interne ── */
+  #tab-chantiers > div:first-child{display:none!important;}
+
+  /* ── FORMULAIRES : 1 colonne dès 768px ── */
+  .form-row,.form-row-3{grid-template-columns:1fr!important;}
+
+  /* ── PROFIL : carte identité compacte ── */
+  #profil-grid > div:first-child{position:static!important;}
+  #profil-grid > div:first-child > div{padding:14px!important;}
+  #prof-avatar{width:60px!important;height:60px!important;font-size:20px!important;margin-bottom:10px!important;}
+  #prof-nom{font-size:15px!important;margin-bottom:2px!important;}
+  #prof-metier{font-size:12px!important;margin-bottom:8px!important;}
+  #prof-plan-badge{margin-bottom:12px!important;}
+  #prof-plan-badge + div{margin-bottom:12px!important;padding-top:10px!important;}
+  #prof-plan-badge + div > div{font-size:12px!important;padding:2px 0!important;}
+  #profil-grid > div:first-child > div > a{padding:10px!important;font-size:12px!important;}
+}
+
 </style>
 </head>
 <body>
@@ -1337,6 +1389,7 @@ if (!isDevMode) {
             // Filtrer les corps de métier selon la famille
             filtrerFamille(profile.famille || lsGet('user_famille') || 'btp');
             appliquerLabels(profile.famille || lsGet('user_famille') || 'btp');
+            updateBottomNavFamily(profile.famille || lsGet('user_famille') || 'btp');
             evaluerVisibiliteBdc();
             initBlocDevFamille();
             // Adapter l'exemple de dictée selon le métier
@@ -1359,7 +1412,7 @@ if (isDevMode) document.body.style.visibility = 'visible';
   const f = _urlFamille || lsGet('user_famille');
   const m = lsGet('user_metier');
   const p = lsGet('user_plan');
-  if(f){ filtrerFamille(f); appliquerLabels(f); }
+  if(f){ filtrerFamille(f); appliquerLabels(f); updateBottomNavFamily(f); }
   if(m) adapterExempleDictee(m);
   verifierPlanComptable(p || 'gratuit');
   document.addEventListener('DOMContentLoaded', evaluerVisibiliteBdc);
@@ -2191,6 +2244,17 @@ function showTab(n,el){
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+n).classList.add('active');
   el.classList.add('active');
+  // Bottom nav : sync état actif
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('bnav-active'));
+  const _bnavTab = n==='parametres' ? 'profil' : n;
+  const _bnavBtn = document.querySelector('.bnav-btn[data-tab="'+_bnavTab+'"]');
+  if(_bnavBtn) _bnavBtn.classList.add('bnav-active');
+  // Profil mobile : afficher aussi les paramètres
+  if(n==='profil' && window.innerWidth<=768){
+    const _tabParam=document.getElementById('tab-parametres');
+    if(_tabParam) _tabParam.classList.add('active');
+    chargerParametres();
+  }
   if(n==='dashboard'){loadDashboard();}
   if(n==='devis'){evaluerVisibiliteBdc();}
   if(n==='profil'){chargerFormulaireProfil();chargerCarteProfilLeft();loadStats();loadHabitudes();}
@@ -2205,6 +2269,27 @@ function showTab(n,el){
     if(_isVtc && bdcBtn){bdcBtn.style.display='';showSubTab('bdc-courses',bdcBtn);}
     else loadChantiers();
   }
+}
+
+function updateBottomNavFamily(famille){
+  const btn=document.getElementById('bnav-middle');
+  if(!btn) return;
+  const f=(famille||'').toLowerCase();
+  let label,svgInner;
+  if(f==='btp'){
+    label='Chantiers';
+    svgInner='<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/>';
+  } else if(f==='transport'){
+    label='Courses';
+    svgInner='<rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>';
+  } else {
+    label='Prestations';
+    svgInner='<path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="12" y2="16"/>';
+  }
+  const svg=btn.querySelector('svg');
+  if(svg) svg.innerHTML=svgInner;
+  const span=btn.querySelector('span');
+  if(span) span.textContent=label;
 }
 
 function chargerFormulaireProfil(){
@@ -5799,5 +5884,28 @@ async function envoyerMessageAssistant() {
   }
 }
 </script>
+
+<nav class="bottom-nav">
+  <button class="bnav-btn bnav-active" data-tab="dashboard" onclick="showTab('dashboard',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>Accueil</span>
+  </button>
+  <button class="bnav-btn" data-tab="devis" onclick="showTab('devis',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    <span>Devis</span>
+  </button>
+  <button class="bnav-btn" id="bnav-middle" data-tab="chantiers" onclick="showTab('chantiers',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+    <span>Chantiers</span>
+  </button>
+  <button class="bnav-btn" data-tab="tarifs" onclick="showTab('tarifs',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3"/><rect x="9" y="3" width="6" height="8" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+    <span>Factures</span>
+  </button>
+  <button class="bnav-btn" data-tab="profil" onclick="showTab('profil',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span>Profil</span>
+  </button>
+</nav>
 </body>
 </html>
