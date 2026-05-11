@@ -314,10 +314,9 @@ select option{background:var(--card);color:var(--text);}
   /* Top nav mobile */
   .nav-tabs{display:none;}
   .nav-avatar{display:none!important;}
+  #header-ctx-btn{display:none!important;}
   .btn-deco{display:block!important;color:rgba(255,255,255,0.55);}
-  .btn-agent{display:inline-flex!important;font-size:11px!important;padding:5px 10px!important;}
-  #header-ctx-btn{display:inline-flex;align-items:center;}
-  #header-ctx-btn.ctx-hidden{display:none;}
+  .btn-agent{display:inline-flex!important;font-size:10px!important;padding:5px 8px!important;white-space:nowrap!important;}
   /* CTA micro dashboard : fond noir sur mobile */
   #tab-dashboard > div:nth-child(4) > div:last-child{background:#1a1a1a!important;border-radius:12px!important;}
   #tab-dashboard > div:nth-child(4) > div:last-child > div:last-child > div:first-child{color:#fff!important;}
@@ -347,15 +346,16 @@ select option{background:var(--card);color:var(--text);}
   /* ── FORMULAIRES : 1 colonne dès 768px ── */
   .form-row,.form-row-3{grid-template-columns:1fr!important;}
 
-  /* ── PROFIL : carte identité compacte ── */
+  /* ── PROFIL : carte identité compacte + fond sombre ── */
   #profil-grid > div:first-child{position:static!important;}
-  #profil-grid > div:first-child > div{padding:14px!important;}
+  #profil-grid > div:first-child > div{padding:14px!important;background:#1a1a1a!important;color:#fff!important;}
   #prof-avatar{width:60px!important;height:60px!important;font-size:20px!important;margin-bottom:10px!important;}
-  #prof-nom{font-size:15px!important;margin-bottom:2px!important;}
-  #prof-metier{font-size:12px!important;margin-bottom:8px!important;}
+  #prof-nom{font-size:15px!important;margin-bottom:2px!important;color:#fff!important;}
+  #prof-metier{font-size:12px!important;margin-bottom:8px!important;color:rgba(255,255,255,0.6)!important;}
   #prof-plan-badge{margin-bottom:12px!important;}
-  #prof-plan-badge + div{margin-bottom:12px!important;padding-top:10px!important;}
-  #prof-plan-badge + div > div{font-size:12px!important;padding:2px 0!important;}
+  #prof-plan-badge + div{margin-bottom:12px!important;padding-top:10px!important;border-top-color:rgba(255,255,255,0.12)!important;}
+  #prof-plan-badge + div > div{font-size:12px!important;padding:2px 0!important;color:rgba(255,255,255,0.8)!important;}
+  #prof-plan-badge + div > div span:last-child{color:#fff!important;}
   #profil-grid > div:first-child > div > a{padding:10px!important;font-size:12px!important;}
 }
 
