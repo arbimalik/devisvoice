@@ -1517,7 +1517,7 @@ function evaluerVisibiliteBdc(){
   const m = (lsGet('user_metier') ||'').toLowerCase();
   let ms = [];
   try { ms = JSON.parse(lsGet('user_metiers')||'[]') || []; } catch(_){}
-  const isVtc = f === 'transport' && (m === 'vtc' || ms.some(x => (x||'').toLowerCase() === 'vtc'));
+  const isVtc = f === 'vtc' || (f === 'transport' && (m.includes('vtc') || ms.some(x => (x||'').toLowerCase().includes('vtc'))));
   const subtabs = document.getElementById('devis-subtabs');
   if(subtabs) subtabs.style.display = isVtc ? 'flex' : 'none';
   if(!isVtc){
@@ -2296,7 +2296,7 @@ function showTab(n,el){
     const _f=(lsGet('user_famille')||'').toLowerCase();
     const _m=(lsGet('user_metier')||'').toLowerCase();
     let _ms=[]; try{_ms=JSON.parse(lsGet('user_metiers')||'[]')||[];}catch(_){}
-    const _isVtc=_f==='transport'&&(_m==='vtc'||_ms.some(x=>(x||'').toLowerCase()==='vtc'));
+    const _isVtc=_f==='vtc'||(_f==='transport'&&(_m.includes('vtc')||_ms.some(x=>(x||'').toLowerCase().includes('vtc'))));
     const bdcBtn=document.getElementById('subtab-btn-bdc-courses');
     if(_isVtc && bdcBtn){bdcBtn.style.display='';showSubTab('bdc-courses',bdcBtn);}
     else loadChantiers();
