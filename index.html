@@ -2865,7 +2865,7 @@ async function mettreAJourDevis(){
     const r = await fetch(BACKEND+'/api/claude', {
       method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ payload: {
-        model: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-4-6',
         max_tokens: 8000,
         system: `Tu es un assistant expert en modification de devis BTP.
 L'artisan te donne un devis JSON existant et une instruction de modification vocale.
@@ -3791,7 +3791,7 @@ RÈGLES ABSOLUES: Ne jamais inventer un prix. Unité: "pers" par personne, "h" h
         const r=await fetch(BACKEND+'/api/claude',{
           method:'POST',signal:ctrl.signal,
           headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({payload:{model:'claude-sonnet-4-5',max_tokens:8000,messages:[{role:'user',content:promptPasse}]}})
+          body:JSON.stringify({payload:{model:'claude-sonnet-4-6',max_tokens:8000,messages:[{role:'user',content:promptPasse}]}})
         });
         clearTimeout(timer);
         const data=await r.json();
@@ -5642,7 +5642,7 @@ async function reformaterObsIA(textebrut){
     const r = await fetch(BACKEND+'/api/claude',{
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({payload:{
-        model:'claude-sonnet-4-5', max_tokens:300,
+        model:'claude-sonnet-4-6', max_tokens:300,
         messages:[{role:'user',content:`Tu es un assistant pour artisan du bâtiment. Reformule ce texte dicté à voix haute en une observation professionnelle et claire pour un devis. Texte brut : "${textebrut}". Réponds uniquement avec le texte reformulé, sans guillemets ni explication.`}]
       }})
     });
