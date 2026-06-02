@@ -2255,7 +2255,8 @@ async function envoyerDevisDetail(){
     if(!r.ok || !res.success) throw new Error(res.error||'Erreur envoi');
     showSbar('detail-devis-sbar','success','✓ Devis envoyé à '+ce);
   }catch(e){
-    showSbar('detail-devis-sbar','error','Erreur lors de l\'envoi.');
+    console.error('envoyerDevisDetail:', e);
+    showSbar('detail-devis-sbar','error','Erreur : '+e.message);
   }
 }
 
