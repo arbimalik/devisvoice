@@ -1584,6 +1584,24 @@ async function enregistrerBonCommande(){
     sbar.className='sbar error'; sbar.textContent='Passager, destination et montant TTC requis.'; return;
   }
 
+  // Vérification quota BdC AVANT l'appel réseau
+  const _bdcPlan = (lsGet('user_plan') || 'gratuit').toLowerCase();
+  const BDC_LIMITS = { gratuit: 3, starter: 10 };
+  const _bdcLimit = BDC_LIMITS[_bdcPlan];
+  if (_bdcLimit !== undefined) {
+    try {
+      const _br = await authFetch(BACKEND + '/api/bon-commande');
+      if (_br.ok) {
+        const _bl = await _br.json();
+        const _mois = new Date().getMonth(); const _an = new Date().getFullYear();
+        const _bdcCeMois = _bl.filter(b => { const d = new Date(b.created_at); return d.getMonth()===_mois && d.getFullYear()===_an; }).length;
+        if (_bdcCeMois >= _bdcLimit) {
+          sbar.className='sbar error'; sbar.innerHTML=`❌ Limite de ${_bdcLimit} bons de commande/mois atteinte. ${upgradeCta(_bdcPlan)}`; return;
+        }
+      }
+    } catch(e) { /* continue sans blocage si l'appel échoue */ }
+  }
+
   sbar.className='sbar loading'; sbar.innerHTML='<div class="spin"></div>Enregistrement…';
   try {
     const r = await authFetch(BACKEND+'/api/bon-commande/save', {
@@ -1911,6 +1929,12 @@ function deconnecter(){
 }
 
 // ── PARAMÈTRES — MON COMPTE / ABONNEMENT / CONFIDENTIALITÉ ─────────────────────
+function upgradeCta(plan) {
+  if (plan === 'gratuit') return `<a href="pricing.html" style="color:var(--accent);font-weight:700;">Passer au Starter (9,90€/mois) →</a>`;
+  if (plan === 'starter') return `<a href="pricing.html" style="color:var(--accent);font-weight:700;">Passer au Pro (17,90€/mois) →</a>`;
+  return `<a href="pricing.html" style="color:var(--accent);font-weight:700;">Voir les plans →</a>`;
+}
+
 const PLAN_LABELS = {
   gratuit:'Gratuit', starter:'Starter', pro:'Pro', equipe:'Équipe', solo:'Solo'
 };
@@ -3357,6 +3381,25 @@ async function genererDevis(){
   if(isRec) stopMic();
   const dictee=document.getElementById('dictee-text').innerText.trim();
   if(!dictee){alert('Dictez ou saisissez vos postes de travaux.');return;}
+
+  // Vérification quota AVANT tout appel API (évite de consommer des tokens inutilement)
+  const PLAN_LIMITS = { gratuit: 3, starter: 10 }; // pro = illimité (absent = pas de limite)
+  const _userPlan = (lsGet('user_plan') || 'gratuit').toLowerCase();
+  const _devisLimit = PLAN_LIMITS[_userPlan];
+  if (_devisLimit !== undefined) {
+    let _devisCeMois = window._dvStats?.total_mois;
+    if (_devisCeMois === undefined) {
+      try {
+        const _sr = await authFetch(BACKEND + '/api/stats');
+        if (_sr.ok) { const _sd = await _sr.json(); _devisCeMois = _sd.total_mois || 0; window._dvStats = _sd; }
+      } catch(e) { /* continue sans blocage si l'appel échoue */ }
+    }
+    if (_devisCeMois !== undefined && _devisCeMois >= _devisLimit) {
+      showS('error', `❌ Limite de ${_devisLimit} devis/mois atteinte. ${upgradeCta(_userPlan)}`);
+      return;
+    }
+  }
+
   const entNom=ls('ent-nom')||'Votre Entreprise',entSiret=ls('ent-siret')||'',entTel=ls('ent-tel')||'',entAdr=ls('ent-adr')||'',entEmail=ls('ent-email')||'',tva=ls('t-tva')||'10';
 
   // Charger les préférences artisan pour adapter le style de l'IA
@@ -5070,7 +5113,14 @@ async function confirmerFinChantier(){
       body: JSON.stringify({ artisanNom, artisanEmail, clientEmail, comptableEmail, clientNom, numero, montant, html, pdfBase64 })
     });
     const res = await resp.json();
-    if(!resp.ok) throw new Error(res.error || 'Erreur envoi');
+    if(!resp.ok) {
+      if (res.code === 'PLAN_UPGRADE_REQUIRED') {
+        const _p = (lsGet('user_plan') || 'gratuit').toLowerCase();
+        sbar.innerHTML = `<div style="font-size:12px;color:#e04040;text-align:center;">❌ L'envoi de factures est réservé aux plans payants. ${upgradeCta(_p)}</div>`;
+        return;
+      }
+      throw new Error(res.error || 'Erreur envoi');
+    }
 
     // Sauvegarder la facture en BDD
     const factureId = 'F-' + devisId;
