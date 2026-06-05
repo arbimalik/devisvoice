@@ -710,6 +710,23 @@ select option{background:var(--card);color:var(--text);}
       <div class="card-header ch-orange">🚖 Bon de commande VTC / Taxi</div>
       <div class="card-body">
 
+        <!-- Bloc dictée vocale BdC -->
+        <div style="background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:10px;padding:16px 18px;margin-bottom:20px;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px;">🎙️ Dictée vocale</div>
+          <p style="font-size:12px;color:var(--text2);margin:0 0 12px;line-height:1.55;">Ex : <em>"Passager Jean Dupont, de CDG terminal 2 vers Paris 8e, 42 km, 85 euros TTC, demain à 6h30"</em></p>
+          <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;">
+            <button id="mic-btn-bdc" onclick="toggleMicBdc()" title="Démarrer / arrêter la dictée"
+              style="width:52px;height:52px;flex-shrink:0;border-radius:50%;border:none;background:var(--accent);color:#fff;font-size:22px;cursor:pointer;box-shadow:0 2px 10px rgba(255,69,0,.3);transition:transform .15s;">🎙️</button>
+            <textarea id="dictee-bdc" rows="3" placeholder="Dictez ou tapez ici la description de la course…"
+              style="flex:1;resize:none;border:1.5px solid var(--border);border-radius:8px;padding:10px 13px;font-family:'Inter',sans-serif;font-size:13px;color:var(--text);background:var(--input-bg);outline:none;line-height:1.5;min-height:72px;box-sizing:border-box;width:100%;"></textarea>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="genererBdc()" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 14px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">⚡ Pré-remplir le formulaire</button>
+            <button onclick="document.getElementById('dictee-bdc').value='';document.getElementById('bdc-voice-sbar').style.display='none';" style="background:none;border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;cursor:pointer;color:var(--text2);font-family:'Inter',sans-serif;">✕ Effacer</button>
+          </div>
+          <div id="bdc-voice-sbar" style="display:none;margin-top:10px;border-radius:6px;padding:8px 12px;font-size:12px;"></div>
+        </div>
+
         <!-- Section 1 — Conducteur (lecture seule depuis profil) -->
         <div style="background:var(--bg3);border-radius:8px;padding:12px 14px;margin-bottom:14px;border:1px solid var(--border);">
           <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:8px;">👤 Conducteur</div>
@@ -1561,6 +1578,113 @@ function prefillConducteurBdc(){
   const elPl  = document.getElementById('bdc-plaque');
   if(elNom) elNom.value = fullName;
   if(elPl)  elPl.value  = plaque;
+}
+
+// ── DICTÉE VOCALE BON DE COMMANDE ────────────────────────────────────────────
+let isRecBdc = false, srBdc = null;
+
+function toggleMicBdc() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert('Dictée non supportée sur ce navigateur. Utilisez Chrome ou Safari.');
+    return;
+  }
+  const btn = document.getElementById('mic-btn-bdc');
+  if (isRecBdc) {
+    srBdc && srBdc.stop();
+    return;
+  }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  srBdc = new SR();
+  srBdc.lang = 'fr-FR';
+  srBdc.continuous = true;
+  srBdc.interimResults = true;
+  let finalTxt = document.getElementById('dictee-bdc').value;
+  srBdc.onstart = () => {
+    isRecBdc = true;
+    btn.style.background = '#e04040';
+    btn.style.animation = 'mbeat .7s infinite alternate';
+    btn.textContent = '⏹️';
+  };
+  srBdc.onresult = (e) => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) finalTxt += e.results[i][0].transcript + ' ';
+      else interim = e.results[i][0].transcript;
+    }
+    document.getElementById('dictee-bdc').value = finalTxt + interim;
+  };
+  srBdc.onerror = () => { isRecBdc = false; btn.style.background = 'var(--accent)'; btn.style.animation = ''; btn.textContent = '🎙️'; };
+  srBdc.onend = () => {
+    if (isRecBdc) { srBdc.start(); return; }
+    btn.style.background = 'var(--accent)'; btn.style.animation = ''; btn.textContent = '🎙️';
+  };
+  srBdc.start();
+}
+
+async function genererBdc() {
+  if (isRecBdc) { srBdc && srBdc.stop(); isRecBdc = false; }
+  const dictee = (document.getElementById('dictee-bdc').value || '').trim();
+  if (!dictee) { alert('Dictez ou saisissez la description de la course.'); return; }
+
+  const sbar = document.getElementById('bdc-voice-sbar');
+  sbar.style.display = 'block'; sbar.style.color = 'var(--text2)';
+  sbar.innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><div class="spin"></div> Analyse en cours…</div>';
+
+  const now = new Date();
+  const fmtFR  = d => d.toLocaleDateString('fr-FR');
+  const fmtISO = d => d.toISOString().slice(0, 16);
+  const demain = new Date(now); demain.setDate(now.getDate() + 1);
+  const apres  = new Date(now); apres.setDate(now.getDate() + 2);
+
+  const prompt = `Tu es un assistant pour chauffeurs VTC. Analyse la dictée et extrait les informations de la course.
+
+Dictée : "${dictee}"
+
+Date de référence : ${fmtFR(now)} (aujourd'hui). "Demain" = ${fmtFR(demain)}, "après-demain" = ${fmtFR(apres)}.
+
+Retourne UNIQUEMENT un objet JSON valide (sans markdown, sans commentaire) avec exactement ces clés :
+{"passager_nom":"","passager_tel":"","passager_email":"","lieu_prise_charge":"","destination":"","distance_km":null,"montant_ttc":null,"date_prise_charge":""}
+
+Règles :
+- date_prise_charge : format ISO 8601 YYYY-MM-DDTHH:MM (ex: ${fmtISO(demain).slice(0,10)}T06:30). Si seule l'heure est donnée, utiliser aujourd'hui.
+- distance_km et montant_ttc : nombre décimal ou null si non mentionné
+- Ne jamais inventer une valeur non dictée — laisser "" ou null
+- passager_tel : chiffres uniquement, sans espace ni tiret`;
+
+  try {
+    const r = await authFetch(BACKEND + '/api/claude', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ payload: { model: 'claude-sonnet-4-6', max_tokens: 300, messages: [{ role: 'user', content: prompt }] } })
+    });
+    if (r.status === 403) {
+      const err = await r.json();
+      sbar.style.color = '#e04040';
+      sbar.innerHTML = `❌ ${err.error} ${upgradeCta((lsGet('user_plan') || 'gratuit').toLowerCase())}`;
+      return;
+    }
+    const data = await r.json();
+    const txt = data.content?.[0]?.text || '';
+    let parsed;
+    try { parsed = JSON.parse(txt.replace(/```json|```/g, '').trim()); }
+    catch(e) { throw new Error('Réponse invalide — réessayez.'); }
+
+    const set = (id, v) => { if (v !== null && v !== '' && v !== undefined) document.getElementById(id).value = v; };
+    set('bdc-passager-nom',   parsed.passager_nom);
+    set('bdc-passager-tel',   parsed.passager_tel);
+    set('bdc-passager-email', parsed.passager_email);
+    set('bdc-lieu-prise',     parsed.lieu_prise_charge);
+    set('bdc-destination',    parsed.destination);
+    set('bdc-distance',       parsed.distance_km);
+    set('bdc-montant',        parsed.montant_ttc);
+    set('bdc-date-prise',     parsed.date_prise_charge);
+
+    sbar.style.color = '#00b450';
+    sbar.innerHTML = '✅ Formulaire pré-rempli — vérifiez et complétez si besoin.';
+    setTimeout(() => document.getElementById('bdc-passager-nom').scrollIntoView({ behavior: 'smooth', block: 'center' }), 250);
+  } catch(e) {
+    sbar.style.color = '#e04040';
+    sbar.innerHTML = '❌ ' + e.message;
+  }
 }
 
 async function enregistrerBonCommande(){
