@@ -92,6 +92,30 @@ h1{
 }
 .footer-link a{color:#FF4500;text-decoration:none;}
 .footer-link a:hover{text-decoration:underline;}
+
+.forgot-link{
+  text-align:right;margin-top:-4px;margin-bottom:16px;
+  font-size:13px;
+}
+.forgot-link a{color:#888;text-decoration:none;}
+.forgot-link a:hover{color:#FF4500;}
+
+.view{display:none;}
+.view.active{display:block;}
+
+.back-link{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:13px;color:#666;cursor:pointer;
+  margin-bottom:24px;background:none;border:none;padding:0;
+}
+.back-link:hover{color:#FF4500;}
+
+.success-box{
+  text-align:center;padding:16px 0;
+}
+.success-box .icon{font-size:48px;margin-bottom:16px;}
+.success-box h2{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:8px;}
+.success-box p{color:#888;font-size:14px;line-height:1.6;}
 </style>
 </head>
 <body>
@@ -99,27 +123,58 @@ h1{
 
   <div class="logo">Devis<span>Voice</span></div>
 
-  <h1>Bon retour !</h1>
-  <p class="subtitle">Connectez-vous à votre espace</p>
+  <!-- Vue : connexion -->
+  <div id="view-login" class="view active">
+    <h1>Bon retour !</h1>
+    <p class="subtitle">Connectez-vous à votre espace</p>
 
-  <div class="form-group">
-    <label>Email professionnel</label>
-    <input type="email" id="l-email" placeholder="jean@dupont.fr"
-           autocomplete="email" required>
+    <div class="form-group">
+      <label>Email professionnel</label>
+      <input type="email" id="l-email" placeholder="jean@dupont.fr"
+             autocomplete="email" required>
+    </div>
+    <div class="form-group">
+      <label>Mot de passe</label>
+      <input type="password" id="l-password" placeholder="••••••••"
+             autocomplete="current-password" required
+             onkeydown="if(event.key==='Enter') login()">
+    </div>
+    <p class="forgot-link"><a href="#" onclick="showForgot();return false;">Mot de passe oublié ?</a></p>
+
+    <button class="btn-login" id="btn-login" onclick="login()">Se connecter</button>
+    <div class="err-msg" id="err-login"></div>
+
+    <p class="footer-link">
+      Première visite ? <a href="onboarding-web.html">Créer un compte</a>
+    </p>
   </div>
-  <div class="form-group">
-    <label>Mot de passe</label>
-    <input type="password" id="l-password" placeholder="••••••••"
-           autocomplete="current-password" required
-           onkeydown="if(event.key==='Enter') login()">
+
+  <!-- Vue : mot de passe oublié -->
+  <div id="view-forgot" class="view">
+    <button class="back-link" onclick="showLogin()">← Retour</button>
+    <h1>Mot de passe</h1>
+    <p class="subtitle">Entrez votre email pour recevoir un lien de réinitialisation</p>
+
+    <div class="form-group">
+      <label>Email professionnel</label>
+      <input type="email" id="f-email" placeholder="jean@dupont.fr" autocomplete="email">
+    </div>
+
+    <button class="btn-login" id="btn-forgot" onclick="sendReset()">Envoyer le lien</button>
+    <div class="err-msg" id="err-forgot"></div>
   </div>
 
-  <button class="btn-login" id="btn-login" onclick="login()">Se connecter</button>
-  <div class="err-msg" id="err-login"></div>
-
-  <p class="footer-link">
-    Première visite ? <a href="onboarding-web.html">Créer un compte</a>
-  </p>
+  <!-- Vue : email envoyé -->
+  <div id="view-sent" class="view">
+    <div class="success-box">
+      <div class="icon">📬</div>
+      <h2>Email envoyé !</h2>
+      <p>Vérifiez votre boîte mail.<br>Le lien est valable <strong>1 heure</strong>.</p>
+    </div>
+    <p class="footer-link" style="margin-top:32px;">
+      <a href="#" onclick="showLogin();return false;">← Retour à la connexion</a>
+    </p>
+  </div>
 
 </div>
 
@@ -129,6 +184,46 @@ h1{
 const BACKEND = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:8080'
   : 'https://devisvoice-backend-production-9ed2.up.railway.app';
+
+function showForgot() {
+  document.getElementById('view-login').classList.remove('active');
+  document.getElementById('view-forgot').classList.add('active');
+  const fe = document.getElementById('f-email');
+  const le = document.getElementById('l-email');
+  if (le.value) fe.value = le.value;
+  fe.focus();
+}
+
+function showLogin() {
+  document.getElementById('view-forgot').classList.remove('active');
+  document.getElementById('view-sent').classList.remove('active');
+  document.getElementById('view-login').classList.add('active');
+}
+
+async function sendReset() {
+  const email = document.getElementById('f-email').value.trim();
+  const btn   = document.getElementById('btn-forgot');
+  const errEl = document.getElementById('err-forgot');
+  if (!email) { errEl.style.display='block'; errEl.textContent='Veuillez entrer votre email'; return; }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Envoi...';
+  errEl.style.display = 'none';
+  try {
+    await fetch(BACKEND + '/api/users/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    // Toujours afficher la vue succès (ne pas révéler si l'email existe)
+    document.getElementById('view-forgot').classList.remove('active');
+    document.getElementById('view-sent').classList.add('active');
+  } catch {
+    btn.disabled = false;
+    btn.innerHTML = 'Envoyer le lien';
+    errEl.style.display = 'block';
+    errEl.textContent = 'Erreur réseau — réessayez';
+  }
+}
 
 async function login(){
   const email    = document.getElementById('l-email').value.trim();
