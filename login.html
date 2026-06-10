@@ -209,11 +209,19 @@ async function sendReset() {
   btn.innerHTML = '<span class="spinner"></span>Envoi...';
   errEl.style.display = 'none';
   try {
-    await fetch(BACKEND + '/api/users/forgot-password', {
+    const resp = await fetch(BACKEND + '/api/users/forgot-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
     });
+    const data = await resp.json();
+    if (!resp.ok) {
+      btn.disabled = false;
+      btn.innerHTML = 'Envoyer le lien';
+      errEl.style.display = 'block';
+      errEl.textContent = data.error || 'Erreur serveur — réessayez';
+      return;
+    }
     // Toujours afficher la vue succès (ne pas révéler si l'email existe)
     document.getElementById('view-forgot').classList.remove('active');
     document.getElementById('view-sent').classList.add('active');
