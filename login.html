@@ -289,7 +289,7 @@ async function login(){
   }
 }
 
-if (window.location.hash === '#forgot') showForgot();
+if (new URLSearchParams(window.location.search).get('forgot') === '1') showForgot();
 </script>
 </body>
 </html>
