@@ -257,6 +257,24 @@ supprimer les fichiers suivants (ancien flow fragmenté) :
 
 ---
 
+## Sécurité — État actuel (juin 2026)
+
+### Implémenté
+
+- **Mot de passe oublié** : flow complet `login.html` + `reset-password.html`, lien dans les onboardings (`?forgot=1`), token UUID 1h en DB (`reset_token`, `reset_token_expires`)
+- **Quotas Claude par plan** : compteurs mensuels en DB (`claude_calls_devis_month`, `claude_calls_vox_month`, `claude_tokens_month`, `claude_calls_reset_at`), reset auto au 1er du mois
+  - Devis/BDC : gratuit=5, starter=10, pro=illimité
+  - Vox : gratuit=10, starter=20, pro=30
+- **Type d'appel Claude** : champ `type: 'devis'|'vox'` envoyé par le frontend sur tous les appels `/api/claude` — permet les quotas séparés
+- **Protection anti-abus** : `max_tokens` et modèle forcés côté serveur (devis max 4096, vox max 1024)
+
+### Différé post-lancement
+
+- **JWT dans localStorage** : vulnérable au XSS — migration vers cookie `HttpOnly` + CSRF token prévue. Touche `authFetch()`, toutes les routes backend, et tous les formulaires de connexion.
+- **Audit logs** : aucune trace des actions utilisateurs — une table `audit_logs` (`user_email`, `action`, `detail`, `created_at`) à implémenter pour diagnostiquer et prouver en cas de litige.
+
+---
+
 ## Décisions produit actées
 
 - Pas de framework JS (rester en vanilla pour garder le contrôle total du bundle)
