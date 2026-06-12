@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>DevisVoice</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+html,body{
+  width:100%;height:100%;
+  background:#0d0d0d;
+  overflow:hidden;
+  font-family:'Inter',sans-serif;
+}
+
+.splash{
+  width:100%;height:100%;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:0;
+  animation:fadeIn .6s ease forwards;
+}
+
+/* Orbe animé */
+.orb-wrap{
+  position:relative;
+  width:120px;height:120px;
+  margin-bottom:40px;
+}
+
+.orb{
+  width:120px;height:120px;
+  border-radius:50%;
+  background:radial-gradient(circle at 38% 38%, #ff6a33, #FF4500 55%, #b33000);
+  box-shadow:
+    0 0 40px rgba(255,69,0,.5),
+    0 0 80px rgba(255,69,0,.2);
+  animation:pulse 2.4s ease-in-out infinite;
+}
+
+.orb-ring{
+  position:absolute;
+  inset:-12px;
+  border-radius:50%;
+  border:1.5px solid rgba(255,69,0,.25);
+  animation:ringPulse 2.4s ease-in-out infinite;
+}
+
+.orb-ring-2{
+  position:absolute;
+  inset:-26px;
+  border-radius:50%;
+  border:1px solid rgba(255,69,0,.12);
+  animation:ringPulse 2.4s ease-in-out infinite .3s;
+}
+
+.orb-spinner{
+  position:absolute;
+  inset:-20px;
+  border-radius:50%;
+  border:2.5px solid transparent;
+  border-top-color:#FF4500;
+  border-right-color:rgba(255,69,0,.3);
+  animation:spin 1s linear infinite;
+}
+
+/* Icône micro au centre de l'orbe */
+.mic-icon{
+  position:absolute;
+  inset:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.mic-icon svg{
+  width:44px;height:44px;
+  fill:#fff;
+  opacity:.92;
+}
+
+/* Logo texte */
+.logo{
+  font-family:'Syne',sans-serif;
+  font-size:36px;
+  font-weight:800;
+  color:#fff;
+  letter-spacing:-.5px;
+  margin-bottom:10px;
+}
+.logo span{color:#FF4500;}
+
+.tagline{
+  font-size:14px;
+  font-weight:300;
+  color:rgba(255,255,255,.4);
+  letter-spacing:.6px;
+  text-transform:uppercase;
+}
+
+
+/* Keyframes */
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(12px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+@keyframes pulse{
+  0%,100%{transform:scale(1);box-shadow:0 0 40px rgba(255,69,0,.5),0 0 80px rgba(255,69,0,.2);}
+  50%{transform:scale(1.06);box-shadow:0 0 56px rgba(255,69,0,.65),0 0 100px rgba(255,69,0,.3);}
+}
+
+@keyframes ringPulse{
+  0%,100%{transform:scale(1);opacity:1;}
+  50%{transform:scale(1.08);opacity:.5;}
+}
+
+@keyframes dotBounce{
+  0%,100%{transform:translateY(0);background:rgba(255,69,0,.4);}
+  50%{transform:translateY(-6px);background:#FF4500;}
+}
+
+@keyframes spin{
+  to{transform:rotate(360deg);}
+}
+</style>
+</head>
+<body>
+<div class="splash">
+
+  <div class="orb-wrap">
+    <div class="orb-ring-2"></div>
+    <div class="orb-ring"></div>
+    <div class="orb-spinner"></div>
+    <div class="orb"></div>
+    <div class="mic-icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v6a2 2 0 0 0 4 0V5a2 2 0 0 0-2-2zm-7 8a1 1 0 0 1 1 1 6 6 0 0 0 12 0 1 1 0 0 1 2 0 8 8 0 0 1-7 7.93V21h3a1 1 0 0 1 0 2H8a1 1 0 0 1 0-2h3v-2.07A8 8 0 0 1 4 12a1 1 0 0 1 1-1z"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="logo">Devis<span>Voice</span></div>
+  <div class="tagline">Chargement…</div>
+
+
+</div>
+</body>
+</html>
