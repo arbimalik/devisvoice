@@ -421,7 +421,7 @@ select option{background:var(--card);color:var(--text);}
     <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
       <div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;">CA du mois</div>
       <div id="dash-montant" style="font-size:38px;font-weight:700;color:var(--text);font-family:'Inter','Space Grotesk',sans-serif;letter-spacing:-1px;line-height:1;margin-bottom:6px;">0 €</div>
-      <div id="dash-montant-sub" style="font-size:12px;color:var(--text2);margin-bottom:14px;">Objectif 5 000 €</div>
+      <div id="dash-montant-sub" onclick="ouvrirEditObjectif()" style="font-size:12px;color:var(--text2);margin-bottom:14px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">Objectif 5 000 € <span style="font-size:10px;opacity:.5;">✏️</span></div>
       <div style="height:5px;background:var(--bg3);border-radius:99px;overflow:hidden;"><div id="dash-bar-montant" style="height:100%;background:var(--accent);border-radius:99px;width:0%;transition:width .6s;"></div></div>
     </div>
 
@@ -2213,6 +2213,47 @@ async function loadStats(){
   }catch(e){ }
 }
 
+function ouvrirEditObjectif(){
+  const actuel = parseInt(localStorage.getItem('dv_objectif_ca')||'5000',10)||5000;
+  // Supprimer une éventuelle modale déjà ouverte
+  document.getElementById('modal-objectif')?.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'modal-objectif';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:16px;padding:28px 24px;width:320px;box-shadow:0 8px 32px rgba(0,0,0,.18);font-family:inherit;">
+      <div style="font-size:15px;font-weight:700;color:#111;margin-bottom:6px;">Objectif mensuel CA</div>
+      <div style="font-size:12px;color:#888;margin-bottom:20px;">Saisissez votre objectif de chiffre d'affaires pour ce mois.</div>
+      <input id="input-objectif" type="number" min="0" step="100"
+        value="${actuel}"
+        style="width:100%;border:1.5px solid #e0e0e0;border-radius:10px;padding:11px 14px;font-size:18px;font-weight:700;font-family:inherit;color:#111;outline:none;box-sizing:border-box;margin-bottom:18px;"
+        placeholder="Ex : 5000">
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('modal-objectif').remove()"
+          style="flex:1;padding:11px;border:1.5px solid #e0e0e0;border-radius:10px;background:#fff;font-family:inherit;font-size:13px;cursor:pointer;color:#555;">Annuler</button>
+        <button onclick="validerObjectif()"
+          style="flex:2;padding:11px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">Enregistrer</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', e => { if(e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+  setTimeout(() => document.getElementById('input-objectif')?.focus(), 50);
+}
+
+function validerObjectif(){
+  const val = parseInt(document.getElementById('input-objectif')?.value||'0',10);
+  if(isNaN(val)||val<0) return;
+  localStorage.setItem('dv_objectif_ca', val);
+  document.getElementById('modal-objectif')?.remove();
+  // Mettre à jour l'affichage sans recharger toute la page
+  const objectifCA = val||5000;
+  const el = document.getElementById('dash-montant-sub');
+  if(el) el.innerHTML = `Objectif ${fmt(objectifCA)} € <span style="font-size:10px;opacity:.5;">✏️</span>`;
+  const montant = window._dvStats?.montant_mois||0;
+  const bar = document.getElementById('dash-bar-montant');
+  if(bar) bar.style.width = Math.min(montant/objectifCA*100,100)+'%';
+}
+
 // ── TABLEAU DE BORD ───────────────────────────────────────────────────────────
 async function loadDashboard(){
   // Header
@@ -2249,9 +2290,11 @@ async function loadDashboard(){
 
     // Stat 3 — CA du mois
     const montant = s.montant_mois||0;
+    const objectifCA = parseInt(localStorage.getItem('dv_objectif_ca')||'5000',10)||5000;
     set('dash-montant', fmt(montant)+' €');
-    set('dash-montant-sub', 'Objectif 5 000 €');
-    setW('dash-bar-montant', Math.min(montant/5000*100, 100));
+    const el = document.getElementById('dash-montant-sub');
+    if(el) el.innerHTML = `Objectif ${fmt(objectifCA)} € <span style="font-size:10px;opacity:.5;">✏️</span>`;
+    setW('dash-bar-montant', Math.min(montant/objectifCA*100, 100));
 
     // Stat 4 — Factures en attente
     const attente = s.factures_attente_montant||0;
