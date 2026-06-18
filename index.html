@@ -5397,7 +5397,7 @@ async function confirmerFusion(){
 function majAffichageChantiers(){
   const container = document.getElementById('chantiers-list');
   if(!_devisCourants.length) return;
-  renderChantiersList(_devisCourants, container);
+  renderChantiersList(_appliquerFiltreChantiers(_devisCourants), container);
 }
 
 function renderChantiersList(chantiers, container){
@@ -5487,7 +5487,19 @@ function showSubTab(name, btn){
   if(name==='bdc-courses') loadCourses();
 }
 
-async function loadChantiers(){
+function _appliquerFiltreChantiers(chantiers, filtre){
+  const f = filtre || window._filtreChantiers || 'tous';
+  if(f === 'tous') return chantiers;
+  return chantiers.filter(d => {
+    const st = lsGet('facture-statut-'+d.id) || 'non_envoyee';
+    if(f === 'en-cours')  return st === 'en_attente' || st === 'envoyee';
+    if(f === 'termines')  return st === 'payee';
+    if(f === 'planifies') return st === 'non_envoyee';
+    return true;
+  });
+}
+
+async function loadChantiers(filtre){
   const token = localStorage.getItem('dv_token');
   const email = ls('ent-email');
   const container = document.getElementById('chantiers-list');
@@ -5503,12 +5515,16 @@ async function loadChantiers(){
 
     facturesList.forEach(f => { lsSet('facture-statut-'+f.devis_id, f.statut); });
     const chantiers = tousDevis.filter(d => d.accepted && d.statut !== 'fusionné');
-    if(!chantiers.length){
-      container.innerHTML='<div style="text-align:center;padding:30px;color:var(--text2);font-size:13px;">Aucun chantier en cours.<br><span style="font-size:11px;">Les devis acceptés apparaîtront ici.</span></div>';
+    _devisCourants = chantiers;
+    const affiches = _appliquerFiltreChantiers(chantiers, filtre);
+    if(!affiches.length){
+      const msg = chantiers.length
+        ? 'Aucun résultat pour ce filtre.'
+        : 'Aucun chantier en cours.<br><span style="font-size:11px;">Les devis acceptés apparaîtront ici.</span>';
+      container.innerHTML=`<div style="text-align:center;padding:30px;color:var(--text2);font-size:13px;">${msg}</div>`;
       return;
     }
-    _devisCourants = chantiers;
-    renderChantiersList(chantiers, container);
+    renderChantiersList(affiches, container);
   }catch(e){
     container.innerHTML='<div style="text-align:center;padding:20px;color:#e04040;font-size:13px;">Impossible de charger les chantiers.</div>';
   }
